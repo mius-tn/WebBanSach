@@ -1,0 +1,78 @@
+@model IEnumerable<WedBanSach.Models.Promotion>
+@{
+    ViewData["Title"] = "Quản lý Khuyến mãi";
+    Layout = "_AdminLayout";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h2><i class="bi bi-percent"></i> Quản lý Khuyến mãi</h2>
+    <a href="@Url.Action("Create")" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Thêm khuyến mãi
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên chương trình</th>
+                        <th>Loại giảm giá</th>
+                        <th>Giá trị</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Ngày kết thúc</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var promotion in Model)
+                    {
+                        <tr>
+                            <td>@promotion.PromotionID</td>
+                            <td><strong>@promotion.PromotionName</strong></td>
+                            <td>@promotion.DiscountType</td>
+                            <td>@string.Format("{0:N0}", promotion.DiscountValue)</td>
+                            <td>@promotion.StartDate?.ToString("dd/MM/yyyy")</td>
+                            <td>@promotion.EndDate?.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="@Url.Action("Edit", new { id = promotion.PromotionID })" class="btn btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(@promotion.PromotionID)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<form id="deleteForm" method="post" asp-action="Delete" style="display: none;">
+    <input type="hidden" name="id" id="deleteId" />
+</form>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa khuyến mãi này?')) {
+                document.getElementById('deleteId').value = id;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+    </script>
+}

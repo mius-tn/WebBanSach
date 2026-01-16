@@ -1,0 +1,826 @@
+@model WedBanSach.Models.Book
+@{
+    ViewData["Title"] = Model.Title;
+    var relatedBooks = ViewBag.RelatedBooks as List<WedBanSach.Models.Book>;
+    
+    // Calculate Rating
+    double averageRating = 0;
+    int ratingCount = 0;
+    if (Model.Reviews != null && Model.Reviews.Any())
+    {
+        averageRating = Model.Reviews.Average(r => r.Rating);
+        ratingCount = Model.Reviews.Count;
+    }
+
+    // Determine Main Image
+    var mainImage = Model.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png";
+    var otherImages = Model.BookImages?.OrderByDescending(i => i.IsMain).ToList() ?? new List<WedBanSach.Models.BookImage>();
+}
+
+<!-- BREADCRUMB -->
+<div class="bg-light py-2 mb-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+                @if (Model.BookCategories != null && Model.BookCategories.Any())
+                {
+                    var firstCat = Model.BookCategories.First().Category;
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">@firstCat.CategoryName</a></li>
+                }
+                <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="bg-white rounded-3 p-3 shadow-sm mb-4">
+        <div class="row">
+            <!-- LEFT COLUMN: IMAGES & BUTTONS -->
+            <div class="col-lg-5 mb-4 mb-lg-0">
+                <div class="position-relative mb-3 text-center border-soft p-2">
+                    <img id="mainProductImage" src="@mainImage" class="img-fluid" style="max-height: 450px; object-fit: contain;" alt="@Model.Title">
+                    @if (Model.DiscountPrice.HasValue && Model.DiscountPrice < Model.Price)
+                    {
+                        var discountPercent = (int)((1 - (Model.DiscountPrice.Value / Model.Price)) * 100);
+                        <div class="position-absolute top-0 end-0 bg-danger text-white fw-bold px-3 py-2 rounded-circle shadow-sm" style="margin: 10px;">
+                            -@discountPercent%
+                        </div>
+                    }
+                </div>
+                
+                <!-- Thumbnails -->
+                <div class="d-flex gap-2 overflow-auto mb-4 pb-2" style="scrollbar-width: thin;">
+                    @if (otherImages.Any())
+                    {
+                        foreach (var img in otherImages)
+                        {
+                            <div class="border rounded p-1 cursor-pointer hover-shadow" onclick="document.getElementById('mainProductImage').src='@img.ImageUrl'" style="min-width: 80px; width: 80px; height: 80px;">
+                                <img src="@img.ImageUrl" class="w-100 h-100" style="object-fit: contain;" alt="Thumbnail">
+                            </div>
+                        }
+                    }
+                    else 
+                    {
+                         <div class="border rounded p-1" style="width: 80px; height: 80px;">
+                            <img src="@mainImage" class="w-100 h-100" style="object-fit: contain;" alt="Thumbnail">
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex flex-column flex-md-row gap-3 mb-4">
+                    <!-- Add to Cart Form -->
+                    <form method="post" action="/Cart/AddToCart" class="flex-grow-1">
+                        <input type="hidden" name="id" value="@Model.BookID" />
+                        <input type="hidden" name="quantity" value="1" id="addToCartQuantity" />
+                        <button type="submit" class="btn btn-outline-danger w-100 fw-bold py-2 border-2" style="border-radius: 8px;">
+                            <i class="bi bi-cart-plus bg-transparent"></i> Thêm vào giỏ hàng
+                        </button>
+                    </form>
+                    
+                    <!-- Buy Now Form -->
+                    <form method="get" action="/Cart/BuyNow/@Model.BookID" class="flex-grow-1">
+                        <button type="submit" class="btn btn-danger w-100 fw-bold py-2" style="border-radius: 8px; background-color: #C92127; border: none;">
+                            Mua ngay
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Policies -->
+                <div class="small">
+                    <h6 class="fw-bold mb-3">Chính sách ưu đãi của Fahasa</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2 d-flex gap-2 align-items-center">
+                            <i class="bi bi-truck text-danger fs-5"></i>
+                            <span>Thời gian giao hàng: <span class="fw-bold">Giao nhanh và uy tín</span></span>
+                        </li>
+                        <li class="mb-2 d-flex gap-2 align-items-center">
+                            <i class="bi bi-arrow-repeat text-danger fs-5"></i>
+                            <span>Chính sách đổi trả: <span class="fw-bold">Đổi trả miễn phí toàn quốc</span></span>
+                        </li>
+                        <li class="mb-2 d-flex gap-2 align-items-center">
+                            <i class="bi bi-shop text-danger fs-5"></i>
+                            <span>Chính sách khách sỉ: <span class="fw-bold">Ưu đãi khi mua số lượng lớn</span></span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: INFO -->
+            <div class="col-lg-7">
+                <h3 class="fw-bold mb-2" style="line-height: 1.4;">@Model.Title</h3>
+                
+                <div class="row mb-3 small">
+         
+                    <div class="col-md-6 mb-1">
+                        <span class="text-muted">Tác giả:</span> 
+                        <span class="fw-bold">
+                             @(Model.BookAuthors != null && Model.BookAuthors.Any() 
+                                ? string.Join(", ", Model.BookAuthors.Select(ba => ba.Author.AuthorName)) 
+                                : "N/A")
+                        </span>
+                    </div>
+                    <div class="col-md-6 mb-1">
+                        <span class="text-muted">Nhà xuất bản:</span> 
+                        <span class="fw-bold">@(Model.Publisher?.PublisherName ?? "N/A")</span>
+                    </div>
+                    <div class="col-md-6 mb-1">
+                        <span class="text-muted">Hình thức bìa:</span> 
+                        <span class="fw-bold">@(Model.CoverType ?? "N/A")</span>
+                    </div>
+                </div>
+
+                <!-- Rating -->
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="text-warning">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= Math.Round(ViewBag.AverageRating ?? 0.0))
+                            {
+                                <i class="bi bi-star-fill"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star"></i>
+                            }
+                        }
+                    </div>
+                    <span class="text-muted small">(@(ViewBag.RatingCount ?? 0) đánh giá)</span>
+                    <span class="text-muted mx-2">|</span>
+                    <span class="text-success small">Đã bán @Model.SoldQuantity</span>
+                </div>
+
+                <!-- Price Box -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-end gap-3 mb-2 p-3 rounded-3" style="background-color: #f8f9fa;">
+                        <span class="text-danger fw-bold display-6 mb-0">@((Model.DiscountPrice ?? Model.Price).ToString("#,##0")) đ</span>
+                        @if (Model.DiscountPrice.HasValue && Model.DiscountPrice < Model.Price)
+                        {
+                            var discountPercent = (int)((1 - (Model.DiscountPrice.Value / Model.Price)) * 100);
+                            <span class="text-muted text-decoration-line-through mb-2" style="font-size: 1.1rem;">@Model.Price.ToString("#,##0") đ</span>
+                            <span class="badge bg-danger mb-2">-@discountPercent%</span>
+                        }
+                    </div>
+                     <!-- Stock Status similar to image -->
+                      <div class="alert alert-primary py-2 px-3 d-inline-block border-0 text-primary small fw-bold" style="background-color: #e3f2fd; border-radius: 8px;">
+                        @if (Model.StockQuantity > 0)
+                        {
+                            <span>Còn hàng: @Model.StockQuantity</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Hết hàng</span>
+                        }
+                      </div>
+                </div>
+
+                <!-- Shipping Info -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2">Thông tin vận chuyển</h6>
+                    <div class="d-flex gap-2 justify-content-between align-items-center small text-muted">
+                        @{
+                            var initialAddress = "Phường Bến Nghé, Quận 1, Hồ Chí Minh";
+                            if (ViewBag.UserProvinceName != null) {
+                                initialAddress = $"{(ViewBag.UserHouseNumber != null ? ViewBag.UserHouseNumber + ", " : "")}{ViewBag.UserWardName}, {ViewBag.UserDistrictName}, {ViewBag.UserProvinceName}";
+                            }
+                        }
+                        <span>Giao hàng đến <span class="fw-bold text-dark" id="selectedAddress">@initialAddress</span></span>
+                        <a href="#" class="text-primary text-decoration-none" data-bs-toggle="modal" data-bs-target="#shippingModal">Thay đổi</a>
+                    </div>
+                </div>
+
+                <!-- Vouchers -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2">Ưu đãi liên quan <a href="#" class="small text-primary text-decoration-none float-end" data-bs-toggle="modal" data-bs-target="#promotionModal">Xem thêm ></a></h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (ViewBag.Promotions != null)
+                        {
+                            var promotions = ViewBag.Promotions as List<WedBanSach.Models.Promotion>;
+                            if (promotions != null && promotions.Any())
+                            {
+                                @foreach (var promo in promotions.Take(3))
+                                {
+                                    <div class="border border-warning bg-white rounded p-2 d-flex align-items-center cursor-pointer">
+                                        <i class="bi bi-ticket-perforated-fill text-warning me-2"></i>
+                                        <span class="small fw-bold">@promo.PromotionName</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Hiện chưa có mã giảm giá nào.</span>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <!-- Quantity -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2">Số lượng:</h6>
+                    <div class="input-group" style="width: 140px;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(-1)">-</button>
+                        <input type="text" class="form-control text-center" id="quantityDisplay" value="1" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(1)">+</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODUCT DETAILS TABLE & DESCRIPTION -->
+    <div class="bg-white rounded-3 p-4 shadow-sm mb-4">
+        <h5 class="fw-bold mb-3">Thông tin chi tiết</h5>
+        <div class="table-responsive">
+            <table class="table table-borderless table-sm mb-4" style="max-width: 800px;">
+                <tbody>
+                    <tr>
+                        <td class="text-muted" style="width: 200px;">Mã hàng</td>
+                        <td>@Model.ISBN</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Tên Nhà Cung Cấp</td>
+                        <td class="text-primary fw-bold">@(Model.Publisher?.PublisherName ?? "N/A")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Tác giả</td>
+                        <td>@(Model.BookAuthors != null && Model.BookAuthors.Any() ? string.Join(", ", Model.BookAuthors.Select(ba => ba.Author.AuthorName)) : "N/A")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Nhà xuất bản</td>
+                        <td>@(Model.Publisher?.PublisherName ?? "N/A")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Năm xuất bản</td>
+                        <td>@(Model.PublishYear ?? 2024)</td>   
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Trọng lượng (gr)</td>
+                        <td>@(Model.Weight.HasValue ? Model.Weight.Value.ToString() : "N/A")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Kích Thước Bao Bì</td>
+                        <td>@(Model.PackageSize ?? "N/A")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Số trang</td>
+                        <td>@(Model.PageCount.HasValue ? Model.PageCount.Value.ToString() : "N/A")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Hình thức</td>
+                        <td>@(Model.CoverType ?? "N/A")</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h5 class="fw-bold mb-3">Mô tả sản phẩm</h5>
+        <div class="product-description text-justify">
+             @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <p>@Model.Description</p>
+            }
+            else
+            {
+                <p>
+                    (Nội dung mô tả đang được cập nhật...) <br>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+                    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                </p>
+            }
+        </div>
+    </div>
+
+    <!-- RATINGS & REVIEWS -->
+    <div class="bg-white rounded-3 p-4 shadow-sm mb-4" id="reviews-section">
+        <h5 class="fw-bold mb-3">Đánh giá sản phẩm</h5>
+        
+        <div class="row mb-4">
+            <!-- Summary Column -->
+            <div class="col-md-4 text-center border-end">
+                <h1 class="text-warning fw-bold display-4 mb-0">@((ViewBag.AverageRating ?? 0).ToString("0.0"))/5</h1>
+                <div class="text-warning mb-2 fs-5">
+                    @for(int i=1; i<=5; i++) {
+                        if(i <= Math.Round((double)(ViewBag.AverageRating ?? 0))) { <i class="bi bi-star-fill"></i> }
+                        else { <i class="bi bi-star"></i> }
+                    }
+                </div>
+                <div class="text-muted">(@(ViewBag.RatingCount ?? 0) đánh giá)</div>
+                
+                @if (ViewBag.CanReview == true)
+                {
+                    <button class="btn btn-warning rounded-pill mt-3 px-4 fw-bold text-white" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+                        <i class="bi bi-pencil-fill me-2"></i> Viết đánh giá
+                    </button>
+                }
+                else
+                {
+                    <div class="mt-3 small text-muted fst-italic">
+                        (Bạn cần mua sản phẩm này để viết đánh giá)
+                    </div>
+                }
+            </div>
+            
+            <!-- Reviews List Column -->
+            <div class="col-md-8 px-4">
+                @if (Model.Reviews != null && Model.Reviews.Any())
+                {
+                    <div class="review-list" style="max-height: 400px; overflow-y: auto;">
+                        @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt))
+                        {
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <div>
+                                        <span class="fw-bold">@review.User.FullName</span>
+                                        <span class="text-warning small ms-2">
+                                            @for(int i=0; i<review.Rating; i++) { <i class="bi bi-star-fill"></i> }
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                </div>
+                                <p class="mb-2 text-muted small">@review.Comment</p>
+                                @if (!string.IsNullOrEmpty(review.ImageUrl))
+                                {
+                                    <div class="mb-2">
+                                        <img src="@review.ImageUrl" class="rounded border" style="max-height: 100px; max-width: 150px; object-fit: cover;" alt="Review Image">
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-chat-square-text fs-1 opacity-25"></i>
+                        <p class="mt-2">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá sản phẩm này!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal fade" id="writeReviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Viết đánh giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reviewForm" enctype="multipart/form-data">
+                        <input type="hidden" name="bookId" value="@Model.BookID">
+                        <div class="mb-3 text-center">
+                            <label class="form-label d-block fw-bold mb-2">Bạn chấm sản phẩm này bao nhiêu sao?</label>
+                            <div class="rating-input d-inline-flex flex-row-reverse gap-2 fs-3 text-secondary pointer-event">
+                                <input type="radio" name="rating" value="5" id="r5" class="d-none peer"><label for="r5" class="cursor-pointer text-warning hover-warning"><i class="bi bi-star-fill"></i></label>
+                                <input type="radio" name="rating" value="4" id="r4" class="d-none peer"><label for="r4" class="cursor-pointer text-warning hover-warning"><i class="bi bi-star-fill"></i></label>
+                                <input type="radio" name="rating" value="3" id="r3" class="d-none peer"><label for="r3" class="cursor-pointer text-warning hover-warning"><i class="bi bi-star-fill"></i></label>
+                                <input type="radio" name="rating" value="2" id="r2" class="d-none peer"><label for="r2" class="cursor-pointer text-warning hover-warning"><i class="bi bi-star-fill"></i></label>
+                                <input type="radio" name="rating" value="1" id="r1" class="d-none peer"><label for="r1" class="cursor-pointer text-warning hover-warning"><i class="bi bi-star-fill"></i></label>
+                            </div>
+                            <style>
+                                /* Simple star rating css trick */
+                                .rating-input input:checked ~ label, .rating-input label:hover, .rating-input label:hover ~ label { color: #ffc107 !important; }
+                            </style>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Hình ảnh (Tùy chọn)</label>
+                            <input type="file" class="form-control form-control-sm" name="reviewImage" accept="image/*">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nhận xét của bạn</label>
+                            <textarea class="form-control" name="comment" rows="3" placeholder="Chia sẻ cảm nhận về sản phẩm..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">Gửi đánh giá</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- RELATED BOOKS -->
+    <div class="bg-white rounded-3 p-4 shadow-sm">
+        <h5 class="fw-bold mb-4 text-uppercase">Fahasa Giới Thiệu</h5>
+         <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
+             @if (relatedBooks != null)
+            {
+                @foreach (var rBook in relatedBooks)
+                {
+                    <div class="col">
+                        <div class="book-card h-100 border-0 p-0">
+                            <div class="position-relative overflow-hidden group-hover-img mb-2">
+                                <a asp-controller="Books" asp-action="Details" asp-route-id="@rBook.BookID">
+                                    <img src="@(rBook.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                         class="book-cover rounded-3 border" alt="@rBook.Title">
+                                </a>
+                                @if (rBook.DiscountPrice.HasValue && rBook.DiscountPrice < rBook.Price)
+                                {
+                                    <span class="position-absolute top-0 end-0 bg-danger text-white small fw-bold px-2 py-1 rounded-start" style="margin-top: 10px;">
+                                        -@( (int)((1 - (rBook.DiscountPrice.Value / rBook.Price)) * 100) )%
+                                    </span>
+                                }
+                            </div>
+                            <h6 class="book-title mb-1" style="font-size: 14px; height: 40px;"><a asp-controller="Books" asp-action="Details" asp-route-id="@rBook.BookID" class="text-decoration-none text-dark">@rBook.Title</a></h6>
+                            <div class="price-box gap-1 mb-0">
+                                <span class="current-price text-danger fw-bold" style="font-size: 16px;">@((rBook.DiscountPrice ?? rBook.Price).ToString("#,##0")) đ</span>
+                                @if(rBook.DiscountPrice.HasValue)
+                                {
+                                    <span class="original-price" style="font-size: 12px;">@rBook.Price.ToString("#,##0") đ</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+         </div>
+    </div>
+
+</div>
+
+<!-- Promotion Modal -->
+<div class="modal fade" id="promotionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-gift text-danger"></i> ƯU ĐÃI LIÊN QUAN</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                <div class="mb-2">
+                    <h6 class="fw-bold small text-muted">Mã giảm giá</h6>
+                </div>
+                @if (ViewBag.Promotions != null)
+                {
+                    var promotions = ViewBag.Promotions as List<WedBanSach.Models.Promotion>;
+                    if (promotions != null && promotions.Any())
+                    {
+                        foreach (var promo in promotions)
+                        {
+                            <div class="border rounded-3 p-2 mb-2 d-flex gap-2 align-items-center" style="background: #fffbf0;">
+                                <!-- Icon -->
+                                <div class="d-flex align-items-center justify-content-center bg-warning rounded-3" style="width: 50px; min-width: 50px; height: 50px;">
+                                    <i class="bi bi-gift fs-4 text-white"></i>
+                                </div>
+                                
+                                <!-- Info -->
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-0 small">@promo.PromotionName</h6>
+                                    <p class="small text-muted mb-0" style="font-size: 0.75rem;">
+                                        @(promo.DiscountType == "Percent" 
+                                            ? $"Giảm {promo.DiscountValue}%" 
+                                            : $"Giảm {string.Format("{0:N0}", promo.DiscountValue ?? 0)}đ")
+                                        • HSD: @(promo.EndDate?.ToString("dd/MM/yyyy") ?? "Vô thời hạn")
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted py-3">Hiện chưa có mã giảm giá nào.</p>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Shipping Address Modal -->
+<div class="modal fade" id="shippingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-2">
+                <h6 class="modal-title fw-bold">Chọn địa chỉ giao hàng của bạn</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <!-- Default Address Option -->
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="addressType" id="defaultAddress" value="default" checked>
+                    <label class="form-check-label small" for="defaultAddress">
+                        Giao hàng đến <strong id="defaultAddressText">@initialAddress</strong>
+                    </label>
+                </div>
+                
+                <!-- Custom Address Option -->
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="addressType" id="customAddress" value="custom">
+                    <label class="form-check-label small" for="customAddress">
+                        Giao hàng đến địa chỉ khác
+                    </label>
+                </div>
+                
+                <!-- Address Form -->
+                <div id="customAddressForm">
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1">Tỉnh/Thành Phố</label>
+                        <select class="form-select form-select-sm" id="provinceSelect" disabled>
+                            <option value="">Chọn tỉnh/thành phố</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1">Quận/Huyện</label>
+                        <select class="form-select form-select-sm" id="districtSelect" disabled>
+                            <option value="">Chọn quận/huyện</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1">Phường/Xã</label>
+                        <select class="form-select form-select-sm" id="wardSelect" disabled>
+                            <option value="">Chọn phường/xã</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1">Số nhà, tên đường</label>
+                        <input type="text" class="form-control form-control-sm" id="houseNumberInput" placeholder="Ví dụ: 123 Đường ABC..." disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-2">
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3" onclick="confirmAddress()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        // Review Submission
+        $('#reviewForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            // Check logged in (simple check or let server handle)
+            // Get form data
+            var formData = $(this).serialize();
+            
+            // Check rating selected
+            if (!$('input[name="rating"]:checked').val()) {
+                alert('Vui lòng chọn số sao đánh giá!');
+                return;
+            }
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '/Review/SubmitReview',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    if (res.success) {
+                        alert(res.message);
+                        location.reload(); 
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra. Vui lòng thử lại sau.');
+                }
+            });
+        });
+
+        // Quantity update function
+        function updateQuantity(change) {
+            let qtyInput = document.getElementById('quantityDisplay');
+            let qtyHidden = document.getElementById('addToCartQuantity');
+            let currentQty = parseInt(qtyInput.value);
+            
+            let newQty = currentQty + change;
+            if (newQty < 1) newQty = 1;
+            
+            qtyInput.value = newQty;
+            qtyHidden.value = newQty;
+        }
+
+        // Copy promo code function
+        function copyPromoCode(code) {
+            navigator.clipboard.writeText(code).then(function() {
+                alert('Đã sao chép mã: ' + code);
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        // Vietnam Provinces API Integration
+        const API_BASE = 'https://provinces.open-api.vn/api/';
+        let selectedProvince = null;
+        let selectedDistrict = null;
+        let selectedWard = null;
+        let currentAddress = '@initialAddress'; // Store current address from server
+
+        // Initial address state if available
+        let savedProvince = { code: '@ViewBag.UserProvinceCode', name: '@ViewBag.UserProvinceName' };
+        let savedDistrict = { code: '@ViewBag.UserDistrictCode', name: '@ViewBag.UserDistrictName' };
+        let savedWard = { code: '@ViewBag.UserWardCode', name: '@ViewBag.UserWardName' };
+        let savedHouse = '@ViewBag.UserHouseNumber';
+
+        // Load provinces when modal opens (only once)
+        $('#shippingModal').on('show.bs.modal', function () {
+            if ($('#provinceSelect option').length === 1) {
+                loadProvinces();
+            }
+        });
+
+        // Reset to default when modal closes
+        $('#shippingModal').on('hidden.bs.modal', function () {
+            // Reset radio to default
+            $('#defaultAddress').prop('checked', true);
+            $('#customAddress').prop('checked', false);
+            
+            // Disable all dropdowns
+            $('#provinceSelect').prop('disabled', true);
+            
+            // Reset selections
+            resetAddressSelects();
+        });
+
+        // Toggle dropdowns enable/disable based on radio selection
+        $('input[name="addressType"]').on('change', function() {
+            if ($(this).val() === 'custom') {
+                // Enable province dropdown when custom address is selected
+                $('#provinceSelect').prop('disabled', false);
+                $('#houseNumberInput').prop('disabled', false);
+            } else {
+                // Disable all dropdowns and reset when default address is selected
+                $('#provinceSelect').prop('disabled', true);
+                $('#houseNumberInput').prop('disabled', true);
+                resetAddressSelects();
+            }
+        });
+
+        // Load provinces from API
+        function loadProvinces() {
+            $.ajax({
+                url: API_BASE + 'p/',
+                method: 'GET',
+                success: function(data) {
+                    const provinceSelect = $('#provinceSelect');
+                    provinceSelect.empty().append('<option value="">Chọn tỉnh/thành phố</option>');
+                    
+                    data.forEach(province => {
+                        provinceSelect.append(`<option value="${province.code}" data-name="${province.name}">${province.name}</option>`);
+                    });
+                },
+                error: function(err) {
+                    console.error('Error loading provinces:', err);
+                }
+            });
+        }
+
+        // Province selection handler
+        $('#provinceSelect').on('change', function() {
+            const provinceCode = $(this).val();
+            const provinceName = $(this).find('option:selected').data('name');
+            
+            if (provinceCode) {
+                selectedProvince = { code: provinceCode, name: provinceName };
+                loadDistricts(provinceCode);
+                $('#districtSelect').prop('disabled', false);
+            } else {
+                selectedProvince = null;
+                resetDistrictAndWard();
+            }
+        });
+
+        // Load districts based on province
+        function loadDistricts(provinceCode) {
+            $.ajax({
+                url: API_BASE + `p/${provinceCode}?depth=2`,
+                method: 'GET',
+                success: function(data) {
+                    const districtSelect = $('#districtSelect');
+                    districtSelect.empty().append('<option value="">Chọn quận/huyện</option>');
+                    
+                    if (data.districts) {
+                        data.districts.forEach(district => {
+                            districtSelect.append(`<option value="${district.code}" data-name="${district.name}">${district.name}</option>`);
+                        });
+                    }
+                },
+                error: function(err) {
+                    console.error('Error loading districts:', err);
+                }
+            });
+        }
+
+        // District selection handler
+        $('#districtSelect').on('change', function() {
+            const districtCode = $(this).val();
+            const districtName = $(this).find('option:selected').data('name');
+            
+            if (districtCode) {
+                selectedDistrict = { code: districtCode, name: districtName };
+                loadWards(districtCode);
+                $('#wardSelect').prop('disabled', false);
+            } else {
+                selectedDistrict = null;
+                resetWard();
+            }
+        });
+
+        // Load wards based on district
+        function loadWards(districtCode) {
+            $.ajax({
+                url: API_BASE + `d/${districtCode}?depth=2`,
+                method: 'GET',
+                success: function(data) {
+                    const wardSelect = $('#wardSelect');
+                    wardSelect.empty().append('<option value="">Chọn phường/xã</option>');
+                    
+                    if (data.wards) {
+                        data.wards.forEach(ward => {
+                            wardSelect.append(`<option value="${ward.code}" data-name="${ward.name}">${ward.name}</option>`);
+                        });
+                    }
+                },
+                error: function(err) {
+                    console.error('Error loading wards:', err);
+                }
+            });
+        }
+
+        // Ward selection handler
+        $('#wardSelect').on('change', function() {
+            const wardCode = $(this).val();
+            const wardName = $(this).find('option:selected').data('name');
+            if (wardName) {
+                selectedWard = { code: wardCode, name: wardName };
+            } else {
+                selectedWard = null;
+            }
+        });
+
+        // Confirm address selection
+        function confirmAddress() {
+            const addressType = $('input[name="addressType"]:checked').val();
+            
+            if (addressType === 'default') {
+                // Use current stored address
+                $('#selectedAddress').text(currentAddress);
+                $('#shippingModal').modal('hide');
+            } else {
+                // Custom address
+                if (!selectedProvince || !selectedDistrict || !selectedWard) {
+                    alert('Vui lòng chọn đầy đủ địa chỉ!');
+                    return;
+                }
+                
+                const houseNum = $('#houseNumberInput').val();
+                const fullAddress = (houseNum ? houseNum + ', ' : '') + `${selectedWard.name}, ${selectedDistrict.name}, ${selectedProvince.name}`;
+                
+                // Save to session & DB via AJAX
+                $.post('/Cart/SetShippingAddress', {
+                    provinceCode: selectedProvince.code,
+                    provinceName: selectedProvince.name,
+                    districtCode: selectedDistrict.code,
+                    districtName: selectedDistrict.name,
+                    wardCode: selectedWard.code,
+                    wardName: selectedWard.name,
+                    houseNumber: houseNum
+                }, function(res) {
+                    if (res.success) {
+                        // Update both display and stored address
+                        $('#selectedAddress').text(fullAddress);
+                        currentAddress = fullAddress;
+                        
+                        // Update default address label in modal for next time
+                        $('#defaultAddressText').text(fullAddress);
+                        
+                        $('#shippingModal').modal('hide');
+                    }
+                });
+            }
+        }
+
+        // Reset functions
+        function resetAddressSelects() {
+            $('#provinceSelect').val('');
+            resetDistrictAndWard();
+        }
+
+        function resetDistrictAndWard() {
+            $('#districtSelect').empty().append('<option value="">Chọn quận/huyện</option>').prop('disabled', true);
+            resetWard();
+            selectedDistrict = null;
+        }
+
+        function resetWard() {
+            $('#wardSelect').empty().append('<option value="">Chọn phường/xã</option>').prop('disabled', true);
+            selectedWard = null;
+        }
+    </script>
+}

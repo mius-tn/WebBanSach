@@ -1,0 +1,79 @@
+@model IEnumerable<WedBanSach.Models.Notification>
+@{
+    var unreadCount = ViewBag.UnreadCount as int? ?? 0;
+}
+
+<div class="noti-wrapper" id="notiBellWrapper">
+    <div class="noti-btn" id="notiBellBtn">
+        <i class="bi bi-bell"></i>
+        @if (unreadCount > 0)
+        {
+            <span class="noti-badge">@unreadCount</span>
+        }
+    </div>
+
+    <div class="noti-dropdown" id="notiDropdown">
+        <div class="noti-header">
+            <h5 class="noti-title">Thông báo khách hàng</h5>
+            @if (unreadCount > 0)
+            {
+                <a href="javascript:void(0);" class="noti-mark-read" id="markAllRead">Đánh dấu đã đọc</a>
+            }
+        </div>
+
+        <div class="noti-list">
+            @if (!Model.Any())
+            {
+                <div class="p-4 text-center text-muted small">
+                    <i class="bi bi-mailbox2 d-block fs-2 mb-2 text-pink-main"></i>
+                    Chưa có thông báo nào
+                </div>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <a href="/Account/Notifications/Detail/@item.NotificationID" 
+                       class="noti-item @(item.IsRead ? "" : "unread")" 
+                       data-id="@item.NotificationID">
+                        <div class="noti-icon-box">
+                            <i class="bi @(GetIconForType(item.Type))"></i>
+                        </div>
+                        <div class="noti-content">
+                            <h6 class="noti-msg-title">@item.Title</h6>
+                            <p class="noti-msg-text">@item.Message</p>
+                            <span class="noti-time">@GetTimeAgo(item.CreatedAt)</span>
+                        </div>
+                    </a>
+                }
+            }
+        </div>
+
+        <div class="noti-footer">
+            <a asp-controller="Account" asp-action="Notifications" class="noti-view-all">Xem tất cả thông báo</a>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetIconForType(string? type)
+    {
+        return type switch
+        {
+            "Order" => "bi-box-seam",
+            "Promotion" => "bi-tag",
+            "System" => "bi-gear",
+            "Account" => "bi-person-badge",
+            _ => "bi-chat-left-dots"
+        };
+    }
+
+    string GetTimeAgo(DateTime dateTime)
+    {
+        var span = DateTime.Now - dateTime;
+        if (span.TotalMinutes < 1) return "Vừa xong";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} phút trước";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours} giờ trước";
+        return dateTime.ToString("dd/MM/yyyy");
+    }
+}

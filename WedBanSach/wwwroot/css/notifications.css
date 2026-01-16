@@ -1,0 +1,308 @@
+/* ========================================
+   🌸 NOTIFICATION SYSTEM - Japanese Soft Kawaii
+   ======================================== */
+
+:root {
+    --noti-pink-main: #f8cdda;
+    --noti-pink-light: #fde7f0;
+    --noti-pink-dark: #e91e63;
+    --noti-text-dark: #444;
+    --noti-text-muted: #888;
+    --noti-white: #ffffff;
+    --noti-shadow: rgba(248, 205, 218, 0.4);
+}
+
+/* Notification Button Wrapper */
+.noti-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 0 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    height: 50px;
+    /* Match nav-icon-btn height */
+    width: 60px;
+    /* Match standard width */
+}
+
+
+.noti-btn {
+    background: var(--noti-white);
+    border: 1.5px solid var(--noti-pink-main);
+    color: var(--noti-pink-dark);
+    width: 32px;
+    /* Standardize icon area to 32px */
+    height: 32px;
+    /* Standardize icon area to 32px */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    padding: 0;
+    margin-bottom: 4px;
+    /* Match nav-icon-btn i's margin-bottom */
+}
+
+.noti-btn:hover {
+    background: var(--noti-pink-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--noti-shadow);
+}
+
+.noti-btn i {
+    font-size: 14px;
+    /* Match size of bi icons elsewhere */
+    transition: transform 0.3s ease;
+}
+
+.noti-btn:hover i {
+    animation: bell-ring 0.6s ease-in-out;
+}
+
+/* Badge */
+.noti-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background-color: var(--noti-pink-dark);
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid white;
+    box-shadow: 0 2px 4px rgba(233, 30, 99, 0.3);
+    z-index: 10;
+    animation: badge-pulse 2s infinite;
+}
+
+/* Dropdown Menu */
+.noti-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 350px;
+    background: var(--noti-white);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(233, 30, 99, 0.15);
+    border: 1px solid var(--noti-pink-main);
+    margin-top: 15px;
+    display: none;
+    z-index: 1001;
+    overflow: hidden;
+    transform-origin: top right;
+    animation: slide-down 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.noti-dropdown.show {
+    display: block;
+}
+
+/* Dropdown Header */
+.noti-header {
+    background: var(--noti-pink-light);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--noti-pink-main);
+}
+
+.noti-title {
+    font-weight: 700;
+    color: var(--noti-pink-dark);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.noti-mark-read {
+    font-size: 0.8rem;
+    color: var(--noti-text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.noti-mark-read:hover {
+    color: var(--noti-pink-dark);
+}
+
+/* List Items */
+.noti-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.noti-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--noti-pink-light);
+    display: flex;
+    gap: 12px;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.noti-item:hover {
+    background: var(--noti-pink-light);
+}
+
+.noti-item.unread {
+    background: #fffcfd;
+}
+
+.noti-item.unread::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--noti-pink-dark);
+    border-radius: 50%;
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.noti-icon-box {
+    width: 40px;
+    height: 40px;
+    background: var(--noti-pink-light);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--noti-pink-dark);
+    flex-shrink: 0;
+}
+
+.noti-content {
+    flex-grow: 1;
+}
+
+.noti-msg-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--noti-text-dark);
+    margin: 0 0 4px 0;
+}
+
+.noti-msg-text {
+    font-size: 0.85rem;
+    color: var(--noti-text-muted);
+    margin: 0 0 6px 0;
+    line-height: 1.4;
+}
+
+.noti-time {
+    font-size: 0.75rem;
+    color: #bbb;
+}
+
+.noti-footer {
+    padding: 12px;
+    text-align: center;
+    background: #fafafa;
+}
+
+.noti-view-all {
+    color: var(--noti-pink-dark);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* Animations */
+@keyframes bell-ring {
+
+    0%,
+    100% {
+        transform: rotate(0);
+    }
+
+    15% {
+        transform: rotate(15deg);
+    }
+
+    30% {
+        transform: rotate(-15deg);
+    }
+
+    45% {
+        transform: rotate(10deg);
+    }
+
+    60% {
+        transform: rotate(-10deg);
+    }
+
+    75% {
+        transform: rotate(5deg);
+    }
+}
+
+@keyframes badge-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.4);
+    }
+
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 6px rgba(233, 30, 99, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
+    }
+}
+
+@keyframes slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Scrollbar Style */
+.noti-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.noti-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.noti-list::-webkit-scrollbar-thumb {
+    background: var(--noti-pink-main);
+    border-radius: 10px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 576px) {
+    .noti-dropdown {
+        position: fixed;
+        top: 60px;
+        left: 10px;
+        right: 10px;
+        width: calc(100% - 20px);
+        margin-top: 0;
+    }
+}

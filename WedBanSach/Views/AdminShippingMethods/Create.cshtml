@@ -1,0 +1,46 @@
+@model WedBanSach.Models.ShippingMethod
+@{
+    ViewData["Title"] = "Thêm phương thức mới";
+    Layout = "_AdminLayout";
+}
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-header border-0 py-3" style="background-color: #fce4ec;">
+        <h4 class="mb-0 fw-bold" style="color: #444;"><i class="bi bi-plus-circle me-1"></i> Thêm phương thức vận chuyển</h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label fw-bold">Tên phương thức</label>
+                    <input asp-for="Name" class="form-control rounded-pill px-4" placeholder="Ví dụ: Giao hàng nhanh" required />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Price" class="form-label fw-bold">Phí vận chuyển (đ)</label>
+                    <input asp-for="Price" type="number" class="form-control rounded-pill px-4" required />
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="estimatedDays" class="form-label fw-bold">Thời gian giao dự kiến (Ngày)</label>
+                    <input asp-for="estimatedDays" type="number" class="form-control rounded-pill px-4" required />
+                    <span asp-validation-for="estimatedDays" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn rounded-pill px-4 fw-bold" style="background-color: #f8bbd0; color: #444;">
+                        <i class="bi bi-save"></i> Lưu thông tin
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 rounded-pill">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

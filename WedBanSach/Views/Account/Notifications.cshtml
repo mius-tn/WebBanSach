@@ -1,0 +1,236 @@
+@model WedBanSach.ViewModels.NotificationListViewModel
+@{
+    ViewData["Title"] = "Trung tâm thông báo";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-white py-4 px-4 d-flex justify-content-between align-items-center border-bottom">
+                    <div>
+                        <h3 class="m-0 fw-bold text-dark">
+                            <i class="bi bi-bell-fill me-2 text-danger"></i> Thông báo của tôi
+                        </h3>
+                        <p class="text-muted mb-0 small mt-1">Quản lý các cập nhật quan trọng từ cửa hàng</p>
+                    </div>
+                    @if (Model.Notifications.Any(n => !n.Notification.IsRead))
+                    {
+                        <form asp-action="MarkAllNotificationsRead" method="post" id="markAllReadForm">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                <i class="bi bi-check2-all me-1"></i> Đọc tất cả
+                            </button>
+                        </form>
+                    }
+                </div>
+                <div class="card-body p-0">
+                    @if (!Model.Notifications.Any())
+                    {
+                        <div class="text-center py-5 my-5">
+                            <div class="mb-4">
+                                <i class="bi bi-mailbox2 text-light-gray display-1 opacity-50"></i>
+                            </div>
+                            <h4 class="text-dark fw-bold">Hòm thư trống</h4>
+                            <p class="text-muted mb-4">Bạn chưa nhận được thông báo nào vào lúc này.</p>
+                            <a href="/" class="btn btn-danger rounded-pill px-5 py-2 fw-bold" style="background-color: #C92127;">KHÁM PHÁ NGAY</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="notification-list">
+                            @foreach (var item in Model.Notifications)
+                            {
+                                <div class="notification-item p-4 border-bottom @(item.Notification.IsRead ? "" : "unread")" 
+                                     style="transition: all 0.2s ease; cursor: pointer;"
+                                     onclick="window.location.href='/Account/Notifications/Detail/@item.Notification.NotificationID'">
+                                    <div class="d-flex gap-4">
+                                        <div class="noti-icon-wrapper flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle" 
+                                             style="width: 55px; height: 55px; background: @(GetBgColorForType(item.Notification.Type)); color: @(GetColorForType(item.Notification.Type)); font-size: 1.5rem;">
+                                            <i class="bi @(GetIconForType(item.Notification.Type))"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <h6 class="fw-bold mb-0 @(item.Notification.IsRead ? "text-dark" : "text-danger")" style="font-size: 1.1rem;">
+                                                    @item.Notification.Title
+                                                </h6>
+                                                <span class="text-muted x-small">
+                                                    <i class="bi bi-clock me-1"></i> @GetTimeAgo(item.Notification.CreatedAt)
+                                                </span>
+                                            </div>
+                                            <p class="text-secondary mb-2" style="font-size: 0.95rem; line-height: 1.5;">@item.Notification.Message</p>
+                                            
+                                            @if (item.OrderInfo != null)
+                                            {
+                                                <div class="mt-3 p-3 bg-light rounded-3 border d-flex gap-3 align-items-center">
+                                                    <img src="@item.OrderInfo.ProductImage" class="rounded object-fit-cover" width="60" height="80" alt="@item.OrderInfo.ProductName" onerror="this.src='/images/default-book.png'" />
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex justify-content-between">
+                                                            <h6 class="small fw-bold mb-1 text-truncate" style="max-width: 300px;">@item.OrderInfo.ProductName</h6>
+                                                            <span class="badge bg-@GetStatusColor(item.OrderInfo.OrderStatus)">
+                                                                @(item.OrderInfo.OrderStatus == "Completed" ? "Hoàn tất" :
+                                                                  item.OrderInfo.OrderStatus == "Cancelled" ? "Đã hủy" :
+                                                                  item.OrderInfo.OrderStatus == "Shipping" ? "Đang giao" :
+                                                                  item.OrderInfo.OrderStatus == "Confirmed" ? "Đã xác nhận" :
+                                                                  item.OrderInfo.OrderStatus == "Pending" ? "Chờ xử lý" : item.OrderInfo.OrderStatus)
+                                                            </span>
+                                                        </div>
+                                                        <p class="m-0 text-muted small">Mã đơn: #@item.OrderInfo.OrderId</p>
+                                                        <p class="m-0 text-danger fw-bold">@item.OrderInfo.TotalAmount.ToString("N0") đ</p>
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            <div class="d-flex justify-content-end align-items-center gap-3 mt-2">
+                                                @if (!item.Notification.IsRead)
+                                                {
+                                                    <button class="btn btn-link text-muted small p-0 mark-read-btn" 
+                                                            data-id="@item.Notification.NotificationID" 
+                                                            style="font-size: 0.85rem; text-decoration: none;"
+                                                            onclick="event.stopPropagation();">
+                                                        <i class="bi bi-check-circle me-1"></i> Đánh dấu đã đọc
+                                                    </button>
+                                                }
+                                                <a href="/Account/Notifications/Detail/@item.Notification.NotificationID" 
+                                                   class="text-danger small fw-bold text-decoration-none" 
+                                                   style="font-size: 0.85rem;"
+                                                   onclick="event.stopPropagation()">
+                                                    Xem thêm chi tiết <i class="bi bi-arrow-right ms-1"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        
+                        <!-- Pagination -->
+                        @if (Model.TotalPages > 1)
+                        {
+                            <div class="p-4 border-top">
+                                <nav>
+                                    <ul class="pagination justific-content-center m-0">
+                                        @if (Model.CurrentPage > 1)
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link text-danger" href="?page=@(Model.CurrentPage - 1)">Trước</a>
+                                            </li>
+                                        }
+                                        
+                                        @for (int i = 1; i <= Model.TotalPages; i++)
+                                        {
+                                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                                <a class="page-link @(i == Model.CurrentPage ? "bg-danger border-danger" : "text-danger")" href="?page=@i">@i</a>
+                                            </li>
+                                        }
+
+                                        @if (Model.CurrentPage < Model.TotalPages)
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link text-danger" href="?page=@(Model.CurrentPage + 1)">Sau</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </nav>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .notification-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+    .notification-item.unread {
+        background-color: #fff9f9;
+        border-left: 5px solid #C92127;
+    }
+    .x-small { font-size: 0.8rem; }
+    .text-light-gray { color: #dee2e6; }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.mark-read-btn').on('click', function() {
+                const $btn = $(this);
+                const id = $btn.data('id');
+                $.post('/Account/MarkNotificationRead', { id: id }, function(res) {
+                    if (res.success) {
+                        location.reload();
+                    }
+                });
+            });
+
+            $('#markAllReadForm').on('submit', function(e) {
+                e.preventDefault();
+                $.post('/Account/MarkAllNotificationsRead', function(res) {
+                    if (res.success) {
+                        location.reload();
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+@functions {
+    string GetIconForType(string? type)
+    {
+        return type switch
+        {
+            "Order" => "bi-box-seam",
+            "Promotion" => "bi-tag",
+            "System" => "bi-gear",
+            "Account" => "bi-person-badge",
+            _ => "bi-chat-left-dots"
+        };
+    }
+
+    string GetBgColorForType(string? type)
+    {
+        return type switch
+        {
+            "Order" => "#fff3cd",
+            "Promotion" => "#fde8e8",
+            "System" => "#e2e3e5",
+            _ => "#e3f2fd"
+        };
+    }
+
+    string GetColorForType(string? type)
+    {
+        return type switch
+        {
+            "Order" => "#856404",
+            "Promotion" => "#c53030",
+            "System" => "#383d41",
+            _ => "#0056b3"
+        };
+    }
+
+    string GetTimeAgo(DateTime dateTime)
+    {
+        var span = DateTime.Now - dateTime;
+        if (span.TotalMinutes < 1) return "Vừa xong";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} phút trước";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours} giờ trước";
+        return dateTime.ToString("dd/MM/yyyy HH:mm");
+    }
+
+    string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Completed" => "success",
+            "Cancelled" => "danger",
+            "Pending" => "warning",
+            "Shipping" => "info",
+            _ => "secondary"
+        };
+    }
+}

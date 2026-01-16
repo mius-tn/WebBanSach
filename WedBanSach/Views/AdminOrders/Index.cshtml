@@ -1,0 +1,143 @@
+@model IEnumerable<WedBanSach.Models.Order>
+@{
+    ViewData["Title"] = "Quản lý Đơn hàng";
+    Layout = "_AdminLayout";
+}
+
+<div class="page-header">
+    <h2><i class="bi bi-cart-check"></i> Quản lý Đơn hàng</h2>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <select name="status" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    @if (ViewBag.Statuses != null)
+                    {
+                        var statuses = ViewBag.Statuses as Dictionary<string, string>;
+                        if (statuses != null)
+                        {
+                            foreach (var s in statuses)
+                            {
+                                <option value="@s.Key" selected="@(ViewBag.Status == s.Key)">@s.Value</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-funnel"></i> Lọc
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Ngày đặt</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Thanh toán</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        var paymentStatus = order.Payments?.FirstOrDefault()?.PaymentStatus ?? "Pending";
+                        <tr>
+                            <td><strong>#@order.OrderID</strong></td>
+                            <td>@order.User?.FullName<br /><small class="text-muted">@order.User?.Email</small></td>
+                            <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td><strong>@string.Format("{0:N0}", order.TotalAmount) VNĐ</strong></td>
+                            <td>
+                                <span class="badge @GetStatusBadgeClass(order.OrderStatus)">
+                                    @GetStatusText(order.OrderStatus)
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge @GetPaymentBadgeClass(paymentStatus)">
+                                    @paymentStatus
+                                </span>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Details", new { id = order.OrderID })" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> Chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <nav>
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="?page=@i&status=@ViewBag.Status">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>
+
+@functions {
+    private string GetStatusBadgeClass(string? status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning",
+            "Confirmed" => "bg-info",
+            "Shipping" => "bg-primary",
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusText(string? status)
+    {
+        return status switch
+        {
+            "Pending" => "Chờ xử lý",
+            "Confirmed" => "Đã xác nhận",
+            "Shipping" => "Đang vận chuyển",
+            "Completed" => "Hoàn tất",
+            "Cancelled" => "Đã hủy",
+            _ => status ?? "Không xác định"
+        };
+    }
+
+    private string GetPaymentBadgeClass(string? status)
+    {
+        return status switch
+        {
+            "Paid" => "bg-success",
+            "Pending" => "bg-warning",
+            "Failed" => "bg-danger",
+            "Refunded" => "bg-secondary",
+            _ => "bg-warning"
+        };
+    }
+}

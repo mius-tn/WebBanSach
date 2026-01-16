@@ -1,0 +1,84 @@
+@model IEnumerable<WedBanSach.Models.Author>
+@{
+    ViewData["Title"] = "Quản lý Tác giả";
+    Layout = "_AdminLayout";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h2><i class="bi bi-person-badge"></i> Quản lý Tác giả</h2>
+    <a href="@Url.Action("Create")" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Thêm tác giả
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="searchTerm" class="form-control" placeholder="Tìm kiếm tác giả..." value="@ViewBag.SearchTerm" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search"></i> Tìm
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên tác giả</th>
+                        <th>Tiểu sử</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var author in Model)
+                    {
+                        <tr>
+                            <td>@author.AuthorID</td>
+                            <td><strong>@author.AuthorName</strong></td>
+                            <td>@(string.IsNullOrEmpty(author.Bio) ? "-" : (author.Bio.Length > 50 ? author.Bio.Substring(0, 50) + "..." : author.Bio))</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="@Url.Action("Edit", new { id = author.AuthorID })" class="btn btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(@author.AuthorID)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<form id="deleteForm" method="post" asp-action="Delete" style="display: none;">
+    <input type="hidden" name="id" id="deleteId" />
+</form>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa tác giả này?')) {
+                document.getElementById('deleteId').value = id;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+    </script>
+}

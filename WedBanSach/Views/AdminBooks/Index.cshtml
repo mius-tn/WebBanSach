@@ -1,0 +1,151 @@
+@model IEnumerable<WedBanSach.Models.Book>
+@{
+    ViewData["Title"] = "Quản lý Sách";
+    Layout = "_AdminLayout";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h2><i class="bi bi-book"></i> Quản lý Sách</h2>
+    <a href="@Url.Action("Create")" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Thêm sách mới
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <form method="get" class="row g-3">
+            <div class="col-md-8">
+                <input type="text" name="searchTerm" class="form-control" placeholder="Tìm kiếm theo tên sách, ISBN, nhà xuất bản..." value="@ViewBag.SearchTerm" />
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="booksTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ảnh</th>
+                        <th>Tên sách</th>
+                        <th>ISBN</th>
+                        <th>Nhà xuất bản</th>
+                        <th>Tác giả</th>
+                        <th>Giá</th>
+                        <th>Tồn kho</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var book in Model)
+                    {
+                        var mainImage = book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/no-image.png";
+                        <tr>
+                            <td>@book.BookID</td>
+                            <td>
+                                <img src="@mainImage" alt="@book.Title" style="width: 60px; height: 80px; object-fit: cover; border-radius: 4px;" />
+                            </td>
+                            <td>
+                                <strong>@book.Title</strong>
+                                @if (book.StockQuantity < 10)
+                                {
+                                    <span class="badge bg-warning text-dark ms-1">Sắp hết</span>
+                                }
+                            </td>
+                            <td>@(book.ISBN ?? "-")</td>
+                            <td>@(book.Publisher?.PublisherName ?? "-")</td>
+                            <td>
+                                @(book.BookAuthors != null && book.BookAuthors.Any() 
+                                    ? string.Join(", ", book.BookAuthors.Select(ba => ba.Author?.AuthorName ?? "").Where(n => !string.IsNullOrEmpty(n))) 
+                                    : "-")
+                            </td>
+                            <td>
+                                @if (book.DiscountPrice.HasValue)
+                                {
+                                    <span class="text-muted text-decoration-line-through">@string.Format("{0:N0}", book.Price)</span><br />
+                                    <span class="text-danger fw-bold">@string.Format("{0:N0}", book.DiscountPrice) VNĐ</span>
+                                }
+                                else
+                                {
+                                    <span>@string.Format("{0:N0}", book.Price) VNĐ</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge @(book.StockQuantity < 10 ? "bg-warning" : "bg-success")">
+                                    @book.StockQuantity
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge @(book.Status == "Active" ? "bg-success" : "bg-secondary")">
+                                    @book.Status
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="@Url.Action("Edit", new { id = book.BookID })" class="btn btn-outline-primary" title="Sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(@book.BookID)" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <nav>
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="?page=@i&searchTerm=@ViewBag.SearchTerm">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>
+
+<form id="deleteForm" method="post" asp-action="Delete" style="display: none;">
+    <input type="hidden" name="id" id="deleteId" />
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#booksTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                },
+                pageLength: @ViewBag.PageSize,
+                order: [[0, 'desc']]
+            });
+        });
+
+        function confirmDelete(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa sách này?')) {
+                document.getElementById('deleteId').value = id;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+    </script>
+}

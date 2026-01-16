@@ -1,0 +1,44 @@
+@model WedBanSach.Models.User
+@{
+    ViewData["Title"] = "Phân quyền người dùng";
+    Layout = "_AdminLayout";
+    var allRoles = ViewBag.AllRoles as List<WedBanSach.Models.Role> ?? new List<WedBanSach.Models.Role>();
+    var userRoleIds = ViewBag.UserRoleIds as List<int> ?? new List<int>();
+}
+
+<div class="page-header">
+    <h2><i class="bi bi-key"></i> Phân quyền: @Model.FullName</h2>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" asp-action="UpdateRoles">
+            <input type="hidden" name="id" value="@Model.UserID" />
+
+            <div class="mb-3">
+                <label class="form-label">Vai trò</label>
+                <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                    @foreach (var role in allRoles)
+                    {
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="roleIds" value="@role.RoleID" 
+                                   id="role_@role.RoleID" @(userRoleIds.Contains(role.RoleID) ? "checked" : "") />
+                            <label class="form-check-label" for="role_@role.RoleID">
+                                <strong>@role.RoleName</strong>
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="@Url.Action("Index")" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Cập nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

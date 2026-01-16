@@ -1,0 +1,308 @@
+@model IEnumerable<WedBanSach.Models.Order>
+@{
+    ViewData["Title"] = "Lịch sử mua hàng";
+    var currentUser = ViewBag.User as WedBanSach.Models.User; // Assuming we can get user info for sidebar or just use session/context if needed, but sidebar in this project seems to need passing user or fetching it.
+    // Actually, in Profile.cshtml, Model is User. Here Model is List<Order>.
+    // access to user info for sidebar might be needed. 
+    // Usually standard layout _Layout.cshtml handles nav, but this specific Sidebar is local.
+    // We might need to fetch User in the View or Controller to populate the sidebar avatar/name correctly.
+    // Checking OrderController.History, it just passes `orders`.
+    // It doesn't pass User.
+    // I will use a placeholder or minimal info for now, or ViewContext if available.
+    // Update: I should check how to get the user name/avatar if not passed in Model.
+    // Typically it's in User.Identity but this is custom Auth?
+    // Session["FullName"] or similar?
+    // Profile.cshtml uses @Model.FullName.
+    // I will trust that I can just omit the top user card or use generic info if I can't easily get it, 
+    // OR BETTER: I'll update the Controller to pass the User object in ViewBag.
+}
+
+<style>
+    :root {
+        --pink-main: #f8cdda;
+        --pink-light: #fde7f0;
+        --pink-hover: #f5b0c4;
+        --white: #ffffff;
+        --text-dark: #444444;
+        --border-soft: #f1c6d9;
+    }
+    
+    .sidebar-menu .nav-link {
+        color: var(--text-dark);
+        border-radius: 10px;
+        padding: 12px 20px;
+        margin-bottom: 5px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    
+    .sidebar-menu .nav-link:hover {
+        background-color: var(--pink-light);
+        color: #C92127;
+    }
+    
+    .sidebar-menu .nav-link.active {
+        background-color: var(--pink-main);
+        color: #C92127;
+        font-weight: 600;
+    }
+
+    .order-card {
+        transition: all 0.2s;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .order-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+        border-color: var(--pink-main);
+    }
+
+    .badge-soft-success { background-color: #d1e7dd; color: #0f5132; }
+    .badge-soft-warning { background-color: #fff3cd; color: #664d03; }
+    .badge-soft-danger { background-color: #f8d7da; color: #842029; }
+    .badge-soft-info { background-color: #cff4fc; color: #055160; }
+    .history-tabs {
+        display: flex;
+        justify-content: space-between;
+        background: #fff;
+        padding: 0;
+        margin: 0;
+        border-bottom: 1px solid #eee;
+    }
+    .history-tabs .nav-item {
+        flex: 1;
+        text-align: center;
+        list-style: none;
+    }
+    .history-tabs .nav-link {
+        color: #000; /* Chữ màu đen */
+        font-weight: 500;
+        padding: 15px 0;
+        border: none;
+        border-bottom: 2px solid transparent;
+        border-radius: 0;
+        background: transparent !important;
+        transition: all 0.3s;
+        margin-bottom: 0;
+    }
+    .history-tabs .nav-link:hover {
+        color: #C92127; /* Hover đỏ */
+        background-color: rgba(201, 33, 39, 0.05) !important; /* Đỏ nhẹ background */
+    }
+    .history-tabs .nav-link.active {
+        color: #C92127 !important;
+        border-bottom: 2px solid #C92127;
+        font-weight: 600;
+    }
+
+    /* Custom Pagination */
+    .pagination .page-link {
+        width: 35px;
+        height: 35px;
+        border-radius: 50% !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--pink-main);
+        background-color: var(--pink-main);
+        color: #C92127;
+        font-weight: 600;
+        margin: 0 4px;
+        transition: all 0.2s;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #fff;
+        color: #C92127;
+        border-color: #C92127;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #C92127;
+        color: #fff;
+        border-color: #C92127;
+    }
+    
+    .pagination .page-item.disabled .page-link {
+        background-color: #f1f1f1;
+        color: #ccc;
+        border-color: #ddd;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 text-center border-bottom bg-light">
+                    @{
+                        var userAvatar = Context.Session.GetString("UserAvatar");
+                        var userName = Context.Session.GetString("UserName") ?? "Tài khoản";
+                        var avatarSrc = !string.IsNullOrEmpty(userAvatar) ? userAvatar : $"https://ui-avatars.com/api/?name={userName}&background=f8cdda&color=444";
+                    }
+                    <img src="@avatarSrc" class="rounded-circle mb-3 shadow-sm object-fit-cover" width="80" height="80">
+                    <h5 class="fw-bold mb-0">@userName</h5>
+                    <small class="text-muted">Quản lý đơn hàng</small>
+                </div>
+                <div class="p-3">
+                    <nav class="nav flex-column sidebar-menu">
+                        <a class="nav-link" href="/Account/Profile"><i class="bi bi-person-fill me-2"></i> Hồ sơ cá nhân</a>
+                        <a class="nav-link" href="/Account/Addresses"><i class="bi bi-geo-alt-fill me-2"></i> Địa chỉ giao hàng</a>
+                        <a class="nav-link" href="/Account/Notifications"><i class="bi bi-bell-fill me-2"></i> Thông báo</a>
+                        <a class="nav-link active" href="/Order/History"><i class="bi bi-bag-fill me-2"></i> Lịch sử mua hàng</a>
+                        <hr>
+                        <a class="nav-link text-danger" href="/Account/Logout"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4" style="min-height: 500px;">
+                <div class="card-header bg-white p-0 border-bottom-0">
+                    <ul class="history-tabs">
+                         <li class="nav-item">
+                            <a class="nav-link @(ViewBag.CurrentStatus == "all" ? "active" : "")" href="/Order/History?status=all">Tất cả</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewBag.CurrentStatus == "pending" ? "active" : "")" href="/Order/History?status=pending">Chờ xử lý</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewBag.CurrentStatus == "shipping" ? "active" : "")" href="/Order/History?status=shipping">Đang giao</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewBag.CurrentStatus == "completed" ? "active" : "")" href="/Order/History?status=completed">Đã giao</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewBag.CurrentStatus == "review" ? "active" : "")" href="/Order/History?status=review">Đánh giá</a>
+                        </li>
+                         <li class="nav-item">
+                            <a class="nav-link @(ViewBag.CurrentStatus == "cancelled" ? "active" : "")" href="/Order/History?status=cancelled">Đã hủy</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body p-4 pt-4">
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-5">
+                            <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" width="100" class="mb-3 opacity-50" alt="No Orders">
+                            <h6 class="text-muted">Không tìm thấy đơn hàng nào</h6>
+                            <a href="/" class="btn btn-outline-danger rounded-pill mt-3 px-4">Mua sắm ngay</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var order in Model)
+                            {
+                                <div class="card order-card shadow-sm rounded-3 overflow-hidden">
+                                    <div class="card-header bg-white border-bottom-0 pt-3 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-bold">#@order.OrderID</span>
+                                            <span class="text-muted small">| @order.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
+                                        </div>
+                                        <div>
+                                            @{
+                                                string statusClass = "badge-soft-secondary";
+                                                switch(order.OrderStatus ?? "") {
+                                                    case "Completed": statusClass = "badge-soft-success"; break;
+                                                    case "Pending": statusClass = "badge-soft-warning"; break;
+                                                    case "Cancelled": statusClass = "badge-soft-danger"; break;
+                                                    case "Shipping": statusClass = "badge-soft-info"; break;
+                                                    default: statusClass = "bg-light text-dark"; break;
+                                                }
+                                                // Localization could be done here or in a helper
+                                                string statusDisplay = order.OrderStatus;
+                                                if(statusDisplay == "Pending") statusDisplay = "Chờ xử lý";
+                                                else if(statusDisplay == "Completed") statusDisplay = "Hoàn tất";
+                                                else if(statusDisplay == "Cancelled") statusDisplay = "Đã hủy";
+                                                else if(statusDisplay == "Shipping") statusDisplay = "Đang giao";
+                                            }
+                                            <span class="badge @statusClass px-3 py-2 rounded-pill">@statusDisplay</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body px-3 py-2">
+                                        @foreach (var detail in order.OrderDetails.Take(2))
+                                        {
+                                            <div class="d-flex gap-3 mb-2">
+                                                <img src="@(detail.Book?.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                                     class="rounded border" style="width: 50px; height: 70px; object-fit: cover;">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1 text-truncate" style="max-width: 400px;">@detail.Book?.Title</h6>
+                                                    <small class="text-muted">x @detail.Quantity</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <span class="d-block small text-muted">@((detail.UnitPrice ?? 0).ToString("#,##0")) đ</span>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if(order.OrderDetails.Count > 2)
+                                        {
+                                            <div class="text-center small text-muted my-1">
+                                                Xem thêm @(order.OrderDetails.Count - 2) sản phẩm khác...
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="card-footer bg-white border-top py-3 px-3 d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted">Tổng tiền:</small>
+                                            <span class="fw-bold text-danger fs-5 ms-1">@((order.TotalAmount ?? 0).ToString("#,##0")) đ</span>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            @if(order.OrderStatus == "Completed" || order.OrderStatus == "Hoàn tất") {
+                                                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="alert('Tính năng đánh giá đang được cập nhật')">
+                                                    <i class="bi bi-star-fill me-1"></i> Đánh giá
+                                                </button>
+                                            }
+                                            <a href="/Order/Details/@order.OrderID" class="btn btn-sm btn-outline-danger rounded-pill px-4">Xem chi tiết</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (ViewBag.TotalPages > 1)
+                {
+                    <div class="card-footer bg-white border-top-0 d-flex justify-content-center py-4">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination pagination-sm m-0">
+                                @{
+                                    var currentPage = ViewBag.CurrentPage;
+                                    var totalPages = ViewBag.TotalPages;
+                                    var status = ViewBag.CurrentStatus;
+                                }
+
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="/Order/History?status=@status&page=@(currentPage - 1)" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+
+                                @for (int i = 1; i <= totalPages; i++)
+                                {
+                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                        <a class="page-link" href="/Order/History?status=@status&page=@i">@i</a>
+                                    </li>
+                                }
+
+                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                    <a class="page-link" href="/Order/History?status=@status&page=@(currentPage + 1)" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

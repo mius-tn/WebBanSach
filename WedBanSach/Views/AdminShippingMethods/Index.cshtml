@@ -1,0 +1,77 @@
+@model IEnumerable<WedBanSach.Models.ShippingMethod>
+@{
+    ViewData["Title"] = "Quản lý Phương thức vận chuyển";
+    Layout = "_AdminLayout";
+}
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-header border-0 py-3 d-flex justify-content-between align-items-center" style="background-color: #fce4ec;">
+        <h4 class="mb-0 fw-bold" style="color: #444;"><i class="bi bi-truck me-2"></i> Phương thức vận chuyển</h4>
+        <a asp-action="Create" class="btn btn-sm rounded-pill px-4 fw-bold" style="background-color: #f8bbd0; color: #444;">
+            <i class="bi bi-plus-circle me-1"></i> Thêm mới
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Tên phương thức</th>
+                        <th>Phí vận chuyển</th>
+                        <th>Thời gian ước tính</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <span class="fw-bold">@item.Name</span>
+                            </td>
+                            <td>
+                                <span class="text-danger fw-bold">@string.Format("{0:N0}", item.Price) đ</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info-subtle text-info px-3">@item.estimatedDays ngày</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a asp-action="Edit" asp-route-id="@item.ShippingMethodID" class="btn btn-sm btn-outline-primary me-2">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@item.ShippingMethodID">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteModal-@item.ShippingMethodID" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Xác nhận xóa</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                Bạn có chắc chắn muốn xóa phương thức vận chuyển <strong>@item.Name</strong> không?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <form asp-action="Delete" asp-route-id="@item.ShippingMethodID" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                    <button type="submit" class="btn btn-danger">Xóa</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

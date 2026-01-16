@@ -1,0 +1,415 @@
+@model WedBanSach.ViewModels.CartViewModel
+@{
+    ViewData["Title"] = "Thanh toán";
+}
+
+<div class="bg-light py-2">
+    <div class="container">
+        <h5 class="fw-bold text-uppercase mt-2">THANH TOÁN</h5>
+    </div>
+</div>
+
+<div class="container my-4 pb-5">
+    <form asp-action="PlaceOrder" method="post">
+        <div class="row">
+            <!-- LEFT: CUSTOMER INFO & PAYMENT -->
+            <div class="col-lg-7">
+                <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-person-lines-fill me-2 text-danger"></i> THÔNG TIN KHÁCH HÀNG</h5>
+                    
+                    @{
+                        var user = ViewBag.User as WedBanSach.Models.User;
+                    }
+
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small">Họ tên người nhận</label>
+                            <input type="text" class="form-control" value="@user?.FullName" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small">Số điện thoại</label>
+                            <input type="text" class="form-control" value="@user?.Phone" readonly>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold small">Email</label>
+                            <input type="email" class="form-control" value="@user?.Email" readonly>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small text-danger mb-3">Địa chỉ nhận hàng (Bắt buộc)</label>
+                            
+                            @{
+                                var userAddresses = ViewBag.UserAddresses as IEnumerable<WedBanSach.Models.UserAddress>;
+                                bool hasAddresses = userAddresses != null && userAddresses.Any();
+                            }
+
+                            <!-- Address Selection -->
+                            @if (hasAddresses)
+                            {
+                                <div class="mb-3">
+                                    @foreach (var addr in userAddresses!)
+                                    {
+                                        <div class="form-check border rounded p-3 mb-2 address-item position-relative @(addr.IsDefault ? "border-danger bg-light" : "")" style="cursor: pointer;">
+                                            <input class="form-check-input ms-0 me-3 address-radio" type="radio" name="addressId" id="addr-@addr.AddressID" value="@addr.AddressID" @(addr.IsDefault ? "checked" : "")>
+                                            <label class="form-check-label d-flex align-items-center w-100" for="addr-@addr.AddressID" style="cursor: pointer;">
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-bold">@addr.ReceiverName <span class="fw-normal text-muted">(@addr.Phone)</span>
+                                                        @if(addr.IsDefault) { <span class="badge bg-danger ms-1">Mặc định</span> }
+                                                    </div>
+                                                    <small class="text-secondary d-block">@addr.AddressDetail, @addr.WardName, @addr.DistrictName, @addr.ProvinceName</small>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    }
+                                    
+                                    <!-- New Address Option -->
+                                    <div class="form-check border rounded p-3 mb-2 address-item position-relative" style="cursor: pointer;">
+                                        <input class="form-check-input ms-0 me-3 address-radio" type="radio" name="addressId" id="addr-new" value="" @(!hasAddresses ? "checked" : "")>
+                                        <label class="form-check-label fw-bold" for="addr-new" style="cursor: pointer;">
+                                            <i class="bi bi-plus-circle me-1"></i> Giao đến địa chỉ khác
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- New Address Form (Hidden if saved address selected) -->
+                            <div id="new-address-section" class="@(hasAddresses ? "d-none" : "")">
+                                <div class="card bg-light border-0 p-3 rounded-3">
+                                    <h6 class="fw-bold mb-3 small text-muted">NHẬP ĐỊA CHỈ MỚI</h6>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-md-4">
+                                            <select id="checkoutProvince" class="form-select">
+                                                <option value="">Chọn Tỉnh/Thành</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <select id="checkoutDistrict" class="form-select" disabled>
+                                                <option value="">Chọn Quận/Huyện</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <select id="checkoutWard" class="form-select" disabled>
+                                                <option value="">Chọn Phường/Xã</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <input type="text" id="houseNumber" class="form-control mb-2" placeholder="Số nhà, tên đường..." value="@ViewBag.HouseNumber">
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden input to store full address for submission (fallback) -->
+                            <input type="hidden" name="shippingAddress" id="fullShippingAddress">
+                            
+                            <small class="text-muted mt-2 d-block">Đơn hàng sẽ được giao đến địa chỉ này.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-credit-card me-2 text-danger"></i> PHƯƠNG THỨC THANH TOÁN</h5>
+                    @if (ViewBag.PaymentSettings != null)
+                    {
+                        var pMethods = ViewBag.PaymentSettings as IEnumerable<WedBanSach.Models.PaymentSetting>;
+                        var isFirst = true;
+                        foreach (var method in pMethods!)
+                        {
+                            <div class="form-check border rounded p-3 mb-2 payment-method-item position-relative" style="cursor: pointer;">
+                                <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="pay-@method.PaymentSettingID" value="@method.MethodName" @(isFirst ? "checked" : "")>
+                                <label class="form-check-label d-flex align-items-center" for="pay-@method.PaymentSettingID" style="cursor: pointer;">
+                                    <div>
+                                        <div class="fw-bold">@(method.MethodName == "Bank Transfer" ? "Chuyển khoản" : method.MethodName)</div>
+                                        @if (!string.IsNullOrEmpty(method.Description))
+                                        {
+                                            <small class="text-muted d-block">@method.Description</small>
+                                        }
+                                    </div>
+                                </label>
+                            </div>
+                            isFirst = false;
+                        }
+                    }
+                    else
+                    {
+                        <div class="form-check border rounded p-3 mb-2">
+                            <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="cod" value="COD" checked>
+                            <label class="form-check-label" for="cod">
+                                <span class="fw-bold">Thanh toán bằng tiền mặt khi nhận hàng (COD)</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-truck me-2 text-danger"></i> PHƯƠNG THỨC VẬN CHUYỂN</h5>
+                    @{
+                        var shippingMethods = ViewBag.ShippingMethods as List<WedBanSach.Models.ShippingMethod>;
+                    }
+                    @if (shippingMethods != null)
+                    {
+                        foreach (var method in shippingMethods)
+                        {
+                            <div class="form-check border rounded p-3 mb-3 shipping-method-item position-relative" style="transition: all 0.2s; cursor: pointer;">
+                                <div class="d-flex align-items-center">
+                                    <input class="form-check-input ms-0 me-3 shipping-radio" type="radio" name="shippingMethodId" id="ship-@method.ShippingMethodID" value="@method.ShippingMethodID" data-price="@method.Price" @(shippingMethods.IndexOf(method) == 0 ? "checked" : "")>
+                                    <label class="form-check-label flex-grow-1" for="ship-@method.ShippingMethodID" style="cursor: pointer;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div class="fw-bold d-block">@method.Name: <span class="text-danger">@method.Price.ToString("#,##0") đ</span></div>
+                                                <small class="text-muted">Dự kiến giao: @DateTime.Now.AddDays(method.estimatedDays).ToString("dd-MM-yyyy")</small>
+                                            </div>
+                                            <i class="bi bi-check-circle-fill text-danger fs-5 check-icon d-none"></i>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- RIGHT: ORDER REVIEW -->
+            <div class="col-lg-5">
+                <div class="bg-white rounded-3 shadow-sm p-4">
+                    <h5 class="fw-bold mb-4 pb-2 border-bottom">KIỂM TRA LẠI ĐƠN HÀNG</h5>
+                    
+                    <div class="order-items mb-4" style="max-height: 400px; overflow-y: auto;">
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                                <img src="@item.ImageUrl" alt="@item.Title" style="width: 60px; height: 80px; object-fit: contain;" class="border rounded">
+                                <div class="flex-grow-1">
+                                    <h6 class="small fw-bold mb-1">@item.Title</h6>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="small text-muted">Số lượng: @item.Quantity</span>
+                                        <span class="fw-bold text-danger">@item.Total.ToString("#,##0") đ</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="summary-details">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Thành tiền</span>
+                            <span>@Model.TotalAmount.ToString("#,##0") đ</span>
+                        </div>
+                        @if (Model.DiscountAmount > 0)
+                        {
+                            <div class="d-flex justify-content-between mb-2 text-success">
+                                <span>Giảm giá (@Model.CouponCode)</span>
+                                <span>-@Model.DiscountAmount.ToString("#,##0") đ</span>
+                            </div>
+                        }
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Phí vận chuyển</span>
+                            <span id="shipping-fee-display">0 đ</span>
+                        </div>
+                        <div class="border-top my-3"></div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <span class="fw-bold">TỔNG CỘNG</span>
+                            <span id="final-total-display" class="fw-bold text-danger fs-4">@Model.FinalTotal.ToString("#,##0") đ</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 fw-bold py-3 fs-5" style="background-color: #C92127;">XÁC NHẬN THANH TOÁN</button>
+                    <p class="text-muted small text-center mt-3">(Vui lòng kiểm tra lại đơn hàng trước khi thanh toán)</p>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .shipping-method-item:hover, .payment-method-item:hover {
+        border-color: #C92127 !important;
+        background-color: #fff9f9;
+        transition: all 0.2s;
+    }
+    .shipping-method-item.selected, .payment-method-item.payment-selected {
+        border-color: #C92127 !important;
+        background-color: #fff9f9;
+        box-shadow: 0 0 0 1px #C92127;
+    }
+    .shipping-radio:checked + label .check-icon {
+        display: block !important;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            const baseTotal = @Model.FinalTotal.ToString(System.Globalization.CultureInfo.InvariantCulture); // Safe number rendering
+            const API_BASE = 'https://provinces.open-api.vn/api/';
+
+            // Session data for pre-filling
+            const prefillProvince = "@ViewBag.ProvinceCode";
+            const prefillDistrict = "@ViewBag.DistrictCode";
+            const prefillWard = "@ViewBag.WardCode";
+
+            function updateSummary() {
+                const $selected = $('input[name="shippingMethodId"]:checked');
+                const shippingPrice = parseFloat($selected.data('price')) || 0;
+                const finalTotal = baseTotal + shippingPrice;
+
+                $('#shipping-fee-display').text(new Intl.NumberFormat('vi-VN').format(shippingPrice) + ' đ');
+                $('#final-total-display').text(new Intl.NumberFormat('vi-VN').format(finalTotal) + ' đ');
+
+                $('.shipping-method-item').removeClass('selected');
+                $selected.closest('.shipping-method-item').addClass('selected');
+            }
+
+            $('input[name="shippingMethodId"]').on('change', updateSummary);
+            $('.shipping-method-item').on('click', function(e) {
+                if (e.target.tagName !== 'INPUT') {
+                    $(this).find('input').prop('checked', true).trigger('change');
+                }
+            });
+
+            // Payment Logic
+            function updatePaymentSelection() {
+                $('.payment-method-item').removeClass('payment-selected');
+                $('input[name="paymentMethod"]:checked').closest('.payment-method-item').addClass('payment-selected');
+            }
+            
+            $('.payment-method-item').on('click', function(e) {
+                if (e.target.tagName !== 'INPUT') {
+                    $(this).find('input').prop('checked', true).trigger('change');
+                }
+            });
+            
+            $('input[name="paymentMethod"]').on('change', updatePaymentSelection);
+            updatePaymentSelection(); // Initial state
+
+            $('.address-radio').on('change', function() {
+                if ($(this).val() === "") {
+                    $('#new-address-section').removeClass('d-none');
+                } else {
+                    $('#new-address-section').addClass('d-none');
+                }
+            });
+
+            // Address Logic (Only load if needed or eager load)
+            function loadProvinces() {
+                $.get(API_BASE + 'p/', function(data) {
+                    const provinceSelect = $('#checkoutProvince');
+                    data.forEach(p => {
+                        provinceSelect.append(`<option value="${p.code}" data-name="${p.name}">${p.name}</option>`);
+                    });
+
+                    if (prefillProvince) {
+                        provinceSelect.val(prefillProvince).trigger('change');
+                    }
+                });
+            }
+
+            $('#checkoutProvince').on('change', function() {
+                const code = $(this).val();
+                const districtSelect = $('#checkoutDistrict');
+                const wardSelect = $('#checkoutWard');
+
+                districtSelect.empty().append('<option value="">Chọn Quận/Huyện</option>').prop('disabled', true);
+                wardSelect.empty().append('<option value="">Chọn Phường/Xã</option>').prop('disabled', true);
+
+                if (code) {
+                    $.get(API_BASE + `p/${code}?depth=2`, function(data) {
+                        data.districts.forEach(d => {
+                            districtSelect.append(`<option value="${d.code}" data-name="${d.name}">${d.name}</option>`);
+                        });
+                        districtSelect.prop('disabled', false);
+
+                        if (prefillDistrict && code == prefillProvince) {
+                            districtSelect.val(prefillDistrict).trigger('change');
+                        }
+                    });
+                }
+                updateFullAddress();
+            });
+
+            $('#checkoutDistrict').on('change', function() {
+                const code = $(this).val();
+                const wardSelect = $('#checkoutWard');
+
+                wardSelect.empty().append('<option value="">Chọn Phường/Xã</option>').prop('disabled', true);
+
+                if (code) {
+                    $.get(API_BASE + `d/${code}?depth=2`, function(data) {
+                        data.wards.forEach(w => {
+                            wardSelect.append(`<option value="${w.code}" data-name="${w.name}">${w.name}</option>`);
+                        });
+                        wardSelect.prop('disabled', false);
+
+                        if (prefillWard && code == prefillDistrict) {
+                            wardSelect.val(prefillWard).trigger('change');
+                        }
+                    });
+                }
+                updateFullAddress();
+            });
+
+            $('#checkoutWard, #houseNumber').on('change keyup', updateFullAddress);
+
+            function updateFullAddress() {
+                const provinceName = $('#checkoutProvince option:selected').data('name') || "";
+                const districtName = $('#checkoutDistrict option:selected').data('name') || "";
+                const wardName = $('#checkoutWard option:selected').data('name') || "";
+                const house = $('#houseNumber').val() || "";
+
+                if (provinceName && districtName && wardName && house) {
+                    $('#fullShippingAddress').val(`${house}, ${wardName}, ${districtName}, ${provinceName}`);
+                } else {
+                    $('#fullShippingAddress').val("");
+                }
+            }
+
+            // Form Submission Validation
+            $('form').on('submit', function (e) {
+                const selectedAddressId = $('input[name="addressId"]:checked').val();
+                
+                // If "New Address" is selected (value is empty) OR no address radio exists (no saved addresses)
+                if (!selectedAddressId) {
+                    updateFullAddress(); // Final sync before check
+                    
+                    const fullAddress = $('#fullShippingAddress').val();
+                    const province = $('#checkoutProvince').val();
+                    const district = $('#checkoutDistrict').val();
+                    const ward = $('#checkoutWard').val();
+                    const house = $('#houseNumber').val();
+
+                    if (!province || !district || !ward || !house) {
+                        e.preventDefault();
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Thông tin chưa đầy đủ',
+                                text: 'Vui lòng điền đầy đủ địa chỉ nhận hàng (Tỉnh, Quận, Phường và Số nhà) hoặc chọn địa chỉ đã lưu.',
+                                confirmButtonColor: '#C92127',
+                                confirmButtonText: 'Đã hiểu'
+                            });
+                        } else {
+                            alert('Vui lòng điền đầy đủ địa chỉ nhận hàng (Tỉnh, Quận, Phường và Số nhà).');
+                        }
+                        return false;
+                    }
+                    
+                    if (!fullAddress) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+                
+                // Show loading
+                const btn = $(this).find('button[type="submit"]');
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang đặt hàng...');
+                return true;
+            });
+
+            // Init
+            if($('#addr-new').is(':checked') || $('.address-radio').length === 0) {
+                 $('#new-address-section').removeClass('d-none');
+            }
+            loadProvinces();
+            updateSummary();
+        });
+    </script>
+}

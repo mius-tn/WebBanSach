@@ -1,0 +1,155 @@
+@model WedBanSach.Models.Order
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "_AdminLayout";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h2><i class="bi bi-cart-check"></i> Chi tiết đơn hàng #@Model.OrderID</h2>
+    <a href="@Url.Action("Index")" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Quay lại
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Thông tin khách hàng</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Tên:</strong> @Model.User?.FullName</p>
+                <p><strong>Email:</strong> @Model.User?.Email</p>
+                <p><strong>Điện thoại:</strong> @Model.User?.Phone</p>
+                <p><strong>Địa chỉ giao hàng:</strong> @Model.ShippingAddress</p>
+                <p><strong>Phương thức vận chuyển:</strong> <span class="badge bg-info-subtle text-info">@Model.ShippingMethodName</span> (+@string.Format("{0:N0}", Model.ShippingFee ?? 0) đ)</p>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Sản phẩm</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Ảnh</th>
+                                <th>Tên sách</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detail in Model.OrderDetails)
+                            {
+                                var image = detail.Book?.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/no-image.png";
+                                <tr>
+                                    <td><img src="@image" alt="" style="width: 50px; height: 70px; object-fit: cover;" /></td>
+                                    <td>@detail.Book?.Title</td>
+                                    <td>@detail.Quantity</td>
+                                    <td>@string.Format("{0:N0}", detail.UnitPrice) VNĐ</td>
+                                    <td><strong>@string.Format("{0:N0}", detail.Quantity * detail.UnitPrice) VNĐ</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end">Tạm tính:</th>
+                                <th>@string.Format("{0:N0}", Model.TotalAmount - (Model.ShippingFee ?? 0)) VNĐ</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" class="text-end">Phí vận chuyển (@Model.ShippingMethodName):</th>
+                                <th>@string.Format("{0:N0}", Model.ShippingFee ?? 0) VNĐ</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" class="text-end text-danger fs-5">Tổng cộng:</th>
+                                <th class="text-danger fs-5">@string.Format("{0:N0}", Model.TotalAmount) VNĐ</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Cập nhật trạng thái</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="UpdateStatus">
+                    <input type="hidden" name="id" value="@Model.OrderID" />
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái hiện tại</label>
+                        <div>
+                            <span class="badge bg-primary">@GetStatusText(Model.OrderStatus)</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái mới</label>
+                        <select name="status" class="form-select">
+                            <option value="Pending" selected="@(Model.OrderStatus == "Pending")">Chờ xử lý</option>
+                            <option value="Confirmed" selected="@(Model.OrderStatus == "Confirmed")">Đã xác nhận</option>
+                            <option value="Shipping" selected="@(Model.OrderStatus == "Shipping")">Đang vận chuyển</option>
+                            <option value="Completed" selected="@(Model.OrderStatus == "Completed")">Hoàn tất</option>
+                            <option value="Cancelled" selected="@(Model.OrderStatus == "Cancelled")">Đã hủy</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-circle"></i> Cập nhật
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Thanh toán</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Payments?.Any() == true)
+                {
+                    var payment = Model.Payments.First();
+                    <p><strong>Trạng thái:</strong> <span class="badge bg-success">@payment.PaymentStatus</span></p>
+                    <p><strong>Số tiền:</strong> @string.Format("{0:N0}", payment.Amount) VNĐ</p>
+                    <p><strong>Ngày:</strong> @payment.PaymentDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    @if (!string.IsNullOrEmpty(payment.TransactionCode))
+                    {
+                        <p><strong>Mã giao dịch:</strong> @payment.TransactionCode</p>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">Chưa có thông tin thanh toán</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetStatusText(string? status)
+    {
+        return status switch
+        {
+            "Pending" => "Chờ xử lý",
+            "Confirmed" => "Đã xác nhận",
+            "Shipping" => "Đang vận chuyển",
+            "Completed" => "Hoàn tất",
+            "Cancelled" => "Đã hủy",
+            _ => status ?? "Không xác định"
+        };
+    }
+}

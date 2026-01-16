@@ -1,0 +1,150 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<div class="page-header">
+    <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card fade-in">
+            <i class="bi bi-book"></i>
+            <h3>@ViewBag.Stats.TotalBooks</h3>
+            <p>Tổng số sách</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card fade-in" style="animation-delay: 0.1s;">
+            <i class="bi bi-cart-check"></i>
+            <h3>@ViewBag.Stats.TodayOrders</h3>
+            <p>Đơn hàng hôm nay</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card fade-in" style="animation-delay: 0.2s;">
+            <i class="bi bi-currency-dollar"></i>
+            <h3>@string.Format("{0:N0}", ViewBag.Stats.TotalRevenue)</h3>
+            <p>Doanh thu (VNĐ)</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card fade-in" style="animation-delay: 0.3s;">
+            <i class="bi bi-people"></i>
+            <h3>@ViewBag.Stats.TotalUsers</h3>
+            <p>Tổng người dùng</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Doanh thu 30 ngày qua</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Cảnh báo</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-box-seam"></i>
+                    <strong>@ViewBag.Stats.LowStockBooks</strong> sách sắp hết hàng (tồn kho < 10)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-trophy"></i> Top 10 sách bán chạy</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Tên sách</th>
+                                <th>Số lượng bán</th>
+                                <th>Tổng doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int index = 1;
+                            }
+                            @foreach (var item in ViewBag.TopBooks)
+                            {
+                                <tr>
+                                    <td>@index</td>
+                                    <td>@item.Book.Title</td>
+                                    <td><span class="badge bg-primary">@item.TotalSold</span></td>
+                                    <td>@string.Format("{0:N0}", item.Book.Price * item.TotalSold) VNĐ</td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Revenue Chart
+        const revenueData = @Html.Raw(Json.Serialize(ViewBag.RevenueData));
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: revenueData.map(x => new Date(x.date).toLocaleDateString('vi-VN')),
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: revenueData.map(x => x.revenue),
+                    borderColor: '#f5b0cc',
+                    backgroundColor: 'rgba(248, 200, 220, 0.3)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#f8c8dc',
+                    pointBorderColor: '#f5b0cc',
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('vi-VN') + ' VNĐ';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

@@ -1,0 +1,331 @@
+﻿@using WedBanSach.Helpers
+@using WedBanSach.ViewModels
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WedBanSach</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/fahasa-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/notifications.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="fahasa-header">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <!-- 1. Logo -->
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <!-- Placeholder Logo Text if image missing -->
+                    <h3 class="text-pink m-0 fw-bold"><i class="bi bi-book-half"></i> BookStore</h3>
+                </a>
+
+                <!-- 2. Search Bar -->
+                <div class="search-bar flex-grow-1 mx-4 d-none d-md-block position-relative">
+                    <form method="get" asp-controller="Books" asp-action="Category">
+                        <input type="text" id="searchInput" name="searchTerm" class="search-input" placeholder="Tìm kiếm sách, tác giả..." value="@Context.Request.Query["searchTerm"]" autocomplete="off">
+                        <button type="submit" class="search-btn">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </form>
+                    <div id="searchSuggestions" class="position-absolute bg-white shadow-lg rounded-3 w-100 mt-1" style="z-index: 1000; display: none; overflow: hidden; max-height: 400px; overflow-y: auto;">
+                        <!-- Suggestions will look like this: -->
+                        <!-- 
+                        <a href="#" class="d-flex align-items-center p-2 text-decoration-none text-dark hover-bg-light border-bottom">
+                            <img src="..." width="50" height="70" class="object-fit-cover rounded me-2">
+                            <div>
+                                <h6 class="m-0 small fw-bold">Title</h6>
+                                <p class="m-0 x-small text-muted">Author</p>
+                                <span class="text-danger fw-bold small">100.000d</span>
+                            </div>
+                        </a>
+                        -->
+                    </div>
+                </div>
+
+            <!-- 3. Icons Menu -->
+                <div class="d-flex align-items-center gap-3"> <!-- Added gap-3 for spacing -->
+                    
+                       
+
+                    <a asp-controller="Home" asp-action="Index" class="nav-icon-btn active">
+                        <i class="bi bi-house-door"></i>
+                        <span class="d-none d-xl-inline">Trang chủ</span>
+                    </a>
+                    
+                    <!-- MEGA MENU COMPONENT -->
+                    @await Component.InvokeAsync("CategoryMenu")
+                    
+                    <a asp-controller="Cart" asp-action="Index" class="nav-icon-btn position-relative">
+                        <i class="bi bi-cart3"></i>
+                        <span class="d-none d-xl-inline">Giỏ hàng</span>
+                        @* Quantity Badge Placeholder *@
+                        @{
+                            var cart = Context.Session.GetObjectFromJson<CartViewModel>("Cart");
+                            var cartCount = cart?.TotalQuantity ?? 0;
+                        }
+                        @if(cartCount > 0) {
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+                                @cartCount
+                            </span>
+                        }
+                    </a>
+
+                    @if (Context.Session.GetString("UserName") != null)
+                    {
+                        <!-- Notification Bell -->
+                        @await Component.InvokeAsync("NotificationBell")
+
+                        <div class="dropdown">
+                            <a href="#" class="nav-icon-btn" data-bs-toggle="dropdown">
+                                <div class="d-flex align-items-center gap-2 border rounded-pill px-2 py-1" style="background: #f8f9fa;">
+                                    @{
+                                        var headerAvatar = Context.Session.GetString("UserAvatar");
+                                        if (!string.IsNullOrEmpty(headerAvatar))
+                                        {
+                                            <img src="@headerAvatar" alt="User" class="rounded-circle object-fit-cover" width="32" height="32">
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-person-circle text-pink"></i>
+                                        }
+                                    }
+                                    <span class="small fw-bold text-dark" style="max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        @Context.Session.GetString("UserName")
+                                    </span>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu border-soft shadow-soft dropdown-menu-end">
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">Tài khoản</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Notifications">Thông báo của tôi</a></li>
+                                <li><a class="dropdown-item" asp-controller="Order" asp-action="History">Lịch sử mua hàng</a></li>
+                                @if (Context.Session.GetString("IsAdmin") == "True")
+                                {
+                                    <li><a class="dropdown-item text-danger" asp-controller="Admin" asp-action="Index">Quản trị Admin</a></li>
+            
+                                }
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Đăng xuất</a></li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="nav-icon-btn">
+                            <i class="bi bi-person"></i>
+                            <span class="d-none d-xl-inline">Đăng nhập</span>
+                        </a>
+                    }
+                </div>
+            </div>
+            
+            <!-- Mobile Search (Visible only on mobile) -->
+            <div class="d-block d-md-none mt-3">
+                 <form method="get" asp-controller="Books" asp-action="Category">
+                     <div class="position-relative">
+                        <input type="text" name="searchTerm" class="search-input" placeholder="Tìm kiếm...">
+                        <button type="submit" class="search-btn">
+                            <i class="bi bi-search"></i>
+                        </button>
+                     </div>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        @if (TempData["LoginSuccess"] != null)
+        {
+            <div class="toast show align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" id="loginSuccessToast">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        @TempData["LoginSuccess"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- BODY -->
+    <main role="main" class="pb-5" style="min-height: 80vh;">
+        @RenderBody()
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-top pt-5 pb-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-pink fw-bold mb-3"><i class="bi bi-book-half"></i> BookStore</h5>
+                    <p class="text-muted">
+                        Lầu 5, 387-389 Hai Bà Trưng, Quận 3, TP HCM<br>
+                        Công Ty Cổ Phần Phát Hành Sách TP HCM - FAHASA<br>
+                        info@fahasa.com
+                    </p>
+                    <div class="d-flex gap-2">
+                        <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="fw-bold mb-3">DỊCH VỤ</h6>
+                    <ul class="list-unstyled text-muted" style="font-size: 14px;">
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Điều khoản sử dụng</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Chính sách bảo mật</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Giới thiệu Fahasa</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Hệ thống trung tâm</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="fw-bold mb-3">HỖ TRỢ</h6>
+                    <ul class="list-unstyled text-muted" style="font-size: 14px;">
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Chính sách đổi - trả</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Chính sách khách sỉ</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Phương thức vận chuyển</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Phương thức thanh toán</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="fw-bold mb-3">ĐĂNG KÝ NHẬN TIN</h6>
+                    <form class="d-flex gap-2">
+                        <input type="email" class="form-control rounded-pill" placeholder="Nhập email của bạn...">
+                        <button class="btn btn-pink-filled rounded-pill px-4">Gửi</button>
+                    </form>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center text-muted" style="font-size: 13px;">
+                &copy; 2026 WedBanSach - Inspired by Fahasa. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chat Widget -->
+    <div class="chat-widget-btn">
+        <i class="bi bi-chat-dots-fill chat-icon"></i>
+        <div class="chat-badge"></div>
+    </div>
+
+    <div class="chat-popup">
+        <div class="chat-header">
+            <div class="admin-avatar">
+                <i class="bi bi-headset"></i>
+            </div>
+            <div class="chat-info">
+                <h4>Chăm sóc khách hàng</h4>
+                <p>Admin đang online</p>
+            </div>
+            <!-- Close button optional if handled by toggle, but good to have -->
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="message admin">Xin chào! Tôi có thể giúp gì cho bạn?</div>
+        </div>
+        <div class="chat-footer">
+            <button type="button" id="uploadButton" class="btn btn-sm text-secondary"><i class="bi bi-paperclip"></i></button>
+            <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." autocomplete="off">
+            <button type="button" id="sendButton"><i class="bi bi-send-fill"></i></button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/cart.js" asp-append-version="true"></script>
+    <script src="~/js/notifications.js" asp-append-version="true"></script>
+    
+    <!-- SignalR & Chat -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script>
+        var currentUserEmail = '@Context.Session.GetString("UserEmail")'; // Fixed Key
+        if (!currentUserEmail) currentUserEmail = '@Context.Session.GetString("UserName")'; // Fallback
+    </script>
+    <script src="~/js/chat.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function() {
+            let debounceTimer;
+            const $searchInput = $('#searchInput');
+            const $suggestionsBox = $('#searchSuggestions');
+
+            $searchInput.on('input', function() {
+                clearTimeout(debounceTimer);
+                const query = $(this).val().trim();
+
+                if (query.length < 2) {
+                    $suggestionsBox.hide();
+                    return;
+                }
+
+                debounceTimer = setTimeout(function() {
+                    $.ajax({
+                        url: '/Books/SearchSuggestions',
+                        data: { term: query },
+                        success: function(data) {
+                            $suggestionsBox.empty();
+                            if (data.length > 0) {
+                                data.forEach(item => {
+                                    const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price);
+                                    const html = `
+                                        <a href="/Chi-Tiet/${item.id}" class="d-flex align-items-center p-2 text-decoration-none text-dark border-bottom suggestion-item" style="transition: background 0.2s;">
+                                            <img src="${item.image}" width="50" height="70" class="object-fit-cover rounded me-2">
+                                            <div>
+                                                <h6 class="m-0 small fw-bold text-truncate" style="max-width: 250px;">${item.title}</h6>
+                                                <p class="m-0 text-muted" style="font-size: 11px;">${item.author}</p>
+                                                <span class="text-danger fw-bold small">${price}</span>
+                                            </div>
+                                        </a>
+                                    `;
+                                    $suggestionsBox.append(html);
+                                });
+                                // Hover effect via JS if CSS is tricky
+                                $('.suggestion-item').hover(
+                                    function() { $(this).css('background-color', '#f8f9fa'); },
+                                    function() { $(this).css('background-color', 'white'); }
+                                );
+                                $suggestionsBox.show();
+                            } else {
+                                $suggestionsBox.hide();
+                            }
+                        }
+                    });
+                }, 300); // Debounce 300ms
+            });
+
+            // Close when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.search-bar').length) {
+                    $suggestionsBox.hide();
+                }
+            });
+        });
+    </script>
+    <script>
+        // Auto-hide toast notification after 4 seconds
+        $(document).ready(function() {
+            const toastEl = document.getElementById('loginSuccessToast');
+            if (toastEl) {
+                setTimeout(function() {
+                    const toast = bootstrap.Toast.getInstance(toastEl) || new bootstrap.Toast(toastEl);
+                    toast.hide();
+                }, 4000);
+            }
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

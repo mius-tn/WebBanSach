@@ -1,0 +1,241 @@
+@model IEnumerable<WedBanSach.Models.UserAddress>
+@{
+    ViewData["Title"] = "Địa chỉ của tôi";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 text-center border-bottom bg-light">
+                    @{
+                        var userAvatar = Context.Session.GetString("UserAvatar");
+                        var userName = Context.Session.GetString("UserName") ?? "Tài khoản";
+                        var avatarSrc = !string.IsNullOrEmpty(userAvatar) ? userAvatar : $"https://ui-avatars.com/api/?name={userName}&background=f8cdda&color=444";
+                    }
+                    <img src="@avatarSrc" class="rounded-circle mb-3 shadow-sm object-fit-cover" width="80" height="80">
+                    <h5 class="fw-bold mb-0">@userName</h5>
+                    <small class="text-muted">Quản lý địa chỉ</small>
+                </div>
+                <div class="p-3">
+                    <nav class="nav flex-column sidebar-menu">
+                        <a class="nav-link" href="/Account/Profile"><i class="bi bi-person-fill me-2"></i> Hồ sơ cá nhân</a>
+                        <a class="nav-link active" href="/Account/Addresses"><i class="bi bi-geo-alt-fill me-2"></i> Địa chỉ giao hàng</a>
+                        <a class="nav-link" href="/Account/Notifications"><i class="bi bi-bell-fill me-2"></i> Thông báo</a>
+                        <a class="nav-link" href="/Order/History"><i class="bi bi-bag-fill me-2"></i> Lịch sử mua hàng</a>
+                        <hr>
+                        <a class="nav-link text-danger" href="/Account/Logout"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-4 px-4 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                         <h5 class="fw-bold m-0 text-dark">Địa chỉ giao hàng</h5>
+                         <p class="text-muted small m-0">Quản lý các địa chỉ nhận hàng của bạn</p>
+                    </div>
+                    <button class="btn btn-danger fw-bold rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addressModal" onclick="resetForm()">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm địa chỉ mới
+                    </button>
+                </div>
+                <div class="card-body p-4">
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-geo-alt display-1 text-muted opacity-25"></i>
+                            <p class="text-muted mt-3">Bạn chưa có địa chỉ nào.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row g-3">
+                            @foreach (var item in Model)
+                            {
+                                <div class="col-12">
+                                    <div class="border rounded-3 p-3 position-relative address-card @(item.IsDefault ? "border-danger bg-light" : "")">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <span class="fw-bold">@item.ReceiverName</span>
+                                                    @if (item.IsDefault)
+                                                    {
+                                                        <span class="badge bg-danger">Mặc định</span>
+                                                    }
+                                                </div>
+                                                <p class="text-secondary small mb-1"><i class="bi bi-telephone me-1"></i> @item.Phone</p>
+                                                <p class="text-muted small m-0">@item.AddressDetail, @item.WardName, @item.DistrictName, @item.ProvinceName</p>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick='editAddress(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(item)))'>Cập nhật</button>
+                                                @if (!item.IsDefault)
+                                                {
+                                                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="deleteAddress(@item.AddressID)">Xóa</button>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Address Modal -->
+<div class="modal fade" id="addressModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Thông tin địa chỉ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="SaveAddress" method="post" id="addressForm">
+                <div class="modal-body">
+                    <input type="hidden" name="AddressID" id="AddressID" value="0">
+                    <input type="hidden" name="ProvinceName" id="ProvinceName">
+                    <input type="hidden" name="DistrictName" id="DistrictName">
+                    <input type="hidden" name="WardName" id="WardName">
+
+
+
+                    <div class="mb-3">
+                         <div class="row g-2 mb-2">
+                             <div class="col-4">
+                                 <select name="ProvinceCode" id="province" class="form-select" required><option value="">Tỉnh/Thành</option></select>
+                             </div>
+                             <div class="col-4">
+                                 <select name="DistrictCode" id="district" class="form-select" disabled required><option value="">Quận/Huyện</option></select>
+                             </div>
+                             <div class="col-4">
+                                 <select name="WardCode" id="ward" class="form-select" disabled required><option value="">Phường/Xã</option></select>
+                             </div>
+                         </div>
+                         <input type="text" name="AddressDetail" id="AddressDetail" class="form-control" placeholder="Số nhà, tên đường..." required>
+                    </div>
+
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="IsDefault" id="IsDefault" value="true">
+                        <label class="form-check-label" for="IsDefault">Đặt làm địa chỉ mặc định</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger rounded-pill fw-bold px-4">Lưu địa chỉ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .sidebar-menu .nav-link {
+        color: #444; border-radius: 10px; padding: 12px 20px; transition: 0.2s;
+    }
+    .sidebar-menu .nav-link:hover, .sidebar-menu .nav-link.active {
+        background-color: #fce4ec; color: #C92127; font-weight: 600;
+    }
+    .address-card:hover { border-color: #C92127 !important; background: #fff9f9; }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const API_BASE = 'https://provinces.open-api.vn/api/';
+
+        $(document).ready(function() {
+            loadProvinces();
+            
+            // Cascading Dropdowns
+            $('#province').change(function() {
+                const code = $(this).val();
+                const name = $(this).find(':selected').text();
+                $('#ProvinceName').val(name);
+                
+                $('#district').empty().append('<option value="">Quận/Huyện</option>').prop('disabled', true);
+                $('#ward').empty().append('<option value="">Phường/Xã</option>').prop('disabled', true);
+                
+                if(code) {
+                    $.get(API_BASE + `p/${code}?depth=2`, function(data) {
+                        data.districts.forEach(d => $('#district').append(`<option value="${d.code}">${d.name}</option>`));
+                        $('#district').prop('disabled', false);
+                    });
+                }
+            });
+
+            $('#district').change(function() {
+                const code = $(this).val();
+                $('#DistrictName').val($(this).find(':selected').text());
+                
+                $('#ward').empty().append('<option value="">Phường/Xã</option>').prop('disabled', true);
+                
+                if(code) {
+                    $.get(API_BASE + `d/${code}?depth=2`, function(data) {
+                        data.wards.forEach(w => $('#ward').append(`<option value="${w.code}">${w.name}</option>`));
+                        $('#ward').prop('disabled', false);
+                    });
+                }
+            });
+
+            $('#ward').change(function() {
+                $('#WardName').val($(this).find(':selected').text());
+            });
+        });
+
+        function loadProvinces() {
+             $.get(API_BASE + 'p/', function(data) {
+                  data.forEach(p => $('#province').append(`<option value="${p.code}">${p.name}</option>`));
+             });
+        }
+
+        window.resetForm = function() {
+            $('#addressForm')[0].reset();
+            $('#AddressID').val(0);
+            $('#district').prop('disabled', true);
+            $('#ward').prop('disabled', true);
+        }
+
+        window.editAddress = function(data) {
+            $('#addressModal').modal('show');
+            $('#AddressID').val(data.AddressID);
+            // ReceiverName and Phone inputs removed
+            $('#AddressDetail').val(data.AddressDetail);
+            $('#IsDefault').prop('checked', data.IsDefault);
+            
+            // Standardizing names for hidden inputs
+            $('#ProvinceName').val(data.ProvinceName);
+            $('#DistrictName').val(data.DistrictName);
+            $('#WardName').val(data.WardName);
+
+            // Pre-fill dropdowns (requires async timing or simple re-set)
+            // Ideally we'd trigger change events but to keep it simple we just set values and let user re-select if needed or handle cleaner API loading
+            // For now, simple re-population logic:
+            
+            // Re-fetch logic or just setting values if options exist
+            $('#province').val(data.ProvinceCode).trigger('change');
+            
+            // Wait for district load
+            setTimeout(() => {
+                $('#district').val(data.DistrictCode).trigger('change');
+                setTimeout(() => {
+                    $('#ward').val(data.WardCode).trigger('change');
+                }, 500);
+            }, 500);
+        }
+
+        window.deleteAddress = function(id) {
+            if(confirm('Bạn có chắc muốn xóa địa chỉ này?')) {
+                $.post('/Account/DeleteAddress', { id: id }, function(res) {
+                    if(res.success) location.reload();
+                });
+            }
+        }
+    </script>
+}

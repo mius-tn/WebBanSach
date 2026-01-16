@@ -1,0 +1,98 @@
+@model WedBanSach.Models.Order
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+    var bankInfo = ViewBag.BankInfo as WedBanSach.Models.PaymentSetting;
+}
+
+<style>
+    .success-card {
+        max-width: 650px;
+        background: #fff;
+        border-radius: 20px;
+        padding: 50px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        margin: 50px auto;
+    }
+
+    .check-icon-wrapper {
+        width: 100px;
+        height: 100px;
+        background-color: #e8f5e9;
+        color: #4caf50;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        font-size: 3.5rem;
+    }
+
+    .success-title {
+        color: #333;
+        font-weight: 800;
+        font-size: 2rem;
+        margin-bottom: 15px;
+        letter-spacing: -0.5px;
+    }
+
+    .success-msg {
+        color: #666;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .bank-transfer-card {
+        background-color: #fff9c4;
+        border-left: 5px solid #f9a825;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        text-align: left;
+    }
+
+    .qr-code-img {
+        max-width: 200px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .btn-return-shop {
+        background-color: #C92127;
+        color: #fff !important;
+        border: 2px solid #C92127;
+        padding: 12px 35px;
+        font-weight: 700;
+        font-size: 1rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-transform: uppercase;
+    }
+
+    .btn-return-shop:hover {
+        background-color: #fff;
+        color: #C92127 !important;
+        border-color: #C92127;
+    }
+</style>
+
+<div class="container">
+    <div class="success-card text-center">
+        <div class="check-icon-wrapper">
+            <i class="bi bi-check-lg"></i>
+        </div>
+        
+        <h1 class="success-title">ĐẶT HÀNG THÀNH CÔNG!</h1>
+        
+        <p class="success-msg">
+            Cảm ơn bạn đã tin tưởng mua sắm tại <strong>BookStore</strong>.<br>
+            Mã đơn hàng của bạn là: <strong class="text-danger">#@Model.OrderID</strong>
+        </p>
+
+        <div class="action-buttons mt-4">
+            <a href="/" class="btn-return-shop">QUAY LẠI MUA SẮM</a>
+        </div>
+    </div>
+</div>

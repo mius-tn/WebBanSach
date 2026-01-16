@@ -1,0 +1,346 @@
+@model WedBanSach.ViewModels.CartViewModel
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    decimal vat = 0; // Assuming 0 or included in price for now as per screenshot layout (displays 0 for VAT)
+}
+
+<!-- HEADER TITLE -->
+<div class="bg-light py-2">
+    <div class="container">
+        <h5 class="fw-bold text-uppercase mt-2">GIỎ HÀNG (@Model.TotalQuantity sản phẩm)</h5>
+    </div>
+</div>
+
+<div class="container my-4 pb-5">
+
+    @if (Model.Items.Count == 0)
+    {
+        <!-- EMPTY CART STATE -->
+        <div class="bg-white rounded-3 p-5 shadow-sm text-center" style="min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+             <img src="~/img/download.png"; 
+                  alt="Empty Cart" style="width: 150px; opacity: 0.5;">
+             <p class="mt-4 text-muted">Chưa có sản phẩm trong giỏ hàng của bạn.</p>
+             <a href="/" class="btn btn-danger fw-bold px-5 py-2 mt-2" style="border-radius: 8px; background-color: #C92127;">MUA SẮM NGAY</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <!-- LEFT: CART ITEMS -->
+            <div class="col-lg-8">
+                <div class="bg-white rounded-3 shadow-sm mb-3">
+                    <!-- Table Header -->
+                    <!-- Table Header (Hidden on Mobile) -->
+                    <div class="d-none d-md-flex align-items-center p-3 border-bottom small fw-bold">
+                        <div style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox" checked>
+                        </div>
+                        <div class="flex-grow-1">Chọn tất cả (<span id="selectedCount">@Model.TotalQuantity</span> sản phẩm)</div>
+                        <div class="text-center" style="width: 120px;">Số lượng</div>
+                        <div class="text-end" style="width: 120px;">Thành tiền</div>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    
+                    <!-- Items -->
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="p-3 border-bottom cart-item-row">
+                            <div class="row align-items-center gy-3">
+                                <!-- LEFT: Checkbox, Image, Info -->
+                                <div class="col-12 col-md-7">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <!-- Checkbox -->
+                                        <div class="d-flex align-items-center pt-2" style="width: 30px;">
+                                            <input type="checkbox" class="form-check-input item-checkbox" 
+                                                   data-price="@item.CurrentPrice" 
+                                                   data-quantity="@item.Quantity" 
+                                                   data-total="@item.Total" 
+                                                   checked>
+                                        </div>
+                                        
+                                        <!-- Image -->
+                                        <a asp-controller="Books" asp-action="Details" asp-route-id="@item.BookID" class="d-block flex-shrink-0">
+                                            <img src="@item.ImageUrl" alt="@item.Title" style="width: 80px; height: 100px; object-fit: contain;" class="border rounded">
+                                        </a>
+                                        
+                                        <!-- Info -->
+                                        <div>
+                                            <h6 class="mb-1 fw-bold" style="font-size: 14px;">
+                                                <a asp-controller="Books" asp-action="Details" asp-route-id="@item.BookID" class="text-decoration-none text-dark">
+                                                    @item.Title
+                                                </a>
+                                            </h6>
+                                            <div class="small text-warning mb-2 fw-bold">
+                                                <i class="bi bi-truck"></i> Giao hàng 24/01
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="fw-bold text-dark">@item.CurrentPrice.ToString("#,##0") đ</span>
+                                                @if (item.Price > item.CurrentPrice)
+                                                {
+                                                    <span class="text-muted text-decoration-line-through small">@item.Price.ToString("#,##0") đ</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- RIGHT: Quantity, Total, Delete -->
+                                <div class="col-12 col-md-5">
+                                    <div class="d-flex align-items-center justify-content-between justify-content-md-end gap-md-4">
+                                        <!-- Quantity -->
+                                        <div>
+                                             <form asp-action="UpdateQuantity" method="post" class="d-flex justify-content-center align-items-center">
+                                                 <input type="hidden" name="id" value="@item.BookID" />
+                                                 <div class="input-group input-group-sm" style="width: 100px;">
+                                                     <button type="submit" name="quantity" value="@(item.Quantity - 1)" class="btn btn-outline-secondary">-</button>
+                                                     <input type="text" class="form-control text-center bg-white" value="@item.Quantity" readonly style="z-index: 0;">
+                                                     <button type="submit" name="quantity" value="@(item.Quantity + 1)" class="btn btn-outline-secondary">+</button>
+                                                 </div>
+                                             </form>
+                                        </div>
+                                        
+                                        <!-- Total Price (Visible Mobile & Desktop) -->
+                                        <div class="fw-bold text-danger text-end" style="width: 100px;">
+                                            @item.Total.ToString("#,##0") đ
+                                        </div>
+                                        
+                                        <!-- Delete -->
+                                        <div class="text-end">
+                                             <a href="/Cart/Remove/@item.BookID" class="text-muted hover-danger">
+                                                 <i class="bi bi-trash fs-5"></i>
+                                             </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+            <!-- RIGHT: SUMMARY -->
+            <div class="col-lg-4">
+                <!-- Voucher Section Trigger -->
+                <div class="bg-white rounded-3 shadow-sm p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                         <div class="fw-bold text-primary"><i class="bi bi-ticket-perforated"></i> KHUYẾN MÃI</div>
+                         <div class="text-muted small">Có thể chọn 1</div>
+                    </div>
+                     @if (!string.IsNullOrEmpty(Model.CouponCode))
+                     {
+                         <div class="d-flex align-items-center justify-content-between alert alert-success p-2 mb-2">
+                             <small class="fw-bold text-truncate" style="max-width: 200px;">@Model.CouponCode - Giảm @string.Format("{0:N0}", Model.DiscountAmount)đ</small>
+                             <a href="/Cart/RemoveCoupon" class="text-danger small fw-bold text-decoration-none">[Xoá]</a>
+                         </div>
+                     }
+                    <button type="button" class="btn btn-outline-primary w-100 d-flex justify-content-between align-items-center" data-bs-toggle="modal" data-bs-target="#couponModal">
+                        <span><i class="bi bi-ticket-detailed me-2"></i> Chọn hoặc nhập mã</span>
+                        <i class="bi bi-chevron-right small"></i>
+                    </button>
+                    
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="text-success small mt-2"><i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]</div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="text-danger small mt-2"><i class="bi bi-exclamation-circle"></i> @TempData["ErrorMessage"]</div>
+                    }
+                </div>
+
+                <!-- Coupon Modal -->
+                <div class="modal fade" id="couponModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content" style="background-color: #f5f5fa;">
+                            <div class="modal-header border-0 bg-white pb-2">
+                                <h5 class="modal-title fs-6 fw-bold text-primary"><i class="bi bi-ticket-perforated"></i> CHỌN MÃ KHUYẾN MÃI</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body pt-0">
+                                <!-- Input Form -->
+                                <div class="bg-white p-3 mb-3 sticky-top" style="top: 0; z-index: 10;">
+                                    <form asp-action="ApplyCoupon" method="post" class="d-flex gap-2">
+                                        <input type="text" name="code" class="form-control" placeholder="Nhập mã khuyến mãi / Gift Card">
+                                        <button type="submit" class="btn btn-primary px-4 fw-bold">Áp dụng</button>
+                                    </form>
+                                </div>
+
+                                <div class="px-2">
+                                    <p class="small text-muted fw-bold mb-2">Mã giảm giá dành cho bạn</p>
+                                    
+                                    @if (ViewBag.Promotions is IEnumerable<WedBanSach.Models.Promotion> promotions && promotions.Any())
+                                    {
+                                        var random = new Random();
+                                        foreach (var promo in promotions)
+                                        {
+                                            <!-- Coupon Card -->
+                                            <div class="bg-white rounded-3 shadow-sm p-3 mb-3 d-flex gap-3 position-relative">
+                                                <!-- Left Side (Icon) -->
+                                                <div class="d-flex flex-column align-items-center justify-content-center bg-light rounded" style="width: 100px; min-width: 100px;">
+                                                    <i class="bi bi-gift fs-1 text-primary"></i>
+                                                    <span class="small fw-bold text-primary mt-1">Fahasa</span>
+                                                </div>
+                                                
+                                                <!-- Right Side (Info) -->
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="fw-bold mb-1">@promo.PromotionName</h6>
+                                                            <p class="small text-muted mb-1">
+                                                                @(promo.DiscountType == "Percent" ? $"Giảm {promo.DiscountValue}%" : $"Giảm {string.Format("{0:N0}", promo.DiscountValue ?? 0)}đ") cho đơn hàng...
+                                                            </p>
+                                                            <p class="small text-muted mb-2">HSD: @(promo.EndDate?.ToString("dd/MM/yyyy") ?? "Vô thời hạn")</p>
+                                                        </div>
+                                                        <i class="bi bi-info-circle text-primary"></i>
+                                                    </div>
+
+                                                    <!-- Progress Bar Mock -->
+                                                    <div class="d-flex align-items-center justify-content-between mt-2">
+                                                         <div class="progress flex-grow-1 me-3" style="height: 6px;">
+                                                             <div class="progress-bar bg-primary" role="progressbar" style="width: @random.Next(20, 90)%;"></div>
+                                                         </div>
+                                                         <form asp-action="ApplyCoupon" method="post">
+                                                             <input type="hidden" name="code" value="@promo.PromotionName" />
+                                                             <button type="submit" class="btn btn-primary btn-sm px-4 rounded-pill">Áp dụng</button>
+                                                         </form>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Decorative holes -->
+                                                 <div class="position-absolute start-0 top-50 translate-middle rounded-circle bg-light" style="width: 20px; height: 20px; left: 115px !important;"></div>
+                                                 <div class="position-absolute start-0 top-0 translate-middle rounded-circle bg-light" style="width: 20px; height: 20px; left: 115px !important; margin-top: -10px;"></div>
+                                                 <div class="position-absolute start-0 bottom-0 translate-middle rounded-circle bg-light" style="width: 20px; height: 20px; left: 115px !important; margin-bottom: -10px;"></div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Section -->
+                <div class="bg-white rounded-3 shadow-sm p-3">
+                     <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Thành tiền</span>
+                        <span class="fw-bold" id="displayTotalAmount">@Model.TotalAmount.ToString("#,##0") đ</span>
+                     </div>
+                     
+                     <!-- Show Discount if applied -->
+                     @if (!string.IsNullOrEmpty(Model.CouponCode))
+                     {
+                         <div class="d-flex justify-content-between mb-2 text-success">
+                            <span>
+                                Mã giảm giá (@Model.CouponCode) 
+                                <a href="/Cart/RemoveCoupon" class="text-danger ms-1 text-decoration-none" title="Xóa mã">[x]</a>
+                            </span>
+                            <span class="fw-bold">-@Model.DiscountAmount.ToString("#,##0") đ</span>
+                         </div>
+                     }
+
+                      <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Phí vận chuyển (Giao Hàng Tiêu Chuẩn)</span>
+                        <span class="fw-bold">@string.Format("{0:N0}", ViewBag.StandardShippingFee ?? 0) đ</span>
+                     </div>
+                     <div class="border-top my-2 pt-2"></div>
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold text-dark">Tổng Số Tiền (gồm VAT)</span>
+                        <span class="fw-bold text-danger fs-4" id="displayFinalTotal">@Model.FinalTotal.ToString("#,##0") đ</span>
+                     </div>
+                     
+                     @if (Context.Session.GetString("UserId") != null)
+                     {
+                        <a asp-action="Checkout" class="btn btn-danger w-100 fw-bold py-2 fs-5" style="background-color: #C92127;">THANH TOÁN</a>
+                     }
+                     else
+                     {
+                        <button type="button" class="btn btn-danger w-100 fw-bold py-2 fs-5" style="background-color: #C92127;" data-bs-toggle="modal" data-bs-target="#loginPromptModal">THANH TOÁN</button>
+                     }
+                     <div class="text-center mt-2">
+                         <small class="text-danger small">(Giảm giá trên web chỉ áp dụng cho bán lẻ)</small>
+                     </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Login Prompt Modal -->
+    <div class="modal fade" id="loginPromptModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <div class="modal-body">
+                    <i class="bi bi-person-circle text-danger mb-3" style="font-size: 4rem;"></i>
+                    <h5 class="fw-bold mb-3">VUI LÒNG ĐĂNG NHẬP</h5>
+                    <p class="text-muted mb-4">Bạn cần đăng nhập để thực hiện thanh toán đơn hàng.</p>
+                    <div class="d-grid gap-2">
+                        <a href="/Account/Login?returnUrl=/Cart" class="btn btn-danger fw-bold py-2" style="background-color: #C92127;">ĐĂNG NHẬP NGAY</a>
+                        <button type="button" class="btn btn-outline-secondary py-2" data-bs-dismiss="modal">Để sau</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            const selectAllCheckbox = $('#selectAllCheckbox');
+            const itemCheckboxes = $('.item-checkbox');
+            const selectedCountSpan = $('#selectedCount');
+            const displayTotalAmount = $('#displayTotalAmount');
+            const displayFinalTotal = $('#displayFinalTotal');
+            
+            // Calculate and update totals based on selected items
+            function updateTotals() {
+                let selectedCount = 0;
+                let totalAmount = 0;
+                
+                itemCheckboxes.each(function() {
+                    if ($(this).is(':checked')) {
+                        selectedCount += parseInt($(this).data('quantity'));
+                        totalAmount += parseFloat($(this).data('total'));
+                    }
+                });
+                
+                // Update selected count
+                selectedCountSpan.text(selectedCount);
+                
+                // Update total amount (before discount)
+                if (displayTotalAmount.length) {
+                    displayTotalAmount.text(totalAmount.toLocaleString('vi-VN') + ' đ');
+                }
+                
+                // Calculate final total (with discount and standard shipping fee)
+                let discountAmount = @Model.DiscountAmount;
+                let shippingFee = @(ViewBag.StandardShippingFee ?? 0);
+                let finalTotal = totalAmount - discountAmount + shippingFee;
+                if (finalTotal < shippingFee) finalTotal = shippingFee; // Total shouldn't be less than shipping if discount is huge
+                
+                // Update final total display
+                displayFinalTotal.text(finalTotal.toLocaleString('vi-VN') + ' đ');
+                
+                // Update select all checkbox state
+                const allChecked = itemCheckboxes.length === itemCheckboxes.filter(':checked').length;
+                selectAllCheckbox.prop('checked', allChecked);
+            }
+            
+            // Select All / Deselect All
+            selectAllCheckbox.on('change', function() {
+                const isChecked = $(this).is(':checked');
+                itemCheckboxes.prop('checked', isChecked);
+                updateTotals();
+            });
+            
+            // Individual checkbox change
+            itemCheckboxes.on('change', function() {
+                updateTotals();
+            });
+            
+            // Initial calculation
+            updateTotals();
+        });
+    </script>
+}
+

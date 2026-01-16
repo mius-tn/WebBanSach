@@ -1,0 +1,184 @@
+/* Chat Floating Button */
+.chat-widget-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background-color: #ffd1dc;
+    /* Pastel Pink */
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.chat-widget-btn:hover {
+    transform: scale(1.05);
+}
+
+.chat-icon {
+    font-size: 24px;
+    color: #fff;
+}
+
+/* Notification Badge */
+.chat-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 15px;
+    height: 15px;
+    background-color: #ff4d4d;
+    border-radius: 50%;
+    display: none;
+    /* Show with JS */
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 5px rgba(255, 77, 77, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);
+    }
+}
+
+/* Chat Popup */
+.chat-popup {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 350px;
+    max-height: 500px;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: none;
+    /* Hidden by default */
+    flex-direction: column;
+    z-index: 1000;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.chat-header {
+    background-color: #ffd1dc;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #fff;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #ff8fa3;
+}
+
+.chat-info h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.chat-info p {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+}
+
+.chat-body {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    max-width: 80%;
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.message.user {
+    align-self: flex-end;
+    background-color: #ffd1dc;
+    color: #333;
+    border-bottom-right-radius: 5px;
+}
+
+.message.admin {
+    align-self: flex-start;
+    background-color: #e5e5ea;
+    color: #000;
+    border-bottom-left-radius: 5px;
+}
+
+.chat-footer {
+    padding: 10px;
+    border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    /* Vertically center */
+    background-color: #fff;
+}
+
+.chat-footer input {
+    flex-grow: 1;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 15px;
+    outline: none;
+    margin: 0 5px;
+    /* Add spacing between buttons */
+}
+
+.chat-footer button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ff8fa3;
+    font-size: 20px;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-footer button:hover {
+    color: #ff6b81;
+}
+
+/* Fix for bootstrap override */
+.chat-footer .btn-sm {
+    padding: 0 5px;
+    font-size: 20px;
+}

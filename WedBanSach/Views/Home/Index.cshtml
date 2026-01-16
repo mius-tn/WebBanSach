@@ -1,0 +1,143 @@
+﻿@model WedBanSach.ViewModels.HomeViewModel
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<!-- BANNER -->
+<section class="container mt-4 mb-5">
+    <div id="mainBanner" class="carousel slide border-soft overflow-hidden shadow-soft" data-bs-ride="carousel" style="border-radius: 14px;">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#mainBanner" data-bs-slide-to="2"></button>
+        </div>
+        <div class="carousel-inner">
+            <!-- Dummy Banners (Use placehold.co or local images if available) -->
+            <div class="carousel-item active">
+                <div style="height: 400px; position: relative; overflow: hidden;">
+                     <video autoplay muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                         <source src="~/video/banner_video.mp4" type="video/mp4">
+                     </video>
+                     <div class="d-flex align-items-center justify-content-center h-100 position-relative" style="">
+                         <div class="text-center text-pink">
+
+                         </div>
+                     </div>
+                </div>
+            </div>  
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#mainBanner" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#mainBanner" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+    </div>
+</section>
+
+
+<!-- FEATURED BOOKS -->
+<section class="container mb-5">
+    <div class="bg-white border-soft p-4 shadow-sm">
+        <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-2">
+            <h4 class="fw-bold text-pink"><i class="bi bi-star-fill"></i> Sách Nổi Bật</h4>
+            <a asp-controller="Books" asp-action="Category" class="btn btn-sm btn-outline-danger rounded-pill px-3">Xem thêm >></a>
+        </div>
+        
+        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
+            @if (Model.FeaturedBooks != null)
+            {
+                @foreach (var book in Model.FeaturedBooks)
+                {
+                    <div class="col">
+                        <div class="book-card h-100">
+                            <!-- Image -->
+                            <div class="position-relative overflow-hidden group-hover-img">
+                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                    <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                         class="book-cover" alt="@book.Title">
+                                </a>
+                                @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
+                                {
+                                    var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                    <span class="position-absolute top-0 start-0 bg-danger text-white small fw-bold px-2 py-1 rounded-end" style="z-index: 10;">
+                                        -@discountPercent%
+                                    </span>
+                                }
+                            </div>
+
+                            <!-- Content -->
+                            <div class="book-info">
+                                <h6 class="book-title" title="@book.Title">
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark">
+                                        @book.Title
+                                    </a>
+                                </h6>
+                                <p class="book-author text-truncated small mb-2">
+                                    @(book.BookAuthors != null && book.BookAuthors.Any() 
+                                        ? string.Join(", ", book.BookAuthors.Select(ba => ba.Author.AuthorName)) 
+                                        : "Đang cập nhật")
+                                </p>
+                                
+                                <div class="price-box">
+                                    <span class="current-price">
+                                        @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
+                                    </span>
+                                    @if(book.DiscountPrice.HasValue)
+                                    {
+                                         <span class="original-price">@book.Price.ToString("#,##0") ₫</span>
+                                    }
+                                </div>
+                                
+                                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid gap-2">
+                                    <input type="hidden" name="id" value="@book.BookID" />
+                                    <button type="submit" class="btn btn-sm btn-pink">
+                                       <i class="bi bi-cart-plus"></i> Thêm
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+<!-- NEW BOOKS -->
+<section class="container mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="fw-bold text-pink"><i class="bi bi-stars"></i> Sách Mới Nhất</h4>
+        <a href="#" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Xem tất cả</a>
+    </div>
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
+        @if (Model.NewBooks != null)
+        {
+            @foreach (var book in Model.NewBooks)
+            {
+                <div class="col">
+                    <div class="book-card h-100">
+                         <div class="position-relative">
+                             <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                 <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                      class="book-cover" alt="@book.Title">
+                             </a>
+                              <span class="position-absolute top-0 end-0 bg-success text-white small fw-bold px-2 py-1 rounded-start">NEW</span>
+                         </div>
+                         <h6 class="book-title">
+                             <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark">
+                                 @book.Title
+                             </a>
+                         </h6>
+                         <div class="price-box mb-2">
+                             <span class="current-price text-dark">@book.Price.ToString("#,##0") ₫</span>
+                         </div>
+                         <div class="d-grid">
+                            <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="btn btn-sm btn-outline-dark rounded-pill">Chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</section>

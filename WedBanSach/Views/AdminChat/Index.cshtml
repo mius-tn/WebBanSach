@@ -1,0 +1,415 @@
+@model WedBanSach.ViewModels.AdminChatViewModel
+
+@{
+    ViewData["Title"] = "Chat Dashboard";
+    Layout = "_AdminLayout"; 
+}
+
+<style>
+    /* Force Fixed Layout to prevent Window Scroll */
+    body, html {
+        height: 100%;
+        overflow: hidden; /* Prevent body scroll */
+    }
+
+    .main-content {
+        height: 100vh;
+        /* width: 100%; REMOVED: prevents overflow with sidebar margin */
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        padding: 0 !important; 
+    }
+
+    /* Add padding back to navbar if main-content padding was removed */
+    .top-navbar {
+        padding: 15px 30px; /* Adjust as needed close to original */
+        flex-shrink: 0; /* Prevent shrinking */
+    }
+
+    .content-area {
+        margin: 0 !important;
+        padding: 0 !important;
+        flex-grow: 1;
+        overflow: hidden; 
+        display: flex;
+        flex-direction: column;
+        height: auto !important;
+        min-height: 0; /* Crucial for nested flex scroll */
+        width: 100%;
+    }
+
+    .container-fluid {
+        margin: 0 !important;
+        padding: 0 !important;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    .chat-container {
+        display: flex;
+        flex-grow: 1;
+        background-color: #fff;
+        overflow: hidden;
+        margin: 0;
+        border-radius: 0;
+        min-height: 0;
+    }
+
+    /* Left Sidebar: User List */
+    .user-list-sidebar {
+        width: 300px;
+        border-right: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+        font-weight: bold;
+        color: #ff8fa3;
+    }
+
+    .user-list {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+
+    .user-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border-bottom: 1px solid #f9f9f9;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .user-item:hover, .user-item.active {
+        background-color: #fff0f3;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #ddd;
+        margin-right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #fff;
+        font-size: 16px;
+    }
+
+    .user-info {
+        flex-grow: 1;
+        min-width: 0; 
+    }
+
+    .user-name {
+        font-weight: 600;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .last-message {
+        font-size: 12px;
+        color: #888;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-decoration: none;
+        color: #333;
+        position: relative; /* Crucial for absolute button positioning */
+    }
+
+    .user-item:hover {
+        background-color: #f8f9fa;
+        text-decoration: none;
+        color: #333;
+    }
+
+    /* Ensure button shows on hover */
+    .user-item:hover .delete-chat-btn {
+        display: flex; 
+    }
+
+    .delete-chat-btn {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        background-color: #dc3545; /* Red background */
+        color: white; /* White icon */
+        border: 2px solid #dc3545;
+        border-radius: 50%;
+        display: none; /* Hidden by default */
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.2s;
+        padding: 0;
+    }
+        
+    .delete-chat-btn:hover {
+        background-color: white; /* White background */
+        color: #dc3545; /* Red icon */
+        border-color: #dc3545;
+    }
+
+    /* Middle: Chat Area */
+    .chat-area {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #f8f9fa;
+    }
+
+    .chat-area-header {
+        padding: 15px 20px;
+        background-color: #fff;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+    }
+
+    .chat-messages {
+        flex-grow: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        line-height: 1.4;
+        position: relative;
+    }
+
+    .message.user {
+        align-self: flex-start;
+        background-color: #fff;
+        border: 1px solid #eee;
+        border-bottom-left-radius: 5px;
+    }
+
+    .message.admin {
+        align-self: flex-end;
+        background-color: #ff8fa3;
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .message-time {
+        font-size: 10px;
+        color: #aaa;
+        margin-top: 5px;
+        text-align: right;
+    }
+
+    .chat-input-area {
+        padding: 20px;
+        background-color: #fff;
+        border-top: 1px solid #eee;
+        display: flex;
+    }
+
+    .chat-input-area input {
+        flex-grow: 1;
+        border: 1px solid #ddd;
+        border-radius: 25px;
+        padding: 10px 20px;
+        outline: none;
+        margin-right: 10px;
+    }
+
+    /* Right Sidebar: User Details */
+    .user-details-sidebar {
+        width: 250px;
+        background-color: #fff;
+        border-left: 1px solid #eee;
+        padding: 20px;
+        display: none; /* Hidden on small screens or by default if no user selected */
+    }
+    
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .user-details-sidebar {
+            display: none !important;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="chat-container">
+        <!-- 1. Room List -->
+        <div class="user-list-sidebar">
+            <div class="sidebar-header d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Tin nhắn</span>
+                    <span class="badge bg-danger rounded-pill">@Model.Rooms.Count</span>
+                </div>
+                <input type="text" id="userSearchInput" class="form-control form-control-sm rounded-pill" placeholder="Tìm tên hoặc email...">
+            </div>
+            <div class="user-list" id="userListContainer">
+                @foreach (var room in Model.Rooms)
+                {
+                    var user = Model.Users.ContainsKey(room.UserID ?? 0) ? Model.Users[room.UserID ?? 0] : null;
+                    var userName = user?.FullName ?? "Khách";
+                    var userEmail = user?.Email ?? "";
+                    var avatarChar = userName.Substring(0, 1).ToUpper();
+                    var activeClass = room.RoomID == Model.SelectedRoomId ? "active" : "";
+                    
+                    <a href="@Url.Action("Index", new { roomId = room.RoomID })" 
+                       class="user-item @activeClass" 
+                       data-room-id="@room.RoomID"
+                       data-name="@userName.ToLower()"
+                       data-email="@userEmail.ToLower()">
+                        
+                        <!-- Delete Button -->
+                        <button class="delete-chat-btn" onclick="deleteRoom(event, @room.RoomID)" title="Xóa hội thoại">
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                        @if (!string.IsNullOrEmpty(user?.AvatarUrl))
+                        {
+                            <img src="@user.AvatarUrl" class="user-avatar object-fit-cover" style="background-color: transparent;">
+                        }
+                        else
+                        {
+                            <div class="user-avatar" style="background-color: #ffb3c1;">@avatarChar</div>
+                        }
+                        
+                        <div class="user-info">
+                            <div class="user-name">@userName</div>
+                            <div class="last-message">@room.LastMessage</div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- 2. Chat Area -->
+        <div class="chat-area">
+            @if (Model.SelectedRoomId > 0)
+            {
+                 var activeUser = Model.Users.ContainsKey(Model.Rooms.FirstOrDefault(r => r.RoomID == Model.SelectedRoomId)?.UserID ?? 0) 
+                              ? Model.Users[Model.Rooms.FirstOrDefault(r => r.RoomID == Model.SelectedRoomId).UserID.Value] 
+                              : null;
+                
+                <div class="chat-area-header">
+                     @if (!string.IsNullOrEmpty(activeUser?.AvatarUrl))
+                     {
+                         <img src="@activeUser.AvatarUrl" class="user-avatar object-fit-cover" style="width: 32px; height: 32px;">
+                     }
+                     else
+                     {
+                         <div class="user-avatar" style="background-color: #ffb3c1; width: 32px; height: 32px; font-size: 14px;">
+                             @(activeUser?.FullName.Substring(0,1).ToUpper() ?? "?")
+                         </div>
+                     }
+                     <h6 class="m-0 ms-2">@(activeUser?.FullName ?? "Khách")</h6>
+                </div>
+
+                <div class="chat-messages" id="adminChatBody">
+                    @foreach (var msg in Model.CurrentMessages)
+                    {
+                        var msgClass = msg.SenderRole == "Admin" ? "admin" : "user";
+                        <div class="message @msgClass">
+                            @if (msg.MessageType == "Image")
+                            {
+                                <img src="@msg.MessageContent" style="max-width: 200px; border-radius: 8px; cursor:pointer;" onclick="window.open(this.src,'_blank')">
+                            }
+                            else
+                            {
+                                @msg.MessageContent
+                            }
+                            <div class="message-time">@msg.CreatedAt.ToString("HH:mm")</div>
+                        </div>
+                    }
+                </div>
+
+                <div class="card-footer bg-white border-top p-3">
+                    <div class="input-group">
+                        <button class="btn btn-light border" type="button" id="adminUploadBtn">
+                            <i class="bi bi-image"></i>
+                        </button>
+                        <input type="text" class="form-control border-0" id="replyInput" placeholder="Nhập tin nhắn trả lời...">
+                        <button class="btn btn-primary" type="button" onclick="sendReply()">Gửi</button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                    <i class="bi bi-chat-square-text" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>Chọn một cuộc hội thoại để bắt đầu</p>
+                </div>
+            }
+        </div>
+
+        <!-- 3. User Info (Right) -->
+        @if (Model.SelectedRoomId > 0 && Model.SelectedUser != null)
+        {
+            <div class="user-details-sidebar d-xl-block">
+                <div class="text-center mb-4">
+                     @if (!string.IsNullOrEmpty(Model.SelectedUser.AvatarUrl))
+                     {
+                         <img src="@Model.SelectedUser.AvatarUrl" class="user-avatar mx-auto mb-3 object-fit-cover" style="width: 80px; height: 80px;">
+                     }
+                     else
+                     {
+                         <div class="user-avatar mx-auto mb-3" style="width: 80px; height: 80px; font-size: 30px; background-color: #ffb3c1;">
+                             @Model.SelectedUser.FullName.Substring(0,1).ToUpper()
+                         </div>
+                     }
+                     <h5>@Model.SelectedUser.FullName</h5>
+                     <p class="text-muted small">@Model.SelectedUser.Email</p>
+                </div>
+                <div>
+                    <h6>Thông tin</h6>
+                    <p class="small text-muted mb-1">Số điện thoại:</p>
+                    <p>@Model.SelectedUser.Phone</p>
+                </div>
+                <div class="mt-4 text-center">
+                    <a href="#" class="btn btn-outline-secondary btn-sm rounded-pill w-100">Xem hồ sơ</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script>
+        var currentRoomId = @Model.SelectedRoomId;
+    </script>
+    <script src="~/js/admin-chat.js" asp-append-version="true"></script>
+}

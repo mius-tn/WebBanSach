@@ -1,0 +1,145 @@
+@{
+    ViewData["Title"] = "Báo cáo & Thống kê";
+    Layout = "_AdminLayout";
+}
+
+<div class="page-header">
+    <h2><i class="bi bi-graph-up"></i> Báo cáo & Thống kê</h2>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <select name="period" class="form-select" onchange="this.form.submit()">
+                    <option value="week" selected="@(ViewBag.Period == "week")">7 ngày qua</option>
+                    <option value="month" selected="@(ViewBag.Period == "month")">Tháng này</option>
+                    <option value="year" selected="@(ViewBag.Period == "year")">Năm nay</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Doanh thu theo ngày</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Top 10 sách bán chạy</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Tên sách</th>
+                                <th>Số lượng</th>
+                                <th>Doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int index = 1;
+                            }
+                            @foreach (var item in ViewBag.TopBooks)
+                            {
+                                <tr>
+                                    <td>@index</td>
+                                    <td>@item.Book.Title</td>
+                                    <td><span class="badge bg-primary">@item.TotalSold</span></td>
+                                    <td>@string.Format("{0:N0}", item.Revenue) VNĐ</td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Top 10 khách hàng</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Khách hàng</th>
+                                <th>Số đơn</th>
+                                <th>Tổng chi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                index = 1;
+                            }
+                            @foreach (var item in ViewBag.TopCustomers)
+                            {
+                                <tr>
+                                    <td>@index</td>
+                                    <td>@item.User.FullName</td>
+                                    <td><span class="badge bg-info">@item.OrderCount</span></td>
+                                    <td>@string.Format("{0:N0}", item.TotalSpent) VNĐ</td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const revenueData = @Html.Raw(Json.Serialize(ViewBag.RevenueByDay));
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: revenueData.map(x => new Date(x.date).toLocaleDateString('vi-VN')),
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: revenueData.map(x => x.revenue),
+                    backgroundColor: 'rgba(248, 200, 220, 0.8)',
+                    borderColor: '#f5b0cc',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('vi-VN') + ' VNĐ';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

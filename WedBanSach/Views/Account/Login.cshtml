@@ -1,0 +1,265 @@
+@model WedBanSach.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Nhà Sách</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    
+    <!-- Sakura Theme CSS -->
+    <link rel="stylesheet" href="~/css/sakura-theme.css" />
+</head>
+<body class="sakura-page">
+    <!-- Back to Home Button -->
+    <a href="/" class="sakura-back-btn">
+        <i class="bi bi-arrow-left"></i>
+        Quay lại
+    </a>
+
+    <!-- Sakura Petals Container -->
+    <div id="sakura-container"></div>
+
+    <!-- Sakura Tree -->
+    <div class="sakura-tree-container">
+        <svg viewBox="0 0 500 600" class="sakura-tree-svg" xmlns="http://www.w3.org/2000/svg">
+            <!-- Trunk and Branches with a darker brown -->
+            <path d="M420 580 Q400 450 380 350 Q360 250 300 180 M380 350 Q430 300 480 250 M395 420 Q330 380 280 400 M405 480 Q450 460 490 470" 
+                  fill="none" stroke="#4d342e" stroke-width="25" stroke-linecap="round" />
+            
+            <!-- Foliage / Flowers (Stylized soft pink clouds) -->
+            <circle cx="300" cy="180" r="90" fill="#f8cdda" opacity="0.9" />
+            <circle cx="350" cy="150" r="80" fill="#f8cdda" opacity="0.8" />
+            <circle cx="280" cy="220" r="70" fill="#fde7f0" opacity="0.95" />
+            <circle cx="480" cy="250" r="70" fill="#f8cdda" opacity="0.9" />
+            <circle cx="450" cy="220" r="60" fill="#fde7f0" opacity="0.8" />
+            <circle cx="280" cy="400" r="60" fill="#f8cdda" opacity="0.9" />
+            <circle cx="490" cy="470" r="50" fill="#fde7f0" opacity="0.8" />
+            
+            <!-- Some distinct flower clusters -->
+            <circle cx="310" cy="160" r="10" fill="#e91e63" opacity="0.4" />
+            <circle cx="340" cy="190" r="12" fill="#e91e63" opacity="0.3" />
+            <circle cx="460" cy="240" r="10" fill="#e91e63" opacity="0.4" />
+            <circle cx="270" cy="390" r="10" fill="#e91e63" opacity="0.3" />
+            <circle cx="320" cy="200" r="8" fill="#ffb3d9" opacity="0.8" />
+            <circle cx="470" cy="260" r="8" fill="#ffb3d9" opacity="0.8" />
+        </svg>
+    </div>
+
+    <!-- Main Auth Container -->
+    <div class="sakura-auth-wrapper">
+        <div class="sakura-auth-container">
+            <!-- Header -->
+            <div class="sakura-header">
+                <div class="sakura-icon">@(ViewBag.IsRegisterMode == true ? "🌺" : "🌸")</div>
+                <h3 class="sakura-title">@(ViewBag.IsRegisterMode == true ? "Tạo tài khoản mới" : "Chào mừng trở lại")</h3>
+                <p class="sakura-subtitle">@(ViewBag.IsRegisterMode == true ? "Tham gia cùng chúng tôi" : "Đăng nhập để tiếp tục")</p>
+            </div>
+
+            <!-- Body -->
+            <div class="sakura-body">
+                <!-- Toggle Buttons -->
+                <div class="sakura-toggle">
+                    <button type="button" class="sakura-toggle-btn @(ViewBag.IsRegisterMode == true ? "" : "active")" data-target="login-form">
+                        Đăng nhập
+                    </button>
+                    <button type="button" class="sakura-toggle-btn @(ViewBag.IsRegisterMode == true ? "active" : "")" data-target="register-form">
+                        Đăng ký
+                    </button>
+                </div>
+
+                <!-- Success Message from Registration -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="sakura-alert sakura-alert-success">
+                        @TempData["SuccessMessage"]
+                    </div>
+                }
+
+                <!-- Error Messages -->
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="sakura-alert sakura-alert-error">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div>@error.ErrorMessage</div>
+                        }
+                    </div>
+                }
+
+                <!-- Login Form -->
+                <div id="login-form" class="sakura-form-section @(ViewBag.IsRegisterMode == true ? "" : "active")">
+                    <form method="post" asp-action="Login" class="sakura-form">
+                        <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+                        <div class="sakura-form-group">
+                            <label class="sakura-label">Email</label>
+                            <div class="sakura-input-wrapper">
+                                <i class="bi bi-envelope sakura-input-icon"></i>
+                                <input type="email" 
+                                       name="email" 
+                                       class="sakura-input" 
+                                       placeholder="example@email.com"
+                                       required 
+                                       autofocus />
+                            </div>
+                        </div>
+
+                        <div class="sakura-form-group">
+                            <label class="sakura-label">Mật khẩu</label>
+                            <div class="sakura-input-wrapper">
+                                <i class="bi bi-lock sakura-input-icon"></i>
+                                <input type="password" 
+                                       name="password" 
+                                       class="sakura-input" 
+                                       placeholder="••••••••"
+                                       required />
+                                <button type="button" class="sakura-password-toggle" tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="sakura-btn sakura-btn-primary">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            Đăng nhập
+                        </button>
+
+                        <div class="sakura-text-center">
+                            <span>Chưa có tài khoản? </span>
+                            <a href="#" class="sakura-link" onclick="switchToRegister(event)">Đăng ký ngay</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Register Form -->
+                <div id="register-form" class="sakura-form-section @(ViewBag.IsRegisterMode == true ? "active" : "")">
+                    <form method="post" asp-action="Register" class="sakura-form">
+                        <div class="sakura-form-group">
+                            <label class="sakura-label">Họ và tên</label>
+                            <div class="sakura-input-wrapper">
+                                <i class="bi bi-person sakura-input-icon"></i>
+                                <input type="text" 
+                                       name="FullName" 
+                                       class="sakura-input" 
+                                       placeholder="Nguyễn Văn A"
+                                       value="@Model?.FullName"
+                                       required />
+                            </div>
+                        </div>
+
+                        <div class="sakura-form-group">
+                            <label class="sakura-label">Email</label>
+                            <div class="sakura-input-wrapper" style="display: flex; gap: 8px;">
+                                <div style="flex-grow: 1; position: relative;">
+                                    <i class="bi bi-envelope sakura-input-icon"></i>
+                                    <input type="email" 
+                                           id="regEmail"
+                                           name="Email" 
+                                           class="sakura-input" 
+                                           placeholder="example@email.com"
+                                           value="@Model?.Email"
+                                           required />
+                                </div>
+                                <button type="button" class="sakura-btn sakura-btn-outline" style="width: auto; padding: 0 15px; margin-top: 0; height: 45px; font-size: 0.9rem;" id="btnSendEmailOtp">Gửi mã</button>
+                            </div>
+                        </div>
+
+                        <div class="sakura-form-group" id="emailOtpGroup" style="display: @(Context.Session.GetString("EmailOtp") != null ? "block" : "none");">
+                            <label class="sakura-label">Mã xác nhận Email</label>
+                            <div class="sakura-input-wrapper" style="width: 50%; min-width: 150px;">
+                                <i class="bi bi-shield-lock sakura-input-icon"></i>
+                                <input type="text" 
+                                       id="emailOtpCode"
+                                       name="EmailOtpCode" 
+                                       class="sakura-input" 
+                                       placeholder="6 chữ số"
+                                       maxlength="6"
+                                       value="@Model?.EmailOtpCode" />
+                            </div>
+                        </div>
+
+                        <div class="sakura-form-group">
+                            <label class="sakura-label">Số điện thoại (tùy chọn)</label>
+                            <div class="sakura-input-wrapper">
+                                <i class="bi bi-telephone sakura-input-icon"></i>
+                                <input type="tel" 
+                                       name="Phone" 
+                                       class="sakura-input" 
+                                       placeholder="0987654321" 
+                                       value="@Model?.Phone" />
+                            </div>
+                        </div>
+
+                        <div class="sakura-form-group">
+                            <label class="sakura-label">Mật khẩu</label>
+                            <div class="sakura-input-wrapper">
+                                <i class="bi bi-lock sakura-input-icon"></i>
+                                <input type="password" 
+                                       name="Password" 
+                                       class="sakura-input" 
+                                       placeholder="Tối thiểu 6 ký tự"
+                                       minlength="6"
+                                       required />
+                                <button type="button" class="sakura-password-toggle" tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="sakura-form-group">
+                            <label class="sakura-label">Xác nhận mật khẩu</label>
+                            <div class="sakura-input-wrapper">
+                                <i class="bi bi-lock-fill sakura-input-icon"></i>
+                                <input type="password" 
+                                       name="ConfirmPassword" 
+                                       class="sakura-input" 
+                                       placeholder="Nhập lại mật khẩu"
+                                       minlength="6"
+                                       required />
+                                <button type="button" class="sakura-password-toggle" tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="sakura-btn sakura-btn-primary">
+                            <i class="bi bi-person-plus"></i>
+                            Đăng ký
+                        </button>
+
+                        <div class="sakura-text-center">
+                            <span>Đã có tài khoản? </span>
+                            <a href="#" class="sakura-link" onclick="switchToLogin(event)">Đăng nhập</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/sakura-animation.js"></script>
+    
+    <script>
+        // Helper functions for switching forms
+        function switchToRegister(e) {
+            e.preventDefault();
+            document.querySelector('[data-target="register-form"]').click();
+        }
+        
+        function switchToLogin(e) {
+            e.preventDefault();
+            document.querySelector('[data-target="login-form"]').click();
+        }
+    </script>
+</body>
+</html>

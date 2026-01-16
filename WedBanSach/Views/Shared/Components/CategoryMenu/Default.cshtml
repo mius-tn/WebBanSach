@@ -1,0 +1,85 @@
+@model IEnumerable<WedBanSach.Models.Category>
+
+<div class="dropdown mega-dropdown">
+    <a href="#" class="nav-icon-btn" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-grid-3x3-gap-fill"></i> <!-- Icon danh mục -->
+        <span class="d-none d-xl-inline ms-1 fw-bold">Danh mục</span>
+    </a>
+    
+    <!-- Mega Menu Content -->
+    <div class="dropdown-menu mega-menu border-0 shadow-soft p-4 rounded-4" style="margin-top: 15px;">
+        <div class="container-fluid">
+            <div class="row g-4">
+                <!-- If we have real DB data, we use it -->
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var parent in Model.Take(4)) /* Take 4 columns max for safety */
+                    {
+                        <div class="col-md-3">
+                            <h6 class="text-uppercase fw-bold text-dark mb-3">@parent.CategoryName</h6>
+                            <ul class="list-unstyled">
+                                @foreach (var child in parent.SubCategories.Take(5))
+                                {
+                            <li class="mb-2">
+                                <a asp-controller="Books" asp-action="Category" asp-route-id="@child.CategoryID" class="text-secondary text-decoration-none hover-pink small">
+                                    @child.CategoryName
+                                </a>
+                            </li>
+                        }
+                        <li>
+                            <a asp-controller="Books" asp-action="Category" asp-route-id="@parent.CategoryID" class="text-pink text-decoration-none small fw-bold">
+                                Xem tất cả <i class="bi bi-chevron-right" style="font-size: 10px;"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            }
+        }
+        else
+        {
+            /* FALLBACK / MOCK DATA TO MATCH SCREENSHOT IF DB EMPTY */
+            <div class="col-6 col-md-3">
+                <h6 class="text-uppercase fw-bold text-dark mb-3"><i class="bi bi-book me-2 text-pink"></i> Văn Học</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="/Danh-Muc" class="text-secondary text-decoration-none hover-pink small">Tiểu Thuyết</a></li>
+                    <li class="mb-2"><a href="/Danh-Muc" class="text-secondary text-decoration-none hover-pink small">Truyện Ngắn - Tản Văn</a></li>
+                    <li class="mb-2"><a href="/Danh-Muc" class="text-secondary text-decoration-none hover-pink small">Light Novel</a></li>
+                    <li class="mb-2"><a href="/Danh-Muc" class="text-secondary text-decoration-none hover-pink small">Ngôn Tình</a></li>
+                    <li><a href="/Danh-Muc" class="text-pink text-decoration-none small fw-bold">Xem tất cả</a></li>
+                </ul>
+            </div>
+                    <div class="col-6 col-md-3">
+                        <h6 class="text-uppercase fw-bold text-dark mb-3"><i class="bi bi-graph-up-arrow me-2 text-pink"></i> Kinh Tế</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Bài Học Kinh Doanh</a></li>
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Quản Trị - Lãnh Đạo</a></li>
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Marketing - Bán Hàng</a></li>
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Phân Tích Kinh Tế</a></li>
+                            <li><a href="#" class="text-pink text-decoration-none small fw-bold">Xem tất cả</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <h6 class="text-uppercase fw-bold text-dark mb-3"><i class="bi bi-emoji-smile me-2 text-pink"></i> Kỹ Năng Sống</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Kỹ Năng Sống</a></li>
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Rèn Luyện Nhân Cách</a></li>
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Tâm Lý</a></li>
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Sách Cho Tuổi Mới Lớn</a></li>
+                            <li><a href="#" class="text-pink text-decoration-none small fw-bold">Xem tất cả</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <h6 class="text-uppercase fw-bold text-dark mb-3"><i class="bi bi-translate me-2 text-pink"></i> Ngoại Ngữ</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Tiếng Anh</a></li>
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Tiếng Nhật</a></li>
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Tiếng Hoa</a></li>
+                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none hover-pink small">Tiếng Hàn</a></li>
+                            <li><a href="#" class="text-pink text-decoration-none small fw-bold">Xem tất cả</a></li>
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

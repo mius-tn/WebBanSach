@@ -1,0 +1,372 @@
+@model IEnumerable<WedBanSach.Models.Book>
+@{
+    ViewData["Title"] = ViewBag.CategoryName;
+    var categories = ViewBag.Categories as IEnumerable<WedBanSach.Models.Category>;
+    var currentCategoryId = ViewBag.CategoryId as int?;
+    var sortOrder = ViewBag.SortOrder as string;
+    var searchTerm = ViewBag.SearchTerm as string;
+    var selectedPrice = ViewBag.SelectedPriceRange as string;
+    var selectedCoverType = ViewBag.SelectedCoverType as string;
+    var currentPage = ViewBag.CurrentPage as int? ?? 1;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 12;
+}
+
+<!-- BREADCRUMB -->
+<div class="bg-light py-2 mb-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+                <li class="breadcrumb-item active fw-bold text-uppercase" aria-current="page">@ViewBag.CategoryName</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row">
+        <!-- SIDEBAR -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <form method="get" action="/Danh-Muc/@currentCategoryId" id="filterForm">
+                <input type="hidden" name="sortOrder" value="@sortOrder" />
+                <input type="hidden" name="pageSize" value="@pageSize" />
+                @if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    <input type="hidden" name="searchTerm" value="@searchTerm" />
+                }
+                @if (!string.IsNullOrEmpty(selectedPrice))
+                {
+                    <input type="hidden" name="priceRange" value="@selectedPrice" />
+                }
+                @if (!string.IsNullOrEmpty(selectedCoverType))
+                {
+                    <input type="hidden" name="coverType" value="@selectedCoverType" />
+                }
+                
+                <div class="bg-white p-3 rounded-3 shadow-sm border-soft mb-3">
+                    <h6 class="fw-bold text-uppercase mb-3">Nhóm Sản Phẩm</h6>
+                    <div class="category-tree small">
+                         <div class="mb-2"><a href="/Danh-Muc" class="text-decoration-none @(currentCategoryId == null ? "fw-bold text-danger" : "text-secondary")">Tất Cả Nhóm Sản Phẩm</a></div>
+                        @if (categories != null)
+                        {
+                            foreach (var cat in categories)
+                            {
+                                <div class="mb-2">
+                                    <a href="/Danh-Muc/@cat.CategoryID" class="text-decoration-none @(currentCategoryId == cat.CategoryID ? "fw-bold text-danger" : "text-dark")">@cat.CategoryName</a>
+                                    @if (cat.SubCategories != null && cat.SubCategories.Any())
+                                    {
+                                        <ul class="list-unstyled ms-3 mt-1 border-start ps-2">
+                                            @foreach (var sub in cat.SubCategories)
+                                            {
+                                                <li>
+                                                    <a href="/Danh-Muc/@sub.CategoryID" class="text-decoration-none @(currentCategoryId == sub.CategoryID ? "fw-bold text-danger" : "text-secondary") d-block py-1">@sub.CategoryName</a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <!-- Price Filter -->
+                <div class="bg-white p-3 rounded-3 shadow-sm border-soft mb-3">
+                    <h6 class="fw-bold text-uppercase mb-3">Giá</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="priceRange" value="0-150000" id="price1" onchange="this.form.submit()" @(selectedPrice == "0-150000" ? "checked" : "")>
+                        <label class="form-check-label small" for="price1">0đ - 150,000đ</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="priceRange" value="150000-300000" id="price2" onchange="this.form.submit()" @(selectedPrice == "150000-300000" ? "checked" : "")>
+                        <label class="form-check-label small" for="price2">150,000đ - 300,000đ</label>
+                    </div>
+                     <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="priceRange" value="300000-500000" id="price3" onchange="this.form.submit()" @(selectedPrice == "300000-500000" ? "checked" : "")>
+                        <label class="form-check-label small" for="price3">300,000đ - 500,000đ</label>
+                    </div>
+                     <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="priceRange" value="500000-" id="price4" onchange="this.form.submit()" @(selectedPrice == "500000-" ? "checked" : "")>
+                        <label class="form-check-label small" for="price4">500,000đ - Trở lên</label>
+                    </div>
+                </div>
+                
+                 <!-- Format Filter -->
+                <div class="bg-white p-3 rounded-3 shadow-sm border-soft mb-3">
+                    <h6 class="fw-bold text-uppercase mb-3">Hình Thức</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="coverType" value="Bìa mềm" id="format1" onchange="this.form.submit()" @(selectedCoverType == "Bìa mềm" ? "checked" : "")>
+                        <label class="form-check-label small" for="format1">Bìa Mềm</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="coverType" value="Bìa cứng" id="format2" onchange="this.form.submit()" @(selectedCoverType == "Bìa cứng" ? "checked" : "")>
+                        <label class="form-check-label small" for="format2">Bìa Cứng</label>
+                    </div>
+                     <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="coverType" value="Bộ hộp" id="format3" onchange="this.form.submit()" @(selectedCoverType == "Bộ hộp" ? "checked" : "")>
+                        <label class="form-check-label small" for="format3">Bộ Hộp</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="coverType" value="Bìa da" id="format4" onchange="this.form.submit()" @(selectedCoverType == "Bìa da" ? "checked" : "")>
+                        <label class="form-check-label small" for="format4">Bìa Da</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col-lg-9">
+            <!-- Toolbar -->
+            <div class="bg-white p-3 rounded-3 shadow-sm border-soft mb-3 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    @if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        <span class="small text-muted me-2">Tìm kiếm: <strong>@searchTerm</strong></span>
+                    }
+                    <span class="small fw-bold">Sắp xếp theo:</span>
+                    <select class="form-select form-select-sm" style="width: 150px;" onchange="document.getElementsByName('sortOrder')[0].value = this.value; document.getElementById('filterForm').submit();">
+                        <option value="" selected="@(string.IsNullOrEmpty(sortOrder))">Bán Chạy Tuần</option>
+                        <option value="newest" selected="@(sortOrder == "newest")">Mới Nhất</option>
+                        <option value="price_asc" selected="@(sortOrder == "price_asc")">Giá Thấp Đến Cao</option>
+                        <option value="price_desc" selected="@(sortOrder == "price_desc")">Giá Cao Đến Thấp</option>
+                    </select>
+                </div>
+                <div>
+                     <select class="form-select form-select-sm" name="pageSize" id="pageSizeSelect" style="width: 120px;">
+                        @if (pageSize == 12)
+                        {
+                            <option value="12" selected>12 sản phẩm</option>
+                        }
+                        else
+                        {
+                            <option value="12">12 sản phẩm</option>
+                        }
+                        @if (pageSize == 24)
+                        {
+                            <option value="24" selected>24 sản phẩm</option>
+                        }
+                        else
+                        {
+                            <option value="24">24 sản phẩm</option>
+                        }
+                        @if (pageSize == 48)
+                        {
+                            <option value="48" selected>48 sản phẩm</option>
+                        }
+                        else
+                        {
+                            <option value="48">48 sản phẩm</option>
+                        }
+                    </select>
+                    <script>
+                        // When changing pageSize, reset to page 1 and submit form
+                        document.getElementById('pageSizeSelect').addEventListener('change', function() {
+                            var form = document.getElementById('filterForm');
+                            if (form) {
+                                // Update hidden pageSize input
+                                var hiddenInput = form.querySelector('input[name="pageSize"]');
+                                if (hiddenInput) {
+                                    hiddenInput.value = this.value;
+                                }
+                                
+                                // Build URL with page=1 to reset pagination
+                                var baseUrl = '@(currentCategoryId.HasValue ? $"/Danh-Muc/{currentCategoryId}" : "/Danh-Muc")';
+                                var params = new URLSearchParams();
+                                
+                                // Add all current filters
+                                @if (!string.IsNullOrEmpty(searchTerm))
+                                {
+                                    <text>params.append('searchTerm', '@searchTerm');</text>
+                                }
+                                @if (!string.IsNullOrEmpty(sortOrder))
+                                {
+                                    <text>params.append('sortOrder', '@sortOrder');</text>
+                                }
+                                @if (!string.IsNullOrEmpty(selectedPrice))
+                                {
+                                    <text>params.append('priceRange', '@selectedPrice');</text>
+                                }
+                                @if (!string.IsNullOrEmpty(selectedCoverType))
+                                {
+                                    <text>params.append('coverType', '@selectedCoverType');</text>
+                                }
+                                
+                                // Add new pageSize and reset to page 1
+                                params.append('pageSize', this.value);
+                                params.append('page', '1');
+                                
+                                // Navigate to new URL
+                                window.location.href = baseUrl + '?' + params.toString();
+                            }
+                        });
+                    </script>
+                </div>
+            </div>
+
+            <!-- Grid -->
+            @if (Model != null && Model.Any())
+            {
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                    @foreach (var book in Model)
+                    {
+                        <div class="col">
+                            <div class="book-card h-100 bg-white">
+                                <div class="position-relative overflow-hidden group-hover-img p-2">
+                                     <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                        <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                             class="book-cover rounded-3 border img-fluid" alt="@book.Title">
+                                     </a>
+                                    @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
+                                    {
+                                        var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                        <span class="position-absolute top-0 end-0 bg-danger text-white small fw-bold px-2 py-1 rounded-start mt-2">
+                                            -@discountPercent%
+                                        </span>
+                                    }
+                                </div>
+                                <div class="book-info p-2">
+                                    <h6 class="book-title mb-1" style="font-size: 14px; height: 40px; overflow: hidden;">
+                                        <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark">
+                                            @book.Title
+                                        </a>
+                                    </h6>
+                                    
+                                    <div class="price-box d-flex align-items-center gap-2 mb-2">
+                                        <span class="current-price text-danger fw-bold" style="font-size: 1.1rem;">
+                                            @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
+                                        </span>
+                                        @if(book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
+                                        {
+                                             var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                             <span class="bg-danger text-white small rounded px-1 text-center" style="font-size: 10px;">-@discountPercent%</span>
+                                        }
+                                    </div>
+                                    @if (book.DiscountPrice.HasValue) {
+                                         <div class="text-muted text-decoration-line-through small mb-2">@book.Price.ToString("#,##0") ₫</div>
+                                    } else {
+                                        <div class="mb-2" style="height: 21px;"></div>
+                                    }
+
+                                    <!-- Rating Stars -->
+                                    @{
+                                        double averageRating = 0;
+                                        int ratingCount = 0;
+                                        if (book.Reviews != null && book.Reviews.Any())
+                                        {
+                                            averageRating = book.Reviews.Average(r => r.Rating);
+                                            ratingCount = book.Reviews.Count;
+                                        }
+                                    }
+                                    <div class="d-flex text-warning small mb-1">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= Math.Round(averageRating))
+                                            {
+                                                <i class="bi bi-star-fill"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-star text-secondary"></i>
+                                            }
+                                        }
+                                        <span class="text-muted ms-1">(@ratingCount)</span>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                <!-- Pagination -->
+                @if (totalPages > 1)
+                {
+                    <div class="d-flex justify-content-center mt-5">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                @{
+                                    // Helper function to build URL with all filters
+                                    string BuildPageUrl(int pageNum)
+                                    {
+                                        var queryParams = new List<string>();
+                                        if (!string.IsNullOrEmpty(searchTerm))
+                                            queryParams.Add($"searchTerm={Uri.EscapeDataString(searchTerm)}");
+                                        if (!string.IsNullOrEmpty(sortOrder))
+                                            queryParams.Add($"sortOrder={sortOrder}");
+                                        if (!string.IsNullOrEmpty(selectedPrice))
+                                            queryParams.Add($"priceRange={Uri.EscapeDataString(selectedPrice)}");
+                                        if (!string.IsNullOrEmpty(selectedCoverType))
+                                            queryParams.Add($"coverType={Uri.EscapeDataString(selectedCoverType)}");
+                                        queryParams.Add($"page={pageNum}");
+                                        queryParams.Add($"pageSize={pageSize}");
+                                        var baseUrl = currentCategoryId.HasValue ? $"/Danh-Muc/{currentCategoryId}" : "/Danh-Muc";
+                                        return queryParams.Any() ? $"{baseUrl}?{string.Join("&", queryParams)}" : $"{baseUrl}?page={pageNum}&pageSize={pageSize}";
+                                    }
+                                }
+                                
+                                <!-- Previous Button -->
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="@(currentPage > 1 ? BuildPageUrl(currentPage - 1) : "#")" tabindex="@(currentPage == 1 ? "-1" : "")" aria-disabled="@(currentPage == 1 ? "true" : "false")">&lt;</a>
+                                </li>
+                                
+                                <!-- Page Numbers -->
+                                @{
+                                    int startPage = Math.Max(1, currentPage - 2);
+                                    int endPage = Math.Min(totalPages, currentPage + 2);
+                                    
+                                    // Show first page if not in range
+                                    if (startPage > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link text-dark" href="@BuildPageUrl(1)">1</a>
+                                        </li>
+                                        if (startPage > 2)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link text-dark">...</span>
+                                            </li>
+                                        }
+                                    }
+                                    
+                                    // Show pages in range
+                                    for (int i = startPage; i <= endPage; i++)
+                                    {
+                                        <li class="page-item @(i == currentPage ? "active" : "")">
+                                            <a class="page-link @(i == currentPage ? "bg-danger border-danger" : "text-dark")" href="@BuildPageUrl(i)">@i</a>
+                                        </li>
+                                    }
+                                    
+                                    // Show last page if not in range
+                                    if (endPage < totalPages)
+                                    {
+                                        if (endPage < totalPages - 1)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link text-dark">...</span>
+                                            </li>
+                                        }
+                                        <li class="page-item">
+                                            <a class="page-link text-dark" href="@BuildPageUrl(totalPages)">@totalPages</a>
+                                        </li>
+                                    }
+                                }
+                                
+                                <!-- Next Button -->
+                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                    <a class="page-link text-dark" href="@(currentPage < totalPages ? BuildPageUrl(currentPage + 1) : "#")" tabindex="@(currentPage == totalPages ? "-1" : "")" aria-disabled="@(currentPage == totalPages ? "true" : "false")">&gt;</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-warning text-center">
+                    Chưa có sản phẩm nào trong danh mục này.
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,76 @@
+@model IEnumerable<WedBanSach.Models.Review>
+@{
+    ViewData["Title"] = "Quản lý Đánh giá";
+    Layout = "_AdminLayout";
+}
+
+<div class="page-header">
+    <h2><i class="bi bi-star"></i> Quản lý Đánh giá</h2>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Sách</th>
+                        <th>Người dùng</th>
+                        <th>Đánh giá</th>
+                        <th>Bình luận</th>
+                        <th>Ngày</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var review in Model)
+                    {
+                        <tr>
+                            <td>@review.ReviewID</td>
+                            <td>@review.Book?.Title</td>
+                            <td>@review.User?.FullName</td>
+                            <td>
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="bi bi-star@(i <= review.Rating ? "-fill text-warning" : "")"></i>
+                                }
+                                (@review.Rating/5)
+                            </td>
+                            <td>@(string.IsNullOrEmpty(review.Comment) ? "-" : (review.Comment.Length > 50 ? review.Comment.Substring(0, 50) + "..." : review.Comment))</td>
+                            <td>@review.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete(@review.ReviewID)">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<form id="deleteForm" method="post" asp-action="Delete" style="display: none;">
+    <input type="hidden" name="id" id="deleteId" />
+</form>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+                document.getElementById('deleteId').value = id;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+    </script>
+}

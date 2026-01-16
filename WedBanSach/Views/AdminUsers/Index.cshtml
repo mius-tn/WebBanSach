@@ -1,0 +1,121 @@
+@model IEnumerable<WedBanSach.Models.User>
+@{
+    ViewData["Title"] = "Quản lý Người dùng";
+    Layout = "_AdminLayout";
+}
+
+<div class="page-header">
+    <h2><i class="bi bi-people"></i> Quản lý Người dùng</h2>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="searchTerm" class="form-control" placeholder="Tìm kiếm theo tên, email, số điện thoại..." value="@ViewBag.SearchTerm" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search"></i> Tìm
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Họ tên</th>
+                        <th>Email</th>
+                        <th>Điện thoại</th>
+                        <th>Vai trò</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>@user.UserID</td>
+                            <td><strong>@user.FullName</strong></td>
+                            <td>@user.Email</td>
+                            <td>@user.Phone</td>
+                            <td>
+                                @foreach (var role in user.UserRoles)
+                                {
+                                    <span class="badge bg-info me-1">@role.Role.RoleName</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge @(user.Status == "Active" ? "bg-success" : "bg-danger")">
+                                    @user.Status
+                                </span>
+                            </td>
+                            <td>@user.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="@Url.Action("EditRoles", new { id = user.UserID })" class="btn btn-outline-primary" title="Phân quyền">
+                                        <i class="bi bi-key"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-@(user.Status == "Active" ? "danger" : "success")" 
+                                            onclick="toggleStatus(@user.UserID, '@user.Status')" title="@(user.Status == "Active" ? "Khóa" : "Mở khóa")">
+                                        <i class="bi bi-@(user.Status == "Active" ? "lock" : "unlock")"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <nav>
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="?page=@i&searchTerm=@ViewBag.SearchTerm">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleStatus(userId, currentStatus) {
+            const action = currentStatus === 'Active' ? 'khóa' : 'mở khóa';
+            if (confirm(`Bạn có chắc chắn muốn ${action} tài khoản này?`)) {
+                fetch('@Url.Action("ToggleStatus", "AdminUsers")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'id=' + userId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+}

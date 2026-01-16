@@ -1,0 +1,155 @@
+@model WedBanSach.Models.User
+@{
+    ViewData["Title"] = "Hồ sơ của tôi";
+}
+
+<style>
+    :root {
+        --pink-main: #f8cdda;
+        --pink-light: #fde7f0;
+        --pink-hover: #f5b0c4;
+        --white: #ffffff;
+        --text-dark: #444444;
+        --border-soft: #f1c6d9;
+    }
+    
+    .sidebar-menu .nav-link {
+        color: var(--text-dark);
+        border-radius: 10px;
+        padding: 12px 20px;
+        margin-bottom: 5px;
+        transition: all 0.2s;
+    }
+    
+    .sidebar-menu .nav-link:hover {
+        background-color: var(--pink-light);
+        color: #C92127;
+    }
+    
+    .sidebar-menu .nav-link.active {
+        background-color: var(--pink-main);
+        color: #C92127;
+        font-weight: 600;
+    }
+    
+    .form-control:focus {
+        border-color: var(--pink-main);
+        box-shadow: 0 0 0 0.25rem rgba(248, 205, 218, 0.5);
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 text-center border-bottom bg-light">
+                    <img src="@(!string.IsNullOrEmpty(Model.AvatarUrl) ? Model.AvatarUrl : $"https://ui-avatars.com/api/?name={Model.FullName}&background=f8cdda&color=444")" 
+                         class="rounded-circle mb-3 shadow-sm object-fit-cover" width="80" height="80">
+                    <h5 class="fw-bold mb-0">@Model.FullName</h5>
+                    <small class="text-muted">@Model.Email</small>
+                </div>
+                <div class="p-3">
+                    <nav class="nav flex-column sidebar-menu">
+                        <a class="nav-link active" href="/Account/Profile"><i class="bi bi-person-fill me-2"></i> Hồ sơ cá nhân</a>
+                        <a class="nav-link" href="/Account/Addresses"><i class="bi bi-geo-alt-fill me-2"></i> Địa chỉ giao hàng</a>
+                        <a class="nav-link" href="/Account/Notifications"><i class="bi bi-bell-fill me-2"></i> Thông báo</a>
+                        <a class="nav-link" href="/Order/History"><i class="bi bi-bag-fill me-2"></i> Lịch sử mua hàng</a>
+                        <hr>
+                        <a class="nav-link text-danger" href="/Account/Logout"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-4 px-4 border-bottom">
+                    <h5 class="fw-bold m-0 text-dark">Hồ sơ của tôi</h5>
+                    <p class="text-muted small m-0">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success rounded-3 mb-4">@TempData["Success"]</div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger rounded-3 mb-4">@TempData["Error"]</div>
+                    }
+                
+                    <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+                        <div class="text-center mb-4">
+                            <div class="position-relative d-inline-block">
+                                <img src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? $"https://ui-avatars.com/api/?name={Model.FullName}&background=f8cdda&color=444" : Model.AvatarUrl)" 
+                                     class="rounded-circle shadow-sm object-fit-cover" width="120" height="120" id="avatarPreview">
+                                <label for="avatarFile" class="position-absolute bottom-0 end-0 bg-white shadow-sm rounded-circle p-2 cursor-pointer" style="cursor: pointer; width: 40px; height: 40px;">
+                                    <i class="bi bi-camera-fill text-danger"></i>
+                                </label>
+                                <input type="file" name="avatarFile" id="avatarFile" class="d-none" accept="image/*" onchange="previewAvatar(this)">
+                            </div>
+                            <p class="text-muted small mt-2">Nhấn vào biểu tượng máy ảnh để thay đổi</p>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label class="col-md-3 col-form-label text-muted">Họ và tên</label>
+                            <div class="col-md-9">
+                                <input type="text" name="fullName" class="form-control" value="@Model.FullName" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-md-3 col-form-label text-muted">Email</label>
+                            <div class="col-md-9">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="@Model.Email" readonly disabled>
+                                    <span class="input-group-text bg-light text-success"><i class="bi bi-check-circle-fill me-1"></i> Đã xác thực</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-md-3 col-form-label text-muted">Số điện thoại</label>
+                            <div class="col-md-9">
+                                <input type="text" name="phone" class="form-control" value="@Model.Phone" required>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h6 class="fw-bold mb-3">Đổi mật khẩu (Tùy chọn)</h6>
+                        
+                        <div class="row mb-3">
+                            <label class="col-md-3 col-form-label text-muted">Mật khẩu hiện tại</label>
+                            <div class="col-md-9">
+                                <input type="password" name="password" class="form-control" placeholder="Chỉ nhập khi cần đổi mật khẩu">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-md-3 col-form-label text-muted">Mật khẩu mới</label>
+                            <div class="col-md-9">
+                                <input type="password" name="newPassword" class="form-control">
+                            </div>
+                        </div>
+
+<script>
+    function previewAvatar(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+
+                        <div class="row mt-4">
+                            <div class="col-md-9 offset-md-3">
+                                <button type="submit" class="btn fw-bold px-5 py-2 rounded-pill" style="background-color: var(--pink-main); color: #444;">Lưu thay đổi</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

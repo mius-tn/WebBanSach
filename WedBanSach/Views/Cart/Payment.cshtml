@@ -1,0 +1,447 @@
+@model WedBanSach.Models.Order
+@{
+    // Theme Config
+    ViewData["Title"] = "Thanh toán an toàn";
+    Layout = "_Layout";
+    
+    // Bank Data
+    string bankName = ViewBag.BankName ?? "NGAN HANG";
+    string accountNumber = ViewBag.AccountNumber ?? "0000000000";
+    string accountHolder = ViewBag.AccountHolder ?? "CHU TAI KHOAN";
+    string bankCode = ViewBag.BankCode ?? "MB";
+    string description = $"Thanh toan don hang {Model.OrderID}";
+    long amount = (long)(Model.TotalAmount ?? 0);
+
+    // QR & Time Config
+    string qrUrl = $"https://img.vietqr.io/image/{bankCode}-{accountNumber}-compact.jpg?amount={amount}&addInfo={description}&accountName={accountHolder}";
+    int timeoutMinutes = 10;
+}
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --pink-main: #f8cdda;
+        --pink-light: #fde7f0;
+        --pink-hover: #f5b0c4;
+        --white: #ffffff;
+        --text-dark: #444444;
+        --text-soft: #666666;
+        --danger: #e57373;
+        --success: #81c784;
+        --card-radius: 20px;
+        --shadow-soft: 0 10px 30px rgba(248, 205, 218, 0.3);
+    }
+
+    body {
+        background-color: #fafafa;
+        font-family: 'Poppins', 'Noto Sans JP', sans-serif;
+        color: var(--text-dark);
+    }
+
+    .payment-container {
+        max-width: 1000px;
+        margin: 40px auto;
+    }
+
+    /* Left Side: Order Info */
+    .order-card {
+        background: var(--white);
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow-soft);
+        height: 100%;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    .order-header {
+        background: var(--pink-light);
+        padding: 20px 30px;
+        border-bottom: 2px solid var(--white);
+    }
+
+    .order-body {
+        padding: 30px;
+    }
+
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px dashed #eee;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .total-row {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid var(--pink-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--danger);
+    }
+
+    /* Right Side: Payment Info */
+    .payment-card {
+        background: var(--white);
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow-soft);
+        padding: 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        border: 2px solid var(--pink-main);
+    }
+
+    .timer-badge {
+        background: var(--danger);
+        color: var(--white);
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 10px rgba(229, 115, 115, 0.3);
+        font-size: 1.1rem;
+    }
+
+    .qr-frame {
+        background: var(--pink-light);
+        padding: 15px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 25px;
+        position: relative;
+        max-width: 100%; /* Ensure it doesn't overflow */
+    }
+
+    .qr-img {
+        max-width: 100%; /* Responsive */
+        width: 200px; /* Fixed reasonable size */
+        height: auto;
+        border-radius: 10px;
+        border: 2px solid white;
+    }
+
+    /* Simple Copy Box */
+    .copy-box {
+        background: #f8f9fa;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 12px 15px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+    }
+    
+    .copy-box:hover {
+        border-color: var(--pink-main);
+        background: var(--white);
+    }
+
+    .copy-label {
+        font-size: 0.85rem;
+        color: var(--text-soft);
+        margin-bottom: 4px;
+        text-align: left;
+        display: block;
+    }
+
+    .copy-value {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 1rem;
+    }
+
+    .btn-copy {
+        background: none;
+        border: none;
+        color: var(--pink-main); /* Using main pink color for icon */
+        cursor: pointer;
+        padding: 5px;
+        transition: 0.2s;
+    }
+
+    .btn-copy:hover {
+        color: var(--danger);
+        transform: scale(1.1);
+    }
+
+    .guide-text {
+        font-size: 0.9rem;
+        color: var(--text-soft);
+        margin-top: 20px;
+        line-height: 1.6;
+    }
+
+    /* Expired State */
+    .payment-card.expired .qr-frame {
+        filter: blur(5px) grayscale(100%);
+        pointer-events: none;
+    }
+    
+    .expired-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.85);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+
+    .payment-card.expired .expired-overlay {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    /* Loading/Processing Overlay */
+    .processing-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 20;
+        color: var(--pink-main);
+    }
+    
+    .btn-pink-custom {
+        background-color: var(--pink-main);
+        border: 2px solid var(--pink-main);
+        color: var(--text-dark);
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .btn-pink-custom:hover {
+        background-color: var(--white);
+        color: var(--pink-hover);
+        border-color: var(--pink-hover);
+    }
+</style>
+
+<div class="container payment-container">
+    <div class="row g-4">
+        <!-- Left Column: Order Summary -->
+        <div class="col-lg-5">
+            <div class="order-card">
+                <div class="order-header">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-bag-heart-fill me-2 text-danger"></i>Chi tiết đơn hàng</h5>
+                    <small class="text-muted">Mã đơn: #@Model.OrderID</small>
+                </div>
+                <div class="order-body">
+                    <div class="items-list">
+                        @foreach (var item in Model.OrderDetails)
+                        {
+                            <div class="order-item">
+                                <div class="d-flex align-items-center">
+                                    <img src="@(item.Book?.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                         alt="@item.Book?.Title" 
+                                         class="rounded me-3" 
+                                         style="width: 50px; height: 75px; object-fit: cover;">
+                                    <div>
+                                        <div class="fw-medium text-truncate" style="max-width: 200px;" title="@item.Book?.Title">
+                                            @(item.Book?.Title ?? $"Sách ID: {item.BookID}")
+                                        </div>
+                                        <small class="text-muted">x @item.Quantity</small>
+                                    </div>
+                                </div>
+                                <div class="fw-bold align-self-center">@((item.UnitPrice ?? 0).ToString("#,##0")) đ</div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Phí vận chuyển</span>
+                            <span>@((Model.ShippingFee ?? 0).ToString("#,##0")) đ</span>
+                        </div>
+                        <div class="total-row">
+                            <span>TỔNG THANH TOÁN</span>
+                            <span>@amount.ToString("#,##0") đ</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-light text-center">
+                    <a href="/" class="text-decoration-none text-muted small hover-pink">
+                        <i class="bi bi-arrow-left me-1"></i>Hủy & Quay lại mua sắm
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Payment & QR -->
+        <div class="col-lg-7">
+            <div class="payment-card" id="paymentCard">
+                <!-- Expired Overlay -->
+                <div class="expired-overlay">
+                    <i class="bi bi-x-circle-fill text-secondary display-1 mb-3"></i>
+                    <h3>Đơn hàng đã hết hạn</h3>
+                    <p class="text-muted mb-4">Vui lòng tạo đơn hàng mới để tiếp tục thanh toán.</p>
+                    <a href="/" class="btn btn-dark rounded-pill px-4">Về trang chủ</a>
+                </div>
+
+                <!-- Processing Overlay (Hidden by default) -->
+                <div id="successOverlay" class="processing-overlay d-none">
+                    <i class="bi bi-check-circle-fill text-success display-1 mb-3 animate__animated animate__bounceIn"></i>
+                    <h3 class="text-success fw-bold">Thanh toán thành công!</h3>
+                    <p class="text-muted">Đang chuyển hướng...</p>
+                </div>
+
+                <!-- Timer -->
+                <div class="timer-badge">
+                    <i class="bi bi-stopwatch-fill"></i>
+                    <span id="countdown">10:00</span>
+                </div>
+
+                <h4 class="fw-bold mb-4">Quét mã để thanh toán</h4>
+
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="qr-frame">
+                            <img src="@qrUrl" alt="QR VietQR" class="qr-img shadow-sm" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <!-- Account Number Copy -->
+                        <div class="copy-label">Số tài khoản</div>
+                        <div class="copy-box" onclick="copyToClipboard('@accountNumber')">
+                            <span class="copy-value">@accountNumber</span>
+                            <button class="btn-copy"><i class="bi bi-copy"></i></button>
+                        </div>
+
+                        <!-- Content Copy -->
+                        <div class="copy-label">Nội dung chuyển khoản</div>
+                        <div class="copy-box" onclick="copyToClipboard('@description')">
+                            <span class="copy-value text-danger">@description</span>
+                            <button class="btn-copy"><i class="bi bi-copy"></i></button>
+                        </div>
+                        
+                        <!-- Bank & Name Info -->
+                        <div class="mt-3 text-start ps-2">
+                             <div class="small text-muted mb-1">
+                                 <i class="bi bi-bank me-1"></i>Ngân hàng: <strong>@bankName</strong>
+                             </div>
+                             <div class="small text-muted">
+                                 <i class="bi bi-person-circle me-1"></i>Chủ TK: <strong>@accountHolder</strong>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="guide-text">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Sử dụng App Ngân hàng (Mobile Banking) để quét mã.<br>
+                    Hệ thống sẽ tự động xác nhận sau 1-3 phút.
+                </div>
+
+                <div class="mt-4 pt-4 border-top">
+                <div class="mt-4 pt-4 border-top">
+                     <a href="/Cart" class="btn btn-outline-secondary rounded-pill px-4 me-2">
+                         <i class="bi bi-cart-fill me-2"></i>Quay lại giỏ hàng
+                     </a>
+                     <a href="@Url.Action("OrderSuccess", "Cart", new { id = Model.OrderID })" class="btn btn-pink-custom rounded-pill px-4">
+                         <i class="bi bi-check-lg me-2"></i>Tôi đã chuyển khoản
+                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuration
+    const TIMEOUT_MINUTES = @timeoutMinutes;
+    const ORDER_ID = @Model.OrderID;
+    let timeRemaining = TIMEOUT_MINUTES * 60;
+    
+    // Countdown Timer
+    const timerElement = document.getElementById('countdown');
+    const paymentCard = document.getElementById('paymentCard');
+    
+    const timerInterval = setInterval(() => {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        
+        timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        
+        if (timeRemaining <= 300) { // Last 5 mins
+            document.querySelector('.timer-badge').style.animation = "pulse 1s infinite";
+        }
+
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            paymentCard.classList.add('expired');
+        }
+        
+        timeRemaining--;
+    }, 1000);
+
+    // Copy Clipboard
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Toast or visual feedback could go here
+            alert('Đã sao chép: ' + text);
+        });
+    }
+
+    // Polling Payment Status
+    setInterval(() => {
+        if (timeRemaining <= 0) return;
+
+        fetch(`/Cart/CheckPaymentStatus?orderId=${ORDER_ID}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.isPaid) {
+                    // Stop timer and polling
+                    clearInterval(timerInterval);
+                    
+                    // Show success
+                    document.getElementById('successOverlay').classList.remove('d-none');
+                    
+                    // Redirect after short delay
+                    setTimeout(() => {
+                        window.location.href = `/Cart/OrderSuccess/${ORDER_ID}`;
+                    }, 2000);
+                }
+            })
+            .catch(err => console.error('Polling error:', err));
+    }, 5000); // Check every 5 seconds
+
+    // Keyframes for pulse animation
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = `
+        @@keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(styleSheet);
+</script>

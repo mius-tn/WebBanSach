@@ -1,0 +1,278 @@
+@model WedBanSach.Models.Book
+@{
+    ViewData["Title"] = "Chỉnh sửa sách";
+    Layout = "_AdminLayout";
+    var selectedAuthorIds = ViewBag.SelectedAuthorIds as List<int> ?? new List<int>();
+    var selectedCategoryIds = ViewBag.SelectedCategoryIds as List<int> ?? new List<int>();
+}
+
+<div class="page-header">
+    <h2><i class="bi bi-pencil"></i> Chỉnh sửa sách</h2>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="BookID" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">Tên sách *</label>
+                        <input asp-for="Title" class="form-control" required />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="ISBN" class="form-label">ISBN</label>
+                                <input asp-for="ISBN" class="form-control" />
+                                <span asp-validation-for="ISBN" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="PublishYear" class="form-label">Năm xuất bản</label>
+                                <input asp-for="PublishYear" class="form-control" type="number" />
+                                <span asp-validation-for="PublishYear" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Mô tả</label>
+                        <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="Price" class="form-label">Giá *</label>
+                                <input asp-for="Price" class="form-control" type="number" step="0.01" required />
+                                <span asp-validation-for="Price" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="DiscountPrice" class="form-label">Giá giảm</label>
+                                <input asp-for="DiscountPrice" class="form-control" type="number" step="0.01" />
+                                <span asp-validation-for="DiscountPrice" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="StockQuantity" class="form-label">Số lượng tồn kho *</label>
+                                <input asp-for="StockQuantity" class="form-control" type="number" min="0" required />
+                                <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label asp-for="Weight" class="form-label">Trọng lượng (gr)</label>
+                                <input asp-for="Weight" class="form-control" type="number" min="0" />
+                                <span asp-validation-for="Weight" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label asp-for="PackageSize" class="form-label">Kích thước</label>
+                                <input asp-for="PackageSize" class="form-control" placeholder="D x R x C cm" />
+                                <span asp-validation-for="PackageSize" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label asp-for="PageCount" class="form-label">Số trang</label>
+                                <input asp-for="PageCount" class="form-control" type="number" min="1" />
+                                <span asp-validation-for="PageCount" class="text-danger"></span>
+                            </div>
+                        </div>
+                         <div class="col-md-3">
+                            <div class="mb-3">
+                                <label asp-for="CoverType" class="form-label">Hình thức bìa</label>
+                                <select asp-for="CoverType" class="form-select">
+                                    <option value="">-- Chọn --</option>
+                                    <option value="Bìa mềm">Bìa mềm</option>
+                                    <option value="Bìa cứng">Bìa cứng</option>
+                                    <option value="Bộ hộp">Bộ hộp</option>
+                                    <option value="Bìa da">Bìa da</option>
+                                </select>
+                                <span asp-validation-for="CoverType" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="PublisherID" class="form-label">Nhà xuất bản</label>
+                                <select asp-for="PublisherID" class="form-select" asp-items="ViewBag.Publishers">
+                                    <option value="">-- Chọn nhà xuất bản --</option>
+                                </select>
+                                <span asp-validation-for="PublisherID" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Status" class="form-label">Trạng thái</label>
+                                <select asp-for="Status" class="form-select">
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.BookImages != null && Model.BookImages.Any())
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Ảnh hiện tại</label>
+                            <div class="row">
+                                @foreach (var image in Model.BookImages)
+                                {
+                                    <div class="col-md-3 mb-2" id="image-@image.ImageID">
+                                        <div class="position-relative">
+                                            <img src="@image.ImageUrl" alt="Book image" class="img-thumbnail" style="width: 100%; height: 150px; object-fit: cover;" />
+                                            @if (image.IsMain)
+                                            {
+                                                <span class="badge bg-primary position-absolute top-0 start-0 m-1">Ảnh chính</span>
+                                            }
+                                            <div class="btn-group btn-group-sm position-absolute bottom-0 end-0 m-1">
+                                                @if (!image.IsMain)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-primary" onclick="setMainImage(@image.ImageID)" title="Đặt làm ảnh chính">
+                                                        <i class="bi bi-star"></i>
+                                                    </button>
+                                                }
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteImage(@image.ImageID)" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label">Thêm ảnh mới</label>
+                        <input type="file" name="images" class="form-control" multiple accept="image/*" />
+                        <small class="text-muted">Có thể chọn nhiều ảnh.</small>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Tác giả</label>
+                        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 10px;">
+                            @if (ViewBag.Authors != null)
+                            {
+                                var authors = ViewBag.Authors as List<WedBanSach.Models.Author>;
+                                @if (authors != null)
+                                {
+                                    @foreach (var author in authors)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="authorIds" value="@author.AuthorID" id="author_@author.AuthorID" 
+                                                   @(selectedAuthorIds.Contains(author.AuthorID) ? "checked" : "") />
+                                            <label class="form-check-label" for="author_@author.AuthorID">
+                                                @author.AuthorName
+                                            </label>
+                                        </div>
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Danh mục</label>
+                        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 10px;">
+                            @if (ViewBag.Categories != null)
+                            {
+                                var categories = ViewBag.Categories as List<WedBanSach.Models.Category>;
+                                @if (categories != null)
+                                {
+                                    @foreach (var category in categories)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="categoryIds" value="@category.CategoryID" id="category_@category.CategoryID"
+                                                   @(selectedCategoryIds.Contains(category.CategoryID) ? "checked" : "") />
+                                            <label class="form-check-label" for="category_@category.CategoryID">
+                                                @category.CategoryName
+                                            </label>
+                                        </div>
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a href="@Url.Action("Index")" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Cập nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function deleteImage(imageId) {
+            if (confirm('Bạn có chắc chắn muốn xóa ảnh này?')) {
+                fetch('@Url.Action("DeleteImage", "AdminBooks")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'imageId=' + imageId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('image-' + imageId).remove();
+                    }
+                });
+            }
+        }
+
+        function setMainImage(imageId) {
+            fetch('@Url.Action("SetMainImage", "AdminBooks")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'imageId=' + imageId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        }
+    </script>
+}

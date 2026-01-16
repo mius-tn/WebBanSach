@@ -1,0 +1,3 @@
+Time: 1/13/2026 1:48:07 AM
+SignString: merchant=SP-TEST-TN335973,operation=PURCHASE,payment_method=BANK_TRANSFER,order_amount=115000,currency=VND,order_invoice_number=32,order_description=Thanh toan don hang 32,success_url=https://unhandselled-intensively-destiny.ngrok-free.dev/Cart/OrderSuccess/32,error_url=https://unhandselled-intensively-destiny.ngrok-free.dev/Cart/Checkout,cancel_url=https://unhandselled-intensively-destiny.ngrok-free.dev/Cart/Checkout
+Secret: spsk_test_M9j9RCiWerm6EN7w4GJUvaNyRJ2CdD7p
