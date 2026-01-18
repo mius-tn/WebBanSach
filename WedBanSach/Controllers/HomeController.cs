@@ -1,4 +1,4 @@
-using System.Diagnostics;
+    using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WedBanSach.Data;
@@ -19,7 +19,12 @@ public class HomeController : Controller
     }
 
     [Route("")]
-    //[Route("TrangChu")]
+    public IActionResult Root()
+    {
+        return RedirectToAction("Index");
+    }
+
+    [Route("trang-chu")]
     public async Task<IActionResult> Index(int? categoryId)
     {
         // Cleanup Abandoned Orders
@@ -56,13 +61,35 @@ public class HomeController : Controller
 
         var featuredBooks = await booksQuery
             .OrderByDescending(b => b.DiscountPrice.HasValue ? (b.Price - b.DiscountPrice.Value) : 0) // prioritize big discounts
-            .Take(12)
+            .Take(15)
             .ToListAsync();
 
         var newBooks = await booksQuery
             .OrderByDescending(b => b.CreatedAt)
-            .Take(12)
+            .Take(10)
             .ToListAsync();
+
+        // Get books for categories (Take top 3 active categories for display)
+        var categoryBooksDict = new Dictionary<Category, List<Book>>();
+        var displayCategories = await _context.Categories
+            .Take(3) // Example: Take first 3 categories
+            .ToListAsync();
+
+        foreach (var cat in displayCategories)
+        {
+             var booksInCat = await _context.Books
+                .Include(b => b.BookImages)
+                .Include(b => b.BookAuthors).ThenInclude(ba => ba.Author)
+                .Where(b => b.Status == "Active" && b.BookCategories.Any(bc => bc.CategoryID == cat.CategoryID))
+                .OrderByDescending(b => b.CreatedAt)
+                .Take(5) // Take 5 books per category
+                .ToListAsync();
+            
+            if(booksInCat.Any())
+            {
+                categoryBooksDict.Add(cat, booksInCat);
+            }
+        }
 
         var categories = await _context.Categories.ToListAsync();
 
@@ -70,7 +97,8 @@ public class HomeController : Controller
         {
             Categories = categories,
             FeaturedBooks = featuredBooks,
-            NewBooks = newBooks
+            NewBooks = newBooks,
+            CategoryBooks = categoryBooksDict
         };
 
         return View(viewModel);

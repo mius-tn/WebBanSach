@@ -14,6 +14,7 @@ namespace WedBanSach.Controllers
             _context = context;
         }
 
+        [Route("lich-su-don-hang")]
         public async Task<IActionResult> History(string status = "all", int page = 1)
         {
             var userIdStr = HttpContext.Session.GetString("UserId");
@@ -82,6 +83,7 @@ namespace WedBanSach.Controllers
             return View(pagedOrders);
         }
 
+        [Route("chi-tiet-don-hang/{id}")]
         public async Task<IActionResult> Details(int id)
         {
             var userIdStr = HttpContext.Session.GetString("UserId");

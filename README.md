@@ -40,7 +40,7 @@ Dự án website bán sách trực tuyến được xây dựng bằng ASP.NET C
     Hoặc mở bằng Visual Studio và nhấn F5.
 
 6.  **Truy cập:**
-    - Mở trình duyệt **Microsoft Edge** và truy cập: `https://localhost:7054` (hoặc port được hiển thị trong terminal).
+    - Mở trình duyệt (Chrome hoặc Edge) và truy cập: `https://localhost:7054` (hoặc port được hiển thị trong terminal).
 
 ## Cấu trúc thư mục
 

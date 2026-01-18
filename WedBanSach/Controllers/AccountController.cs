@@ -19,6 +19,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [Route("dang-nhap")]
     public IActionResult Login(string? returnUrl = null)
     {
         ViewBag.ReturnUrl = returnUrl;
@@ -41,6 +42,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [Route("dang-nhap")]
     public async Task<IActionResult> Login(string email, string password, string? returnUrl = null)
     {
         ViewBag.ReturnUrl = returnUrl;
@@ -87,6 +89,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [Route("dang-xuat")]
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();
@@ -97,6 +100,7 @@ public class AccountController : Controller
     /// Display registration form
     /// </summary>
     [HttpGet]
+    [Route("dang-ky")]
     public IActionResult Register()
     {
         // If already logged in, redirect to homepage
@@ -112,6 +116,7 @@ public class AccountController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Route("dang-ky")]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
         if (!ModelState.IsValid)
@@ -321,6 +326,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [Route("thong-bao")]
     public async Task<IActionResult> Notifications(int page = 1)
     {
         var userIdStr = HttpContext.Session.GetString("UserId");
@@ -425,7 +431,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    [Route("Account/Notifications/Detail/{id}")]
+    [Route("thong-bao/chi-tiet/{id}")]
     public async Task<IActionResult> NotificationDetails(int id)
     {
         var userIdStr = HttpContext.Session.GetString("UserId");
@@ -493,6 +499,7 @@ public class AccountController : Controller
     // --- Profile & Address Management ---
 
     [HttpGet]
+    [Route("tai-khoan")]
     public async Task<IActionResult> Profile()
     {
         var userIdStr = HttpContext.Session.GetString("UserId");
@@ -504,6 +511,7 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Route("tai-khoan")]
     public async Task<IActionResult> UpdateProfile(string fullName, string phone, string? password, string? newPassword, IFormFile? avatarFile)
     {
         var userIdStr = HttpContext.Session.GetString("UserId");
@@ -554,6 +562,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [Route("so-dia-chi")]
     public async Task<IActionResult> Addresses()
     {
         var userIdStr = HttpContext.Session.GetString("UserId");
@@ -640,6 +649,120 @@ public class AccountController : Controller
             await _context.SaveChangesAsync();
         }
         return Json(new { success = true });
+    }
+    // --- Forgot Password Flow ---
+    
+    [HttpGet]
+    [Route("quen-mat-khau")]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Route("quen-mat-khau")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        if (user == null)
+        {
+            ModelState.AddModelError("Email", "Email này chưa được đăng ký.");
+            return View(model);
+        }
+
+        var otp = new Random().Next(100000, 999999).ToString();
+        HttpContext.Session.SetString("ForgotOtp", otp);
+        HttpContext.Session.SetString("ForgotEmail", model.Email);
+        HttpContext.Session.SetInt32("ForgotOtpExpiry", (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 300); // 5 mins
+
+        await _emailService.SendForgotPasswordEmailAsync(model.Email, user.FullName, otp);
+
+        return RedirectToAction("VerifyOtp", new { email = model.Email });
+    }
+
+    [HttpGet]
+    [Route("xac-thuc-otp")]
+    public IActionResult VerifyOtp(string email)
+    {
+        return View(new VerifyOtpViewModel { Email = email });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Route("xac-thuc-otp")]
+    public IActionResult VerifyOtp(VerifyOtpViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var sessionOtp = HttpContext.Session.GetString("ForgotOtp");
+        var sessionEmail = HttpContext.Session.GetString("ForgotEmail");
+        var expiry = HttpContext.Session.GetInt32("ForgotOtpExpiry");
+
+        if (string.IsNullOrEmpty(sessionOtp) || sessionEmail != model.Email || expiry < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+        {
+            ModelState.AddModelError("", "Mã xác thực đã hết hạn hoặc không hợp lệ. Vui lòng gửi lại.");
+            return View(model);
+        }
+
+        if (sessionOtp != model.OtpCode)
+        {
+            ModelState.AddModelError("", "Mã xác thực không chính xác.");
+            return View(model);
+        }
+
+        // Verified
+        HttpContext.Session.SetString("CanResetPassword", "true");
+        return RedirectToAction("ResetPassword", new { email = model.Email });
+    }
+
+    [HttpGet]
+    [Route("dat-lai-mat-khau")]
+    public IActionResult ResetPassword(string email)
+    {
+        var canReset = HttpContext.Session.GetString("CanResetPassword");
+        var sessionEmail = HttpContext.Session.GetString("ForgotEmail");
+
+        if (canReset != "true" || sessionEmail != email)
+        {
+            return RedirectToAction("ForgotPassword");
+        }
+
+        return View(new ResetPasswordViewModel { Email = email });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Route("dat-lai-mat-khau")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var canReset = HttpContext.Session.GetString("CanResetPassword");
+        var sessionEmail = HttpContext.Session.GetString("ForgotEmail");
+
+        if (canReset != "true" || sessionEmail != model.Email)
+        {
+            return RedirectToAction("ForgotPassword");
+        }
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        if (user != null)
+        {
+            user.PasswordHash = AuthHelper.HashPassword(model.NewPassword);
+            await _context.SaveChangesAsync();
+        }
+
+        // Clear session
+        HttpContext.Session.Remove("ForgotOtp");
+        HttpContext.Session.Remove("ForgotEmail");
+        HttpContext.Session.Remove("ForgotOtpExpiry");
+        HttpContext.Session.Remove("CanResetPassword");
+
+        TempData["LoginSuccess"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
+        return RedirectToAction("Login");
     }
 }
 

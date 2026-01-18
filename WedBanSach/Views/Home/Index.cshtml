@@ -36,6 +36,7 @@
 </section>
 
 
+
 <!-- FEATURED BOOKS -->
 <section class="container mb-5">
     <div class="bg-white border-soft p-4 shadow-sm">
@@ -104,6 +105,72 @@
     </div>
 </section>
 
+
+<!-- CATEGORY BOOKS SECTIONS -->
+            @foreach (var cat in Model.CategoryBooks)
+            {
+                <section class="container mb-5">
+                    <div class="bg-white border-soft p-4 shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-2">
+                            <h4 class="fw-bold text-pink"><i class="bi bi-bookmark-star-fill"></i> @cat.Key.CategoryName</h4>
+                            <a asp-controller="Books" asp-action="Category" asp-route-id="@cat.Key.CategoryID" class="btn btn-sm btn-outline-danger rounded-pill px-3">Xem thêm >></a>
+                        </div>
+                
+                        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
+                            @foreach (var book in cat.Value)
+                            {
+                                <div class="col">
+                                    <div class="book-card h-100">
+                                        <div class="position-relative overflow-hidden group-hover-img">
+                                            <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                                <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                                        class="book-cover" alt="@book.Title">
+                                            </a>
+                                            @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
+                                            {
+                                                var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                                <span class="position-absolute top-0 start-0 bg-danger text-white small fw-bold px-2 py-1 rounded-end" style="z-index: 10;">
+                                                    -@discountPercent%
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <div class="book-info">
+                                            <h6 class="book-title" title="@book.Title">
+                                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark">
+                                                    @book.Title
+                                                </a>
+                                            </h6>
+                                            <p class="book-author text-truncated small mb-2">
+                                                @(book.BookAuthors != null && book.BookAuthors.Any() 
+                                                    ? string.Join(", ", book.BookAuthors.Select(ba => ba.Author.AuthorName)) 
+                                                    : "Đang cập nhật")
+                                            </p>
+                                            
+                                            <div class="price-box">
+                                                <span class="current-price">
+                                                    @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
+                                                </span>
+                                                @if(book.DiscountPrice.HasValue)
+                                                {
+                                                        <span class="original-price">@book.Price.ToString("#,##0") ₫</span>
+                                                }
+                                            </div>
+                                            
+                                            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid gap-2">
+                                                <input type="hidden" name="id" value="@book.BookID" />
+                                                <button type="submit" class="btn btn-sm btn-pink">
+                                                    <i class="bi bi-cart-plus"></i> Thêm
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+            }
 <!-- NEW BOOKS -->
 <section class="container mb-5">
     <div class="d-flex align-items-center justify-content-between mb-4">

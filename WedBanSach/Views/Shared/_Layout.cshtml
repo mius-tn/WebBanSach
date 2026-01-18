@@ -273,7 +273,7 @@
 
                 debounceTimer = setTimeout(function() {
                     $.ajax({
-                        url: '/Books/SearchSuggestions',
+                        url: '/tim-kiem/goi-y',
                         data: { term: query },
                         success: function(data) {
                             $suggestionsBox.empty();
@@ -281,7 +281,7 @@
                                 data.forEach(item => {
                                     const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price);
                                     const html = `
-                                        <a href="/Chi-Tiet/${item.id}" class="d-flex align-items-center p-2 text-decoration-none text-dark border-bottom suggestion-item" style="transition: background 0.2s;">
+                                        <a href="/chi-tiet-san-pham/${item.id}" class="d-flex align-items-center p-2 text-decoration-none text-dark border-bottom suggestion-item" style="transition: background 0.2s;">
                                             <img src="${item.image}" width="50" height="70" class="object-fit-cover rounded me-2">
                                             <div>
                                                 <h6 class="m-0 small fw-bold text-truncate" style="max-width: 250px;">${item.title}</h6>

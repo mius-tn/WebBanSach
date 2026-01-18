@@ -106,6 +106,44 @@ namespace WedBanSach.Services
             }
         }
 
+        public async Task<bool> SendForgotPasswordEmailAsync(string toEmail, string userName, string otpCode)
+        {
+            try
+            {
+                var subject = "Đặt lại mật khẩu - WedBanSach";
+                var body = $@"
+                    <html>
+                    <body style='font-family: Arial, sans-serif;'>
+                        <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                            <h2 style='color: #C92127;'>Xin chào {userName}!</h2>
+                            <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p>
+                            <p>Mã xác thực (OTP) của bạn là:</p>
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <div style='background-color: #f5f5f5; padding: 20px; border-radius: 10px; display: inline-block;'>
+                                    <h1 style='margin: 0; color: #C92127; font-size: 36px; letter-spacing: 5px;'>{otpCode}</h1>
+                                </div>
+                            </div>
+                            <p style='color: #666; font-size: 14px;'>
+                                Mã này sẽ hết hạn sau 5 phút.
+                            </p>
+                            <hr style='margin: 30px 0; border: none; border-top: 1px solid #eee;'>
+                            <p style='color: #999; font-size: 12px;'>
+                                Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này. Tài khoản của bạn vẫn an toàn.
+                            </p>
+                        </div>
+                    </body>
+                    </html>
+                ";
+
+                return await SendEmailAsync(toEmail, subject, body);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending Forgot Password email: {ex.Message}");
+                return false;
+            }
+        }
+
         public async Task<bool> SendOrderConfirmationEmailAsync(WedBanSach.Models.Order order)
         {
             try

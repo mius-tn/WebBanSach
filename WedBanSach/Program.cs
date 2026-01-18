@@ -138,10 +138,21 @@ namespace WedBanSach
                         }
                         else
                         {
-                            try {
-                                context.Database.ExecuteSqlRaw("ALTER TABLE [dbo].[ChatMessages] ADD [MessageType] [nvarchar](20) DEFAULT 'Text'");
-                                context.Database.ExecuteSqlRaw("UPDATE [dbo].[ChatMessages] SET [MessageType] = 'Text' WHERE [MessageType] IS NULL");
-                            } catch {}
+                            // Check if MessageType column exists
+                            var messageTypeExists = context.Database.SqlQueryRaw<int>(
+                                "SELECT CASE WHEN COL_LENGTH('dbo.ChatMessages', 'MessageType') IS NOT NULL THEN 1 ELSE 0 END")
+                                .AsEnumerable().FirstOrDefault() == 1;
+
+                            if (!messageTypeExists)
+                            {
+                                try {
+                                    context.Database.ExecuteSqlRaw("ALTER TABLE [dbo].[ChatMessages] ADD [MessageType] [nvarchar](20) DEFAULT 'Text'");
+                                    context.Database.ExecuteSqlRaw("UPDATE [dbo].[ChatMessages] SET [MessageType] = 'Text' WHERE [MessageType] IS NULL");
+                                     Console.WriteLine("Auto-Fix: Added 'MessageType' to 'ChatMessages' table.");
+                                } catch (Exception ex) {
+                                     Console.WriteLine($"Auto-Fix 'MessageType' Failed: {ex.Message}");
+                                }
+                            }
                         }
 
                         // Auto-Fix: Add AvatarUrl to Users if missing

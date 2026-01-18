@@ -14,7 +14,7 @@ public class BooksController : Controller
         _context = context;
     }
 
-    [Route("Chi-Tiet/{id}")]
+    [Route("chi-tiet-san-pham/{id}")]
     public async Task<IActionResult> Details(int id)
     {
         if (id <= 0) return NotFound();
@@ -101,7 +101,7 @@ public class BooksController : Controller
         return View(book);
     }
 
-    [Route("Danh-Muc/{id?}")]
+    [Route("danh-muc/{id?}")]
     public async Task<IActionResult> Category(int? id, string sortOrder, int page = 1, int pageSize = 12, string priceRange = "", string coverType = "", string searchTerm = "")
     {
         var booksQuery = _context.Books
@@ -217,7 +217,7 @@ public class BooksController : Controller
         return View(books);
     }
 
-    [HttpGet("Books/SearchSuggestions")]
+    [HttpGet("tim-kiem/goi-y")]
     public async Task<IActionResult> SearchSuggestions(string term)
     {
         if (string.IsNullOrWhiteSpace(term))

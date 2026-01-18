@@ -19,6 +19,7 @@ public class CartController : Controller
         _emailService = emailService;
     }
 
+    [Route("gio-hang")]
     public async Task<IActionResult> Index()
     {
         // Cleanup Abandoned Orders (Pending Payment but user navigated away)
@@ -196,7 +197,7 @@ public class CartController : Controller
     }
 
     [HttpGet]
-    [Route("Cart/BuyNow/{id}")]
+    [Route("mua-ngay/{id}")]
     public async Task<IActionResult> BuyNow(int id)
     {
         // Add item to cart
@@ -255,6 +256,7 @@ public class CartController : Controller
         return RedirectToAction("Index");
     }
 
+    [Route("thanh-toan")]
     public async Task<IActionResult> Checkout()
     {
         var userIdStr = HttpContext.Session.GetString("UserId");
@@ -543,6 +545,7 @@ public class CartController : Controller
         });
     }
 
+    [Route("dat-hang-thanh-cong/{id}")]
     public async Task<IActionResult> OrderSuccess(int id)
     {
         var order = await _context.Orders

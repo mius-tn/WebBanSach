@@ -9,7 +9,7 @@ Trước khi bắt đầu test, bạn cần khởi tạo Roles và tài khoản 
 1.  Đảm bảo Database đã được update (`dotnet ef database update`).
 2.  Chạy dự án lên.
 3.  Truy cập vào đường dẫn: `/Account/InitializeAdmin`
-    *   Ví dụ: `https://localhost:7054/Account/InitializeAdmin` (Khuyến nghị sử dụng **Microsoft Edge** để trải nghiệm tốt nhất).
+    *   Ví dụ: `https://localhost:7054/Account/InitializeAdmin`
 4.  Nhấn nút **"Khởi tạo Admin"**. Hệ thống sẽ tạo tài khoản mặc định:
 
 > [!IMPORTANT]
@@ -70,7 +70,7 @@ Sau khi đăng nhập, bạn sẽ được chuyển hướng tới trang Dashboa
 2.  **Thêm sách mới:**
     *   Nhấn "Thêm sách mới" (Create).
     *   Điền đầy đủ: Tên, Tác giả, Giá, Số lượng tồn kho, Mô tả.
-    *   Upload ảnh bìa sách (Nên thực hiện trên **Microsoft Edge** nếu gặp vấn đề với trình duyệt khác).
+    *   Upload ảnh bìa sách.
     *   Nhấn Lưu -> Kiểm tra sách mới xuất hiện ở danh sách và trang chủ User.
 3.  **Sửa sách:**
     *   Chọn một cuốn sách -> Nhấn Edit.
