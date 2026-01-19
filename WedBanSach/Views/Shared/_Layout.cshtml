@@ -134,11 +134,12 @@
             <div class="d-block d-md-none mt-3">
                  <form method="get" asp-controller="Books" asp-action="Category">
                      <div class="position-relative">
-                        <input type="text" name="searchTerm" class="search-input" placeholder="Tìm kiếm...">
+                        <input type="text" id="mobileSearchInput" name="searchTerm" class="search-input" placeholder="Tìm kiếm..." autocomplete="off">
                         <button type="submit" class="search-btn">
                             <i class="bi bi-search"></i>
                         </button>
                      </div>
+                     <div id="mobileSearchSuggestions" class="position-absolute bg-white shadow-lg rounded-3 w-100 mt-1" style="z-index: 1000; display: none; overflow: hidden; max-height: 400px; overflow-y: auto;"></div>
                 </form>
             </div>
         </div>
@@ -258,60 +259,68 @@
     <script src="~/js/chat.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function() {
-            let debounceTimer;
-            const $searchInput = $('#searchInput');
-            const $suggestionsBox = $('#searchSuggestions');
+            function setupSearchSuggestions(inputId, suggestionsId) {
+                let debounceTimer;
+                const $searchInput = $(inputId);
+                const $suggestionsBox = $(suggestionsId);
 
-            $searchInput.on('input', function() {
-                clearTimeout(debounceTimer);
-                const query = $(this).val().trim();
+                $searchInput.on('input', function() {
+                    clearTimeout(debounceTimer);
+                    const query = $(this).val().trim();
 
-                if (query.length < 2) {
-                    $suggestionsBox.hide();
-                    return;
-                }
+                    if (query.length < 2) {
+                        $suggestionsBox.hide();
+                        return;
+                    }
 
-                debounceTimer = setTimeout(function() {
-                    $.ajax({
-                        url: '/tim-kiem/goi-y',
-                        data: { term: query },
-                        success: function(data) {
-                            $suggestionsBox.empty();
-                            if (data.length > 0) {
-                                data.forEach(item => {
-                                    const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price);
-                                    const html = `
-                                        <a href="/chi-tiet-san-pham/${item.id}" class="d-flex align-items-center p-2 text-decoration-none text-dark border-bottom suggestion-item" style="transition: background 0.2s;">
-                                            <img src="${item.image}" width="50" height="70" class="object-fit-cover rounded me-2">
-                                            <div>
-                                                <h6 class="m-0 small fw-bold text-truncate" style="max-width: 250px;">${item.title}</h6>
-                                                <p class="m-0 text-muted" style="font-size: 11px;">${item.author}</p>
-                                                <span class="text-danger fw-bold small">${price}</span>
-                                            </div>
-                                        </a>
-                                    `;
-                                    $suggestionsBox.append(html);
-                                });
-                                // Hover effect via JS if CSS is tricky
-                                $('.suggestion-item').hover(
-                                    function() { $(this).css('background-color', '#f8f9fa'); },
-                                    function() { $(this).css('background-color', 'white'); }
-                                );
-                                $suggestionsBox.show();
-                            } else {
-                                $suggestionsBox.hide();
+                    debounceTimer = setTimeout(function() {
+                        $.ajax({
+                            url: '/tim-kiem/goi-y',
+                            data: { term: query },
+                            success: function(data) {
+                                $suggestionsBox.empty();
+                                if (data.length > 0) {
+                                    data.forEach(item => {
+                                        const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price);
+                                        const html = `
+                                            <a href="/chi-tiet-san-pham/${item.id}" class="d-flex align-items-center p-2 text-decoration-none text-dark border-bottom suggestion-item" style="transition: background 0.2s;">
+                                                <img src="${item.image}" width="50" height="70" class="object-fit-cover rounded me-2">
+                                                <div>
+                                                    <h6 class="m-0 small fw-bold text-truncate" style="max-width: 250px;">${item.title}</h6>
+                                                    <p class="m-0 text-muted" style="font-size: 11px;">${item.author}</p>
+                                                    <span class="text-danger fw-bold small">${price}</span>
+                                                </div>
+                                            </a>
+                                        `;
+                                        $suggestionsBox.append(html);
+                                    });
+                                    // Hover effect via JS if CSS is tricky
+                                    $('.suggestion-item').hover(
+                                        function() { $(this).css('background-color', '#f8f9fa'); },
+                                        function() { $(this).css('background-color', 'white'); }
+                                    );
+                                    $suggestionsBox.show();
+                                } else {
+                                    $suggestionsBox.hide();
+                                }
                             }
-                        }
-                    });
-                }, 300); // Debounce 300ms
-            });
+                        });
+                    }, 300); // Debounce 300ms
+                });
 
-            // Close when clicking outside
-            $(document).on('click', function(e) {
-                if (!$(e.target).closest('.search-bar').length) {
-                    $suggestionsBox.hide();
-                }
-            });
+                // Close when clicking outside
+                $(document).on('click', function(e) {
+                    if (!$(e.target).closest(inputId).length && !$(e.target).closest(suggestionsId).length) {
+                        $suggestionsBox.hide();
+                    }
+                });
+            }
+
+            // Initialize for Desktop
+            setupSearchSuggestions('#searchInput', '#searchSuggestions');
+            
+            // Initialize for Mobile
+            setupSearchSuggestions('#mobileSearchInput', '#mobileSearchSuggestions');
         });
     </script>
     <script>

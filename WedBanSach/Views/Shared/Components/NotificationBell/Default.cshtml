@@ -33,7 +33,7 @@
             {
                 @foreach (var item in Model)
                 {
-                    <a href="/Account/Notifications/Detail/@item.NotificationID" 
+                    <a href="@Url.Action("NotificationDetails", "Account", new { id = item.NotificationID })" 
                        class="noti-item @(item.IsRead ? "" : "unread")" 
                        data-id="@item.NotificationID">
                         <div class="noti-icon-box">

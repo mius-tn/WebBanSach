@@ -134,32 +134,10 @@
 </style>
 
 <div class="container py-5">
+    @{ ViewData["ActivePage"] = "History"; }
     <div class="row">
         <!-- Sidebar -->
-        <div class="col-lg-3 mb-4">
-             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-body p-4 text-center border-bottom bg-light">
-                    @{
-                        var userAvatar = Context.Session.GetString("UserAvatar");
-                        var userName = Context.Session.GetString("UserName") ?? "Tài khoản";
-                        var avatarSrc = !string.IsNullOrEmpty(userAvatar) ? userAvatar : $"https://ui-avatars.com/api/?name={userName}&background=f8cdda&color=444";
-                    }
-                    <img src="@avatarSrc" class="rounded-circle mb-3 shadow-sm object-fit-cover" width="80" height="80">
-                    <h5 class="fw-bold mb-0">@userName</h5>
-                    <small class="text-muted">Quản lý đơn hàng</small>
-                </div>
-                <div class="p-3">
-                    <nav class="nav flex-column sidebar-menu">
-                        <a class="nav-link" href="/Account/Profile"><i class="bi bi-person-fill me-2"></i> Hồ sơ cá nhân</a>
-                        <a class="nav-link" href="/Account/Addresses"><i class="bi bi-geo-alt-fill me-2"></i> Địa chỉ giao hàng</a>
-                        <a class="nav-link" href="/Account/Notifications"><i class="bi bi-bell-fill me-2"></i> Thông báo</a>
-                        <a class="nav-link active" href="/Order/History"><i class="bi bi-bag-fill me-2"></i> Lịch sử mua hàng</a>
-                        <hr>
-                        <a class="nav-link text-danger" href="/Account/Logout"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a>
-                    </nav>
-                </div>
-            </div>
-        </div>
+        <partial name="_AccountSidebar" />
         
         <!-- Content -->
         <div class="col-lg-9">
@@ -167,22 +145,22 @@
                 <div class="card-header bg-white p-0 border-bottom-0">
                     <ul class="history-tabs">
                          <li class="nav-item">
-                            <a class="nav-link @(ViewBag.CurrentStatus == "all" ? "active" : "")" href="/Order/History?status=all">Tất cả</a>
+                            <a class="nav-link @(ViewBag.CurrentStatus == "all" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="all">Tất cả</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewBag.CurrentStatus == "pending" ? "active" : "")" href="/Order/History?status=pending">Chờ xử lý</a>
+                            <a class="nav-link @(ViewBag.CurrentStatus == "pending" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="pending">Chờ xử lý</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewBag.CurrentStatus == "shipping" ? "active" : "")" href="/Order/History?status=shipping">Đang giao</a>
+                            <a class="nav-link @(ViewBag.CurrentStatus == "shipping" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="shipping">Đang giao</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewBag.CurrentStatus == "completed" ? "active" : "")" href="/Order/History?status=completed">Đã giao</a>
+                            <a class="nav-link @(ViewBag.CurrentStatus == "completed" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="completed">Đã giao</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewBag.CurrentStatus == "review" ? "active" : "")" href="/Order/History?status=review">Đánh giá</a>
+                            <a class="nav-link @(ViewBag.CurrentStatus == "review" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="review">Đánh giá</a>
                         </li>
                          <li class="nav-item">
-                            <a class="nav-link @(ViewBag.CurrentStatus == "cancelled" ? "active" : "")" href="/Order/History?status=cancelled">Đã hủy</a>
+                            <a class="nav-link @(ViewBag.CurrentStatus == "cancelled" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="cancelled">Đã hủy</a>
                         </li>
                     </ul>
                 </div>
@@ -259,7 +237,7 @@
                                                     <i class="bi bi-star-fill me-1"></i> Đánh giá
                                                 </button>
                                             }
-                                            <a href="/Order/Details/@order.OrderID" class="btn btn-sm btn-outline-danger rounded-pill px-4">Xem chi tiết</a>
+                                            <a asp-controller="Order" asp-action="Details" asp-route-id="@order.OrderID" class="btn btn-sm btn-outline-danger rounded-pill px-4">Xem chi tiết</a>
                                         </div>
                                     </div>
                                 </div>
@@ -281,7 +259,7 @@
                                 }
 
                                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                                    <a class="page-link" href="/Order/History?status=@status&page=@(currentPage - 1)" aria-label="Previous">
+                                    <a class="page-link" asp-controller="Order" asp-action="History" asp-route-status="@status" asp-route-page="@(currentPage - 1)" aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
                                 </li>
@@ -289,12 +267,12 @@
                                 @for (int i = 1; i <= totalPages; i++)
                                 {
                                     <li class="page-item @(i == currentPage ? "active" : "")">
-                                        <a class="page-link" href="/Order/History?status=@status&page=@i">@i</a>
+                                        <a class="page-link" asp-controller="Order" asp-action="History" asp-route-status="@status" asp-route-page="@i">@i</a>
                                     </li>
                                 }
 
                                 <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                                    <a class="page-link" href="/Order/History?status=@status&page=@(currentPage + 1)" aria-label="Next">
+                                    <a class="page-link" asp-controller="Order" asp-action="History" asp-route-status="@status" asp-route-page="@(currentPage + 1)" aria-label="Next">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>
                                 </li>

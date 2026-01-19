@@ -338,6 +338,8 @@ body {
         visibility: visible;
         pointer-events: auto;
         margin-top: 10px;
+        margin-left: 0 !important;
+        right: 0 !important;
         /* Scrollable Mobile Menu */
         max-height: 60vh;
         overflow-y: auto;

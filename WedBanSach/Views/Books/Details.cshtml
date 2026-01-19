@@ -80,7 +80,7 @@
                     </form>
                     
                     <!-- Buy Now Form -->
-                    <form method="get" action="/Cart/BuyNow/@Model.BookID" class="flex-grow-1">
+                    <form method="get" asp-controller="Cart" asp-action="BuyNow" asp-route-id="@Model.BookID" class="flex-grow-1">
                         <button type="submit" class="btn btn-danger w-100 fw-bold py-2" style="border-radius: 8px; background-color: #C92127; border: none;">
                             Mua ngay
                         </button>

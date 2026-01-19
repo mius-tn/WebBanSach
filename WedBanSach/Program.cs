@@ -13,6 +13,7 @@ namespace WedBanSach
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
             builder.Services.AddSignalR();
+            builder.Services.AddHttpContextAccessor();
 
             // Add DbContext
             builder.Services.AddDbContext<BookStoreDbContext>(options =>
