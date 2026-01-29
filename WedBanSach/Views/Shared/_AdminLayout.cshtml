@@ -80,6 +80,25 @@
                     </a>
                 </li>
             }
+            @{
+                var permissionsJson = Context.Session.GetString("Permissions");
+                var permissions = !string.IsNullOrEmpty(permissionsJson) 
+                    ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(permissionsJson) 
+                    : new List<string>();
+                
+                // Allow if Admin Session is True OR has Role.View permission
+                // Since this section is Admin Panel, "IsAdmin" session is usually true.
+                // But we want to confirm RBAC visibility.
+                if (isAdmin || permissions.Contains("Role.View") || permissions.Contains("Role.*"))
+                {
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "AdminRoles")" class="@(currentController == "AdminRoles" ? "active" : "")">
+                             <i class="bi bi-shield-lock"></i>
+                             <span>Phân quyền</span>
+                        </a>
+                    </li>
+                }
+            }
             <li>
                 <a href="@Url.Action("Index", "AdminReviews")" class="@(currentController == "AdminReviews" ? "active" : "")">
                     <i class="bi bi-star"></i>

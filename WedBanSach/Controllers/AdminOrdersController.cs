@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WedBanSach.Attributes;
 using WedBanSach.Data;
+using WedBanSach.Constants;
 
 namespace WedBanSach.Controllers;
 
@@ -17,6 +18,7 @@ public class AdminOrdersController : Controller
         _emailService = emailService;
     }
 
+    [Permission(SystemPermissions.Module_Order, SystemPermissions.Action_View)]
     public async Task<IActionResult> Index(string status = "", int page = 1, int pageSize = 20)
     {
         var query = _context.Orders
@@ -55,6 +57,7 @@ public class AdminOrdersController : Controller
     }
 
     [HttpGet]
+    [Permission(SystemPermissions.Module_Order, SystemPermissions.Action_View)]
     public async Task<IActionResult> Details(int id)
     {
         var order = await _context.Orders
@@ -73,6 +76,7 @@ public class AdminOrdersController : Controller
     }
 
     [HttpPost]
+    [Permission(SystemPermissions.Module_Order, SystemPermissions.Action_Update)]
     public async Task<IActionResult> UpdateStatus(int id, string status)
     {
         // Must Include relations for Email Service
@@ -150,6 +154,7 @@ public class AdminOrdersController : Controller
     }
 
     [HttpPost]
+    [Permission(SystemPermissions.Module_Order, SystemPermissions.Action_Update)]
     public async Task<IActionResult> UpdateShipping(int id, string shippingCompany, string trackingNumber)
     {
         var shipping = await _context.Shippings.FirstOrDefaultAsync(s => s.OrderID == id);

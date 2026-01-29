@@ -21,13 +21,13 @@
                                 @foreach (var child in parent.SubCategories.Take(5))
                                 {
                             <li class="mb-2">
-                                <a asp-controller="Books" asp-action="Category" asp-route-id="@child.CategoryID" class="text-secondary text-decoration-none hover-pink small">
+                                <a asp-controller="Books" asp-action="Category" asp-route-id="@(child.Slug ?? child.CategoryID.ToString())" class="text-secondary text-decoration-none hover-pink small">
                                     @child.CategoryName
                                 </a>
                             </li>
                         }
                         <li>
-                            <a asp-controller="Books" asp-action="Category" asp-route-id="@parent.CategoryID" class="text-pink text-decoration-none small fw-bold">
+                            <a asp-controller="Books" asp-action="Category" asp-route-id="@(parent.Slug ?? parent.CategoryID.ToString())" class="text-pink text-decoration-none small fw-bold">
                                 Xem tất cả <i class="bi bi-chevron-right" style="font-size: 10px;"></i>
                             </a>
                         </li>

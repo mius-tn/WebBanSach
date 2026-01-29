@@ -61,6 +61,19 @@ public class AccountController : Controller
             HttpContext.Session.SetString("UserAvatar", user.AvatarUrl ?? "");
             HttpContext.Session.SetString("IsAdmin", AuthHelper.IsAdmin(user).ToString());
             
+            // Store RoleName for easy access
+            var roleName = user.UserRoles.FirstOrDefault()?.Role.RoleName ?? "";
+            HttpContext.Session.SetString("RoleName", roleName);
+
+            // Load and store permissions
+
+            // Load and store permissions
+            var permissions = user.UserRoles
+                .SelectMany(ur => ur.Role.PermissionList)
+                .Distinct()
+                .ToList();
+            HttpContext.Session.SetString("Permissions", System.Text.Json.JsonSerializer.Serialize(permissions));
+            
             // Redirect based on returnUrl first
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {

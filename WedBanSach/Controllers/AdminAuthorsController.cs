@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WedBanSach.Attributes;
 using WedBanSach.Data;
 using WedBanSach.Models;
+using WedBanSach.Constants;
 
 namespace WedBanSach.Controllers;
 
@@ -16,6 +17,7 @@ public class AdminAuthorsController : Controller
         _context = context;
     }
 
+    [Permission(SystemPermissions.Module_Author, SystemPermissions.Action_View)]
     public async Task<IActionResult> Index(string searchTerm = "")
     {
         var query = _context.Authors.AsQueryable();
@@ -31,6 +33,7 @@ public class AdminAuthorsController : Controller
     }
 
     [HttpGet]
+    [Permission(SystemPermissions.Module_Author, SystemPermissions.Action_Create)]
     public IActionResult Create()
     {
         return View();
@@ -38,6 +41,7 @@ public class AdminAuthorsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Permission(SystemPermissions.Module_Author, SystemPermissions.Action_Create)]
     public async Task<IActionResult> Create(Author author)
     {
         if (ModelState.IsValid)
@@ -59,6 +63,7 @@ public class AdminAuthorsController : Controller
     }
 
     [HttpGet]
+    [Permission(SystemPermissions.Module_Author, SystemPermissions.Action_Update)]
     public async Task<IActionResult> Edit(int id)
     {
         var author = await _context.Authors.FindAsync(id);
@@ -69,6 +74,7 @@ public class AdminAuthorsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Permission(SystemPermissions.Module_Author, SystemPermissions.Action_Update)]
     public async Task<IActionResult> Edit(int id, Author author)
     {
         if (id != author.AuthorID)
@@ -100,6 +106,7 @@ public class AdminAuthorsController : Controller
     }
 
     [HttpPost]
+    [Permission(SystemPermissions.Module_Author, SystemPermissions.Action_Delete)]
     public async Task<IActionResult> Delete(int id)
     {
         var author = await _context.Authors.FindAsync(id);

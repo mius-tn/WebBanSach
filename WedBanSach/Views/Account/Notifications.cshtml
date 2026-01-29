@@ -43,10 +43,10 @@
                         <div class="notification-list">
                             @foreach (var item in Model.Notifications)
                             {
-                                <div class="notification-item p-4 border-bottom @(item.Notification.IsRead ? "" : "unread")" 
+                                <div class="notification-item p-3 p-md-4 border-bottom @(item.Notification.IsRead ? "" : "unread")" 
                                      style="transition: all 0.2s ease; cursor: pointer;"
                                      onclick="window.location.href='@Url.Action("NotificationDetails", "Account", new { id = item.Notification.NotificationID })'">
-                                    <div class="d-flex gap-4">
+                                    <div class="d-flex gap-3 gap-md-4">
                                         <div class="noti-icon-wrapper flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle" 
                                              style="width: 55px; height: 55px; background: @(GetBgColorForType(item.Notification.Type)); color: @(GetColorForType(item.Notification.Type)); font-size: 1.5rem;">
                                             <i class="bi @(GetIconForType(item.Notification.Type))"></i>
@@ -64,7 +64,7 @@
                                             
                                             @if (item.OrderInfo != null)
                                             {
-                                                <div class="mt-3 p-3 bg-light rounded-3 border d-flex gap-3 align-items-start">
+                                                <div class="mt-3 p-2 p-md-3 bg-light rounded-3 border d-flex gap-2 gap-md-3 align-items-start">
                                                     <img src="@item.OrderInfo.ProductImage" class="rounded object-fit-cover flex-shrink-0" width="60" height="80" alt="@item.OrderInfo.ProductName" onerror="this.src='/images/default-book.png'" />
                                                     <div class="flex-grow-1" style="min-width: 0;">
                                                         <div class="d-flex justify-content-between align-items-start mb-1">

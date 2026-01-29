@@ -82,7 +82,7 @@ public class HomeController : Controller
                 .Include(b => b.BookAuthors).ThenInclude(ba => ba.Author)
                 .Where(b => b.Status == "Active" && b.BookCategories.Any(bc => bc.CategoryID == cat.CategoryID))
                 .OrderByDescending(b => b.CreatedAt)
-                .Take(5) // Take 5 books per category
+                .Take(15) // Take 15 books per category to allow sliding
                 .ToListAsync();
             
             if(booksInCat.Any())

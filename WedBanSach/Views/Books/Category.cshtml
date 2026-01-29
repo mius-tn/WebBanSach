@@ -3,6 +3,7 @@
     ViewData["Title"] = ViewBag.CategoryName;
     var categories = ViewBag.Categories as IEnumerable<WedBanSach.Models.Category>;
     var currentCategoryId = ViewBag.CategoryId as int?;
+    var currentSlug = ViewBag.CategorySlug as string; // Get Slug
     var sortOrder = ViewBag.SortOrder as string;
     var searchTerm = ViewBag.SearchTerm as string;
     var selectedPrice = ViewBag.SelectedPriceRange as string;
@@ -28,7 +29,7 @@
     <div class="row">
         <!-- SIDEBAR -->
         <div class="col-lg-3 d-none d-lg-block">
-            <form method="get" action="/Danh-Muc/@currentCategoryId" id="filterForm">
+            <form method="get" action="/Danh-Muc/@(currentSlug ?? currentCategoryId?.ToString())" id="filterForm">
                 <input type="hidden" name="sortOrder" value="@sortOrder" />
                 <input type="hidden" name="pageSize" value="@pageSize" />
                 @if (!string.IsNullOrEmpty(searchTerm))
@@ -53,14 +54,14 @@
                             foreach (var cat in categories)
                             {
                                 <div class="mb-2">
-                                    <a href="/Danh-Muc/@cat.CategoryID" class="text-decoration-none @(currentCategoryId == cat.CategoryID ? "fw-bold text-danger" : "text-dark")">@cat.CategoryName</a>
+                                    <a href="/Danh-Muc/@(cat.Slug ?? cat.CategoryID.ToString())" class="text-decoration-none @(currentCategoryId == cat.CategoryID ? "fw-bold text-danger" : "text-dark")">@cat.CategoryName</a>
                                     @if (cat.SubCategories != null && cat.SubCategories.Any())
                                     {
                                         <ul class="list-unstyled ms-3 mt-1 border-start ps-2">
                                             @foreach (var sub in cat.SubCategories)
                                             {
                                                 <li>
-                                                    <a href="/Danh-Muc/@sub.CategoryID" class="text-decoration-none @(currentCategoryId == sub.CategoryID ? "fw-bold text-danger" : "text-secondary") d-block py-1">@sub.CategoryName</a>
+                                                    <a href="/Danh-Muc/@(sub.Slug ?? sub.CategoryID.ToString())" class="text-decoration-none @(currentCategoryId == sub.CategoryID ? "fw-bold text-danger" : "text-secondary") d-block py-1">@sub.CategoryName</a>
                                                 </li>
                                             }
                                         </ul>
@@ -75,19 +76,23 @@
                 <div class="bg-white p-3 rounded-3 shadow-sm border-soft mb-3">
                     <h6 class="fw-bold text-uppercase mb-3">Giá</h6>
                     <div class="form-check mb-2">
-                        <input class="form-check-input" type="radio" name="priceRange" value="0-150000" id="price1" onchange="this.form.submit()" @(selectedPrice == "0-150000" ? "checked" : "")>
+                        <input class="form-check-input" type="radio" name="priceRange" value="0-150000" id="price1" 
+                               onclick="toggleFilter(this)" @(selectedPrice == "0-150000" ? "checked data-was-checked='true'" : "")>
                         <label class="form-check-label small" for="price1">0đ - 150,000đ</label>
                     </div>
                     <div class="form-check mb-2">
-                        <input class="form-check-input" type="radio" name="priceRange" value="150000-300000" id="price2" onchange="this.form.submit()" @(selectedPrice == "150000-300000" ? "checked" : "")>
+                        <input class="form-check-input" type="radio" name="priceRange" value="150000-300000" id="price2" 
+                               onclick="toggleFilter(this)" @(selectedPrice == "150000-300000" ? "checked data-was-checked='true'" : "")>
                         <label class="form-check-label small" for="price2">150,000đ - 300,000đ</label>
                     </div>
                      <div class="form-check mb-2">
-                        <input class="form-check-input" type="radio" name="priceRange" value="300000-500000" id="price3" onchange="this.form.submit()" @(selectedPrice == "300000-500000" ? "checked" : "")>
+                        <input class="form-check-input" type="radio" name="priceRange" value="300000-500000" id="price3" 
+                               onclick="toggleFilter(this)" @(selectedPrice == "300000-500000" ? "checked data-was-checked='true'" : "")>
                         <label class="form-check-label small" for="price3">300,000đ - 500,000đ</label>
                     </div>
                      <div class="form-check mb-2">
-                        <input class="form-check-input" type="radio" name="priceRange" value="500000-" id="price4" onchange="this.form.submit()" @(selectedPrice == "500000-" ? "checked" : "")>
+                        <input class="form-check-input" type="radio" name="priceRange" value="500000-" id="price4" 
+                               onclick="toggleFilter(this)" @(selectedPrice == "500000-" ? "checked data-was-checked='true'" : "")>
                         <label class="form-check-label small" for="price4">500,000đ - Trở lên</label>
                     </div>
                 </div>
@@ -96,22 +101,41 @@
                 <div class="bg-white p-3 rounded-3 shadow-sm border-soft mb-3">
                     <h6 class="fw-bold text-uppercase mb-3">Hình Thức</h6>
                     <div class="form-check mb-2">
-                        <input class="form-check-input" type="radio" name="coverType" value="Bìa mềm" id="format1" onchange="this.form.submit()" @(selectedCoverType == "Bìa mềm" ? "checked" : "")>
+                        <input class="form-check-input" type="radio" name="coverType" value="Bìa mềm" id="format1" 
+                               onclick="toggleFilter(this)" @(selectedCoverType == "Bìa mềm" ? "checked data-was-checked='true'" : "")>
                         <label class="form-check-label small" for="format1">Bìa Mềm</label>
                     </div>
                     <div class="form-check mb-2">
-                        <input class="form-check-input" type="radio" name="coverType" value="Bìa cứng" id="format2" onchange="this.form.submit()" @(selectedCoverType == "Bìa cứng" ? "checked" : "")>
+                        <input class="form-check-input" type="radio" name="coverType" value="Bìa cứng" id="format2" 
+                               onclick="toggleFilter(this)" @(selectedCoverType == "Bìa cứng" ? "checked data-was-checked='true'" : "")>
                         <label class="form-check-label small" for="format2">Bìa Cứng</label>
                     </div>
                      <div class="form-check mb-2">
-                        <input class="form-check-input" type="radio" name="coverType" value="Bộ hộp" id="format3" onchange="this.form.submit()" @(selectedCoverType == "Bộ hộp" ? "checked" : "")>
+                        <input class="form-check-input" type="radio" name="coverType" value="Bộ hộp" id="format3" 
+                               onclick="toggleFilter(this)" @(selectedCoverType == "Bộ hộp" ? "checked data-was-checked='true'" : "")>
                         <label class="form-check-label small" for="format3">Bộ Hộp</label>
                     </div>
                     <div class="form-check mb-2">
-                        <input class="form-check-input" type="radio" name="coverType" value="Bìa da" id="format4" onchange="this.form.submit()" @(selectedCoverType == "Bìa da" ? "checked" : "")>
+                        <input class="form-check-input" type="radio" name="coverType" value="Bìa da" id="format4" 
+                               onclick="toggleFilter(this)" @(selectedCoverType == "Bìa da" ? "checked data-was-checked='true'" : "")>
                         <label class="form-check-label small" for="format4">Bìa Da</label>
                     </div>
                 </div>
+                <script>
+                    function toggleFilter(radio) {
+                        // Check if it was already checked based on server render attribute
+                        if (radio.getAttribute('data-was-checked') === 'true') {
+                            // If yes, uncheck it
+                            radio.checked = false;
+                            radio.removeAttribute('data-was-checked');
+                            // Submit to clear the filter
+                            document.getElementById('filterForm').submit();
+                        } else {
+                            // Valid selection, just submit
+                            document.getElementById('filterForm').submit();
+                        }
+                    }
+                </script>
             </form>
         </div>
 
@@ -171,7 +195,7 @@
                                 }
                                 
                                 // Build URL with page=1 to reset pagination
-                                var baseUrl = '@(currentCategoryId.HasValue ? $"/Danh-Muc/{currentCategoryId}" : "/Danh-Muc")';
+                                var baseUrl = '@(!string.IsNullOrEmpty(currentSlug) ? $"/Danh-Muc/{currentSlug}" : (currentCategoryId.HasValue ? $"/Danh-Muc/{currentCategoryId}" : "/Danh-Muc"))';
                                 var params = new URLSearchParams();
                                 
                                 // Add all current filters
@@ -300,7 +324,7 @@
                                             queryParams.Add($"coverType={Uri.EscapeDataString(selectedCoverType)}");
                                         queryParams.Add($"page={pageNum}");
                                         queryParams.Add($"pageSize={pageSize}");
-                                        var baseUrl = currentCategoryId.HasValue ? $"/Danh-Muc/{currentCategoryId}" : "/Danh-Muc";
+                                        var baseUrl = !string.IsNullOrEmpty(currentSlug) ? $"/Danh-Muc/{currentSlug}" : (currentCategoryId.HasValue ? $"/Danh-Muc/{currentCategoryId}" : "/Danh-Muc");
                                         return queryParams.Any() ? $"{baseUrl}?{string.Join("&", queryParams)}" : $"{baseUrl}?page={pageNum}&pageSize={pageSize}";
                                     }
                                 }

@@ -12,6 +12,9 @@ public class Category
     [StringLength(150)]
     public string CategoryName { get; set; } = string.Empty;
 
+    [StringLength(150)]
+    public string? Slug { get; set; }
+
     public int? ParentCategoryID { get; set; }
 
     // Navigation properties

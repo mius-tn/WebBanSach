@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WedBanSach.Attributes;
 using WedBanSach.Data;
 using WedBanSach.Models;
+using WedBanSach.Constants;
 
 namespace WedBanSach.Controllers;
 
@@ -16,6 +17,7 @@ public class AdminPublishersController : Controller
         _context = context;
     }
 
+    [Permission(SystemPermissions.Module_Publisher, SystemPermissions.Action_View)]
     public async Task<IActionResult> Index(string searchTerm = "")
     {
         var query = _context.Publishers.AsQueryable();
@@ -32,6 +34,7 @@ public class AdminPublishersController : Controller
     }
 
     [HttpGet]
+    [Permission(SystemPermissions.Module_Publisher, SystemPermissions.Action_Create)]
     public IActionResult Create()
     {
         return View();
@@ -39,6 +42,7 @@ public class AdminPublishersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Permission(SystemPermissions.Module_Publisher, SystemPermissions.Action_Create)]
     public async Task<IActionResult> Create(Publisher publisher)
     {
         if (ModelState.IsValid)
@@ -60,6 +64,7 @@ public class AdminPublishersController : Controller
     }
 
     [HttpGet]
+    [Permission(SystemPermissions.Module_Publisher, SystemPermissions.Action_Update)]
     public async Task<IActionResult> Edit(int id)
     {
         var publisher = await _context.Publishers.FindAsync(id);
@@ -70,6 +75,7 @@ public class AdminPublishersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Permission(SystemPermissions.Module_Publisher, SystemPermissions.Action_Update)]
     public async Task<IActionResult> Edit(int id, Publisher publisher)
     {
         if (id != publisher.PublisherID)
@@ -101,6 +107,7 @@ public class AdminPublishersController : Controller
     }
 
     [HttpPost]
+    [Permission(SystemPermissions.Module_Publisher, SystemPermissions.Action_Delete)]
     public async Task<IActionResult> Delete(int id)
     {
         var publisher = await _context.Publishers.FindAsync(id);

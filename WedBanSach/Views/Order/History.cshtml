@@ -66,21 +66,29 @@
     .badge-soft-info { background-color: #cff4fc; color: #055160; }
     .history-tabs {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: nowrap; /* Prevent wrapping */
+        overflow-x: auto; /* Allow horizontal scroll */
+        -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
         background: #fff;
         padding: 0;
         margin: 0;
         border-bottom: 1px solid #eee;
     }
+    /* Hide scrollbar for cleaner look */
+    .history-tabs::-webkit-scrollbar {
+        height: 4px; /* Optional: show thin scrollbar or hide it */
+        display: none; 
+    }
     .history-tabs .nav-item {
-        flex: 1;
+        flex: 0 0 auto; /* Don't shrink/grow, take needed space */
         text-align: center;
         list-style: none;
+        white-space: nowrap; /* Keep text one line */
     }
     .history-tabs .nav-link {
-        color: #000; /* Chữ màu đen */
+        color: #000; 
         font-weight: 500;
-        padding: 15px 0;
+        padding: 15px 20px; /* Add more horizontal padding */
         border: none;
         border-bottom: 2px solid transparent;
         border-radius: 0;
@@ -197,6 +205,7 @@
                                                 // Localization could be done here or in a helper
                                                 string statusDisplay = order.OrderStatus;
                                                 if(statusDisplay == "Pending") statusDisplay = "Chờ xử lý";
+                                                else if (statusDisplay == "Confirmed") statusDisplay = "Đã xác nhận";
                                                 else if(statusDisplay == "Completed") statusDisplay = "Hoàn tất";
                                                 else if(statusDisplay == "Cancelled") statusDisplay = "Đã hủy";
                                                 else if(statusDisplay == "Shipping") statusDisplay = "Đang giao";
@@ -226,12 +235,12 @@
                                             </div>
                                         }
                                     </div>
-                                    <div class="card-footer bg-white border-top py-3 px-3 d-flex justify-content-between align-items-center">
+                                    <div class="card-footer bg-white border-top py-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                                         <div>
                                             <small class="text-muted">Tổng tiền:</small>
-                                            <span class="fw-bold text-danger fs-5 ms-1">@((order.TotalAmount ?? 0).ToString("#,##0")) đ</span>
+                                            <span class="fw-bold text-danger fs-5 ms-1 text-nowrap">@((order.TotalAmount ?? 0).ToString("#,##0")) đ</span>
                                         </div>
-                                        <div class="d-flex gap-2">
+                                        <div class="d-flex gap-2 ms-auto">
                                             @if(order.OrderStatus == "Completed" || order.OrderStatus == "Hoàn tất") {
                                                 <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="alert('Tính năng đánh giá đang được cập nhật')">
                                                     <i class="bi bi-star-fill me-1"></i> Đánh giá

@@ -1,0 +1,128 @@
+@model WedBanSach.Models.Role
+@{
+    ViewData["Title"] = "Thêm Vai trò mới";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var allPermissions = ViewBag.AllPermissions as Dictionary<string, List<string>>;
+
+    // Helper local function to translate module names
+    string TranslateModule(string module)
+    {
+        return module switch
+        {
+            "User" => "Người dùng",
+            "Role" => "Vai trò",
+            "Product" => "Sản phẩm",
+            "Order" => "Đơn hàng",
+            "Category" => "Danh mục",
+            "Report" => "Báo cáo",
+            "Setting" => "Cài đặt",
+            "Author" => "Tác giả",
+            "Publisher" => "Nhà xuất bản",
+            "Shipping" => "Vận chuyển",
+            "Payment" => "Thanh toán",
+            "Review" => "Đánh giá",
+            "Promotion" => "Khuyến mãi",
+            "Inventory" => "Kho hàng",
+            "Chat" => "Chat hỗ trợ",
+            _ => module
+        };
+    }
+
+    string TranslateAction(string action)
+    {
+        return action switch
+        {
+            "View" => "Xem",
+            "Create" => "Thêm",
+            "Update" => "Sửa",
+            "Delete" => "Xóa",
+            _ => action
+        };
+    }
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary">@ViewData["Title"]</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="RoleName" class="form-label">Tên Vai trò <span class="text-danger">*</span></label>
+                            <input asp-for="RoleName" class="form-control" placeholder="Ví dụ: Nhân viên kho" />
+                            <span asp-validation-for="RoleName" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Status" class="form-label">Trạng thái</label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="Active">Hoạt động</option>
+                                <option value="Inactive">Ngừng hoạt động</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label">Mô tả</label>
+                        <textarea asp-for="Description" class="form-control" rows="2" placeholder="Mô tả chức năng của vai trò này..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <h6 class="mb-3 border-bottom pb-2 text-uppercase fw-bold text-secondary">
+                        <i class="bi bi-shield-check me-2"></i>Phân quyền chức năng
+                    </h6>
+                    
+                    <div class="alert alert-info py-2 mb-4">
+                        <i class="bi bi-info-circle me-1"></i> Chọn các quyền hạn mà vai trò này được phép thực hiện.
+                    </div>
+
+                    <div class="row">
+                        @foreach (var module in allPermissions)
+                        {
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 border bg-light shadow-sm">
+                                    <div class="card-header bg-white border-bottom-0 fw-bold text-primary">
+                                        <i class="bi bi-gear-fill me-1"></i> Quản lý @TranslateModule(module.Key)
+                                    </div>
+                                    <div class="card-body pt-2">
+                                        <div class="row">
+                                            @foreach (var permission in module.Value)
+                                            {
+                                                var actionName = permission.Split('.').Last();
+                                                <div class="col-6 mb-2">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="selectedPermissions" value="@permission" id="perm_@permission.Replace(".", "_")">
+                                                        <label class="form-check-label user-select-none" for="perm_@permission.Replace(".", "_")">
+                                                            @TranslateAction(actionName)
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-arrow-left me-1"></i> Quay lại
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i> Lưu Vai trò
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

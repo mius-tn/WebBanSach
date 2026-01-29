@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WedBanSach.Attributes;
 using WedBanSach.Data;
 using WedBanSach.Models;
+using WedBanSach.Constants;
 
 namespace WedBanSach.Controllers;
 
@@ -19,6 +20,7 @@ public class AdminBooksController : Controller
         _environment = environment;
     }
 
+    [Permission(SystemPermissions.Module_Product, SystemPermissions.Action_View)]
     public async Task<IActionResult> Index(string searchTerm = "", int page = 1, int pageSize = 20)
     {
         var query = _context.Books
@@ -53,6 +55,7 @@ public class AdminBooksController : Controller
     }
 
     [HttpGet]
+    [Permission(SystemPermissions.Module_Product, SystemPermissions.Action_Create)]
     public async Task<IActionResult> Create()
     {
         await LoadViewDataForBookForm();
@@ -61,6 +64,7 @@ public class AdminBooksController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Permission(SystemPermissions.Module_Product, SystemPermissions.Action_Create)]
     public async Task<IActionResult> Create(Book book, List<int> authorIds, List<int> categoryIds, List<IFormFile> images)
     {
         if (ModelState.IsValid)
@@ -152,6 +156,7 @@ public class AdminBooksController : Controller
     }
 
     [HttpGet]
+    [Permission(SystemPermissions.Module_Product, SystemPermissions.Action_Update)]
     public async Task<IActionResult> Edit(int id)
     {
         var book = await _context.Books
@@ -172,6 +177,7 @@ public class AdminBooksController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Permission(SystemPermissions.Module_Product, SystemPermissions.Action_Update)]
     public async Task<IActionResult> Edit(int id, Book book, List<int> authorIds, List<int> categoryIds, List<IFormFile> images)
     {
         if (id != book.BookID)
@@ -282,6 +288,7 @@ public class AdminBooksController : Controller
     }
 
     [HttpPost]
+    [Permission(SystemPermissions.Module_Product, SystemPermissions.Action_Delete)]
     public async Task<IActionResult> Delete(int id)
     {
         var book = await _context.Books.FindAsync(id);

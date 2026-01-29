@@ -45,62 +45,73 @@
             <a asp-controller="Books" asp-action="Category" class="btn btn-sm btn-outline-danger rounded-pill px-3">Xem thêm >></a>
         </div>
         
-        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
-            @if (Model.FeaturedBooks != null)
-            {
-                @foreach (var book in Model.FeaturedBooks)
-                {
-                    <div class="col">
-                        <div class="book-card h-100">
-                            <!-- Image -->
-                            <div class="position-relative overflow-hidden group-hover-img">
-                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
-                                    <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
-                                         class="book-cover" alt="@book.Title">
-                                </a>
-                                @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
-                                {
-                                    var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
-                                    <span class="position-absolute top-0 start-0 bg-danger text-white small fw-bold px-2 py-1 rounded-end" style="z-index: 10;">
-                                        -@discountPercent%
-                                    </span>
-                                }
-                            </div>
+        <div class="position-relative">
+             <!-- Carousel Controls -->
+            <button class="btn btn-light shadow-sm rounded-circle position-absolute start-0 top-50 translate-middle-y z-1 carousel-btn-prev" style="left: -20px !important; display: none;" onclick="scrollCarousel('featured-scroll', -1)">
+                <i class="bi bi-chevron-left"></i>
+            </button>
 
-                            <!-- Content -->
-                            <div class="book-info">
-                                <h6 class="book-title" title="@book.Title">
-                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark">
-                                        @book.Title
+            <div class="d-flex overflow-hidden product-scroll-wrapper" id="featured-scroll" style="scroll-behavior: smooth; gap: 15px; overflow-x: auto !important; scrollbar-width: none; -ms-overflow-style: none;">
+                @if (Model.FeaturedBooks != null)
+                {
+                    @foreach (var book in Model.FeaturedBooks)
+                    {
+                        <div class="flex-shrink-0" style="width: calc(20% - 12px); min-width: 200px;">
+                            <div class="book-card h-100">
+                                <!-- Image -->
+                                <div class="position-relative overflow-hidden group-hover-img">
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                        <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                             class="book-cover" alt="@book.Title">
                                     </a>
-                                </h6>
-                                <p class="book-author text-truncated small mb-2">
-                                    @(book.BookAuthors != null && book.BookAuthors.Any() 
-                                        ? string.Join(", ", book.BookAuthors.Select(ba => ba.Author.AuthorName)) 
-                                        : "Đang cập nhật")
-                                </p>
-                                
-                                <div class="price-box">
-                                    <span class="current-price">
-                                        @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
-                                    </span>
-                                    @if(book.DiscountPrice.HasValue)
+                                    @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
                                     {
-                                         <span class="original-price">@book.Price.ToString("#,##0") ₫</span>
+                                        var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                        <span class="position-absolute top-0 start-0 bg-danger text-white small fw-bold px-2 py-1 rounded-end" style="z-index: 10;">
+                                            -@discountPercent%
+                                        </span>
                                     }
                                 </div>
-                                
-                                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid gap-2">
-                                    <input type="hidden" name="id" value="@book.BookID" />
-                                    <button type="submit" class="btn btn-sm btn-pink">
-                                       <i class="bi bi-cart-plus"></i> Thêm
-                                    </button>
-                                </form>
+
+                                <!-- Content -->
+                                <div class="book-info">
+                                    <h6 class="book-title" title="@book.Title" style="font-size: 14px;">
+                                        <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark">
+                                            @book.Title
+                                        </a>
+                                    </h6>
+                                    <p class="book-author text-truncated small mb-2">
+                                        @(book.BookAuthors != null && book.BookAuthors.Any() 
+                                            ? string.Join(", ", book.BookAuthors.Select(ba => ba.Author.AuthorName)) 
+                                            : "Đang cập nhật")
+                                    </p>
+                                    
+                                    <div class="price-box mb-2">
+                                        <span class="current-price text-nowrap" style="font-size: 16px;">
+                                            @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
+                                        </span>
+                                        @if(book.DiscountPrice.HasValue)
+                                        {
+                                             <span class="original-price text-nowrap" style="font-size: 12px;">@book.Price.ToString("#,##0") ₫</span>
+                                        }
+                                    </div>
+                                    
+                                    <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid gap-2">
+                                        <input type="hidden" name="id" value="@book.BookID" />
+                                        <button type="submit" class="btn btn-sm btn-pink">
+                                           <i class="bi bi-cart-plus"></i> Thêm
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 }
-            }
+            </div>
+
+            <button class="btn btn-light shadow-sm rounded-circle position-absolute end-0 top-50 translate-middle-y z-1 carousel-btn-next" style="right: -20px !important;" onclick="scrollCarousel('featured-scroll', 1)">
+                <i class="bi bi-chevron-right"></i>
+            </button>
         </div>
     </div>
 </section>
@@ -110,101 +121,185 @@
             @foreach (var cat in Model.CategoryBooks)
             {
                 <section class="container mb-5">
-                    <div class="bg-white border-soft p-4 shadow-sm">
+                    <div class="bg-white border-soft p-4 shadow-sm position-relative product-carousel-container" id="carousel-@cat.Key.CategoryID">
                         <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-2">
                             <h4 class="fw-bold text-pink"><i class="bi bi-bookmark-star-fill"></i> @cat.Key.CategoryName</h4>
-                            <a asp-controller="Books" asp-action="Category" asp-route-id="@cat.Key.CategoryID" class="btn btn-sm btn-outline-danger rounded-pill px-3">Xem thêm >></a>
+                            <a asp-controller="Books" asp-action="Category" asp-route-id="@(cat.Key.Slug ?? cat.Key.CategoryID.ToString())" class="btn btn-sm btn-outline-danger rounded-pill px-3">Xem thêm >></a>
                         </div>
                 
-                        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
-                            @foreach (var book in cat.Value)
-                            {
-                                <div class="col">
-                                    <div class="book-card h-100">
-                                        <div class="position-relative overflow-hidden group-hover-img">
-                                            <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
-                                                <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
-                                                        class="book-cover" alt="@book.Title">
-                                            </a>
-                                            @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
-                                            {
-                                                var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
-                                                <span class="position-absolute top-0 start-0 bg-danger text-white small fw-bold px-2 py-1 rounded-end" style="z-index: 10;">
-                                                    -@discountPercent%
-                                                </span>
-                                            }
-                                        </div>
+                        <div class="position-relative">
+                             <!-- Carousel Controls -->
+                            <button class="btn btn-light shadow-sm rounded-circle position-absolute start-0 top-50 translate-middle-y z-1 carousel-btn-prev" style="left: -20px !important; display: none;" onclick="scrollCarousel('scroll-@cat.Key.CategoryID', -1)">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
 
-                                        <div class="book-info">
-                                            <h6 class="book-title" title="@book.Title">
-                                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark">
-                                                    @book.Title
+                            <div class="d-flex overflow-hidden product-scroll-wrapper" id="scroll-@cat.Key.CategoryID" style="scroll-behavior: smooth; gap: 15px; overflow-x: auto !important; scrollbar-width: none; -ms-overflow-style: none;">
+                                @foreach (var book in cat.Value)
+                                {
+                                    <div class="flex-shrink-0" style="width: calc(20% - 12px); min-width: 200px;"> <!-- 5 items per row approx -->
+                                        <div class="book-card h-100">
+                                            <div class="position-relative overflow-hidden group-hover-img">
+                                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                                    <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                                            class="book-cover" alt="@book.Title">
                                                 </a>
-                                            </h6>
-                                            <p class="book-author text-truncated small mb-2">
-                                                @(book.BookAuthors != null && book.BookAuthors.Any() 
-                                                    ? string.Join(", ", book.BookAuthors.Select(ba => ba.Author.AuthorName)) 
-                                                    : "Đang cập nhật")
-                                            </p>
-                                            
-                                            <div class="price-box">
-                                                <span class="current-price">
-                                                    @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
-                                                </span>
-                                                @if(book.DiscountPrice.HasValue)
+                                                @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
                                                 {
-                                                        <span class="original-price">@book.Price.ToString("#,##0") ₫</span>
+                                                    var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                                    <span class="position-absolute top-0 start-0 bg-danger text-white small fw-bold px-2 py-1 rounded-end" style="z-index: 10;">
+                                                        -@discountPercent%
+                                                    </span>
                                                 }
                                             </div>
-                                            
-                                            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid gap-2">
-                                                <input type="hidden" name="id" value="@book.BookID" />
-                                                <button type="submit" class="btn btn-sm btn-pink">
-                                                    <i class="bi bi-cart-plus"></i> Thêm
-                                                </button>
-                                            </form>
+
+                                            <div class="book-info">
+                                                <h6 class="book-title" title="@book.Title" style="font-size: 14px;">
+                                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark">
+                                                        @book.Title
+                                                    </a>
+                                                </h6>
+                                                <p class="book-author text-truncated small mb-2">
+                                                    @(book.BookAuthors != null && book.BookAuthors.Any() 
+                                                        ? string.Join(", ", book.BookAuthors.Select(ba => ba.Author.AuthorName)) 
+                                                        : "Đang cập nhật")
+                                                </p>
+                                                
+                                                <div class="price-box mb-2">
+                                                    <span class="current-price" style="font-size: 16px;">
+                                                        @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
+                                                    </span>
+                                                    @if(book.DiscountPrice.HasValue)
+                                                    {
+                                                            <span class="original-price" style="font-size: 12px;">@book.Price.ToString("#,##0") ₫</span>
+                                                    }
+                                                </div>
+                                                
+                                                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid gap-2">
+                                                    <input type="hidden" name="id" value="@book.BookID" />
+                                                    <button type="submit" class="btn btn-sm btn-pink">
+                                                        <i class="bi bi-cart-plus"></i> Thêm
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            }
+                                }
+                            </div>
+
+                            <button class="btn btn-light shadow-sm rounded-circle position-absolute end-0 top-50 translate-middle-y z-1 carousel-btn-next" style="right: -20px !important;" onclick="scrollCarousel('scroll-@cat.Key.CategoryID', 1)">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
                         </div>
                     </div>
                 </section>
             }
+
+            <style>
+                /* Hide Scrollbar */
+                .product-scroll-wrapper::-webkit-scrollbar {
+                    display: none;
+                }
+                
+                /* Responsive Widths for Carousel Items */
+                .product-scroll-wrapper > div {
+                    width: calc(20% - 12px); /* Desktop: 5 items */
+                }
+                @@media(max-width: 992px) {
+                    .product-scroll-wrapper > div { width: calc(25% - 12px); } /* Tablet: 4 items */
+                }
+                @@media(max-width: 768px) {
+                    .product-scroll-wrapper > div { width: calc(50% - 12px); } /* Mobile: 2 items */
+                }
+            </style>
+
+            <script>
+                function scrollCarousel(id, direction) {
+                    const container = document.getElementById(id);
+                    const scrollAmount = container.clientWidth; // Scroll one full view width
+                    
+                    if (direction === 1) {
+                         container.scrollLeft += scrollAmount;
+                    } else {
+                         container.scrollLeft -= scrollAmount;
+                    }
+                    
+                    // Toggle Buttons logic can be added here (e.g., hide prev if at start)
+                    setTimeout(() => updateCarouselButtons(id), 300);
+                }
+
+                function updateCarouselButtons(id) {
+                    const container = document.getElementById(id);
+                    const prevBtn = container.parentElement.querySelector('.carousel-btn-prev');
+                    const nextBtn = container.parentElement.querySelector('.carousel-btn-next');
+                    
+                    // Show/Hide Prev
+                    if (container.scrollLeft <= 10) {
+                        prevBtn.style.display = 'none';
+                    } else {
+                         prevBtn.style.display = 'block';
+                    }
+                    
+                    // Show/Hide Next (approximate)
+                    if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) {
+                        nextBtn.style.display = 'none';
+                    } else {
+                        nextBtn.style.display = 'block';
+                    }
+                }
+                
+                // Initialize buttons on load
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.querySelectorAll('.product-scroll-wrapper').forEach(el => {
+                        updateCarouselButtons(el.id);
+                        el.addEventListener('scroll', () => updateCarouselButtons(el.id));
+                    });
+                });
+            </script>
 <!-- NEW BOOKS -->
 <section class="container mb-5">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h4 class="fw-bold text-pink"><i class="bi bi-stars"></i> Sách Mới Nhất</h4>
         <a href="#" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Xem tất cả</a>
     </div>
-    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
-        @if (Model.NewBooks != null)
-        {
-            @foreach (var book in Model.NewBooks)
+    <div class="position-relative">
+        <!-- Carousel Controls -->
+        <button class="btn btn-light shadow-sm rounded-circle position-absolute start-0 top-50 translate-middle-y z-1 carousel-btn-prev" style="left: -20px !important; display: none;" onclick="scrollCarousel('new-books-scroll', -1)">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <div class="d-flex overflow-hidden product-scroll-wrapper" id="new-books-scroll" style="scroll-behavior: smooth; gap: 15px; overflow-x: auto !important; scrollbar-width: none; -ms-overflow-style: none;">
+            @if (Model.NewBooks != null)
             {
-                <div class="col">
-                    <div class="book-card h-100">
-                         <div class="position-relative">
-                             <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
-                                 <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
-                                      class="book-cover" alt="@book.Title">
-                             </a>
-                              <span class="position-absolute top-0 end-0 bg-success text-white small fw-bold px-2 py-1 rounded-start">NEW</span>
-                         </div>
-                         <h6 class="book-title">
-                             <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark">
-                                 @book.Title
-                             </a>
-                         </h6>
-                         <div class="price-box mb-2">
-                             <span class="current-price text-dark">@book.Price.ToString("#,##0") ₫</span>
-                         </div>
-                         <div class="d-grid">
-                            <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="btn btn-sm btn-outline-dark rounded-pill">Chi tiết</a>
+                @foreach (var book in Model.NewBooks)
+                {
+                    <div class="flex-shrink-0" style="width: calc(20% - 12px); min-width: 200px;">
+                        <div class="book-card h-100">
+                                <div class="position-relative">
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                        <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                            class="book-cover" alt="@book.Title">
+                                    </a>
+                                    <span class="position-absolute top-0 end-0 bg-success text-white small fw-bold px-2 py-1 rounded-start">NEW</span>
+                                </div>
+                                <h6 class="book-title">
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark">
+                                        @book.Title
+                                    </a>
+                                </h6>
+                                <div class="price-box mb-2">
+                                    <span class="current-price text-dark">@book.Price.ToString("#,##0") ₫</span>
+                                </div>
+                                <div class="d-grid">
+                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="btn btn-sm btn-outline-dark rounded-pill">Chi tiết</a>
+                            </div>
                         </div>
                     </div>
-                </div>
+                }
             }
-        }
+        </div>
+
+        <button class="btn btn-light shadow-sm rounded-circle position-absolute end-0 top-50 translate-middle-y z-1 carousel-btn-next" style="right: -20px !important;" onclick="scrollCarousel('new-books-scroll', 1)">
+            <i class="bi bi-chevron-right"></i>
+        </button>
     </div>
 </section>

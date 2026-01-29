@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WedBanSach.Attributes;
 using WedBanSach.Data;
 using WedBanSach.Models;
+using WedBanSach.Constants;
 
 namespace WedBanSach.Controllers;
 
@@ -17,6 +18,7 @@ public class AdminCategoriesController : Controller
         _context = context;
     }
 
+    [Permission(SystemPermissions.Module_Category, SystemPermissions.Action_View)]
     public async Task<IActionResult> Index()
     {
         var categories = await _context.Categories
@@ -29,6 +31,7 @@ public class AdminCategoriesController : Controller
     }
 
     [HttpGet]
+    [Permission(SystemPermissions.Module_Category, SystemPermissions.Action_Create)]
     public async Task<IActionResult> Create()
     {
         await LoadParentCategories();
@@ -37,6 +40,7 @@ public class AdminCategoriesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Permission(SystemPermissions.Module_Category, SystemPermissions.Action_Create)]
     public async Task<IActionResult> Create(Category category)
     {
         if (ModelState.IsValid)
@@ -60,6 +64,7 @@ public class AdminCategoriesController : Controller
     }
 
     [HttpGet]
+    [Permission(SystemPermissions.Module_Category, SystemPermissions.Action_Update)]
     public async Task<IActionResult> Edit(int id)
     {
         var category = await _context.Categories.FindAsync(id);
@@ -72,6 +77,7 @@ public class AdminCategoriesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Permission(SystemPermissions.Module_Category, SystemPermissions.Action_Update)]
     public async Task<IActionResult> Edit(int id, Category category)
     {
         if (id != category.CategoryID)
@@ -106,6 +112,7 @@ public class AdminCategoriesController : Controller
     }
 
     [HttpPost]
+    [Permission(SystemPermissions.Module_Category, SystemPermissions.Action_Delete)]
     public async Task<IActionResult> Delete(int id)
     {
         var category = await _context.Categories

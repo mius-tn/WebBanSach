@@ -38,7 +38,7 @@ public class BooksController : Controller
             .Include(b => b.BookImages)
             .Where(b => b.BookCategories.Any(bc => categoryIds.Contains(bc.CategoryID)) && b.BookID != id && b.Status == "Active")
             .OrderBy(r => Guid.NewGuid()) // Randomize
-            .Take(5)
+            .Take(10)
             .ToListAsync();
 
         // Calculate Average Rating and Count
@@ -102,7 +102,7 @@ public class BooksController : Controller
     }
 
     [Route("danh-muc/{id?}")]
-    public async Task<IActionResult> Category(int? id, string sortOrder, int page = 1, int pageSize = 12, string priceRange = "", string coverType = "", string searchTerm = "")
+    public async Task<IActionResult> Category(string? id, string sortOrder, int page = 1, int pageSize = 12, string priceRange = "", string coverType = "", string searchTerm = "")
     {
         var booksQuery = _context.Books
             .Include(b => b.BookImages)
@@ -118,15 +118,38 @@ public class BooksController : Controller
                                                b.BookAuthors.Any(ba => ba.Author.AuthorName.Contains(searchTerm)));
         }
 
-        if (id.HasValue && id > 0)
+        int? categoryId = null;
+        string? categoryName = null;
+
+        if (!string.IsNullOrEmpty(id))
         {
-            // Simple logic: books in this category
-            booksQuery = booksQuery.Where(b => b.BookCategories.Any(bc => bc.CategoryID == id));
+            // Attempt to find by Slug
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Slug == id);
             
-            // Should also maybe fetch Category Name for ViewBag
-            var category = await _context.Categories.FindAsync(id);
-            ViewBag.CategoryName = category?.CategoryName ?? "Tất cả sản phẩm";
-            ViewBag.CategoryId = id;
+            if (category == null)
+            {
+                // Fallback: Try parse as ID (legacy URL support)
+                if (int.TryParse(id, out int parsedId))
+                {
+                    category = await _context.Categories.FindAsync(parsedId);
+                }
+            }
+
+            if (category != null)
+            {
+                categoryId = category.CategoryID;
+                categoryName = category.CategoryName;
+                
+                // Filter books by this Category
+                booksQuery = booksQuery.Where(b => b.BookCategories.Any(bc => bc.CategoryID == categoryId));
+            }
+        }
+
+        if (categoryId.HasValue)
+        {
+             ViewBag.CategoryName = categoryName;
+             ViewBag.CategoryId = categoryId; // Keep ID for potential internal logic if needed
+             ViewBag.CategorySlug = id; // Pass slug back for view generation
         }
         else
         {

@@ -13,20 +13,20 @@
     --pink-border: #f3a6c8;
     --pink-dark: #e89bb5;
     --pink-gradient: linear-gradient(135deg, #f8c8dc 0%, #fde7f0 100%);
-    
+
     /* 🎨 Màu phụ */
     --text-dark: #4a4a4a;
     --text-light: #7a7a7a;
     --white: #ffffff;
     --shadow-soft: 0 4px 12px rgba(248, 200, 220, 0.15);
     --shadow-hover: 0 8px 20px rgba(248, 200, 220, 0.25);
-    
+
     /* 📐 Kích thước */
     --sidebar-width: 260px;
     --border-radius: 16px;
     --border-radius-small: 12px;
     --border-radius-pill: 24px;
-    
+
     /* ✨ Transition */
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -302,13 +302,20 @@ body {
     right: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
     animation: shimmer 3s infinite;
 }
 
 @keyframes shimmer {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    50% { transform: translate(-20px, -20px) rotate(180deg); }
+
+    0%,
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+
+    50% {
+        transform: translate(-20px, -20px) rotate(180deg);
+    }
 }
 
 .stat-card:hover {
@@ -653,28 +660,28 @@ img {
         transform: translateX(-100%);
         box-shadow: none;
     }
-    
+
     .sidebar.show {
         transform: translateX(0);
     }
-    
+
     .main-content {
         margin-left: 0;
     }
-    
+
     .content-area {
         padding: 20px;
     }
-    
+
     .top-navbar {
         padding: 14px 20px;
     }
-    
+
     .page-header {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .stat-card h3 {
         font-size: 2rem;
     }
@@ -686,6 +693,10 @@ img {
 
 .text-pink {
     color: var(--pink-dark) !important;
+}
+
+.text-primary {
+    color: var(--text-dark) !important;
 }
 
 .bg-pink-light {
@@ -737,6 +748,7 @@ img {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

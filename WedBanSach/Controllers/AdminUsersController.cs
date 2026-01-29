@@ -5,6 +5,7 @@ using WedBanSach.Attributes;
 using WedBanSach.Data;
 using WedBanSach.Helpers;
 using WedBanSach.Models;
+using WedBanSach.Constants;
 
 namespace WedBanSach.Controllers;
 
@@ -18,6 +19,7 @@ public class AdminUsersController : Controller
         _context = context;
     }
 
+    [Permission(SystemPermissions.Module_User, SystemPermissions.Action_View)]
     public async Task<IActionResult> Index(string searchTerm = "", int page = 1, int pageSize = 20)
     {
         var query = _context.Users
@@ -47,6 +49,7 @@ public class AdminUsersController : Controller
     }
 
     [HttpPost]
+    [Permission(SystemPermissions.Module_User, SystemPermissions.Action_Update)]
     public async Task<IActionResult> ToggleStatus(int id)
     {
         var user = await _context.Users.FindAsync(id);
@@ -60,6 +63,7 @@ public class AdminUsersController : Controller
     }
 
     [HttpGet]
+    [Permission(SystemPermissions.Module_User, SystemPermissions.Action_Update)]
     public async Task<IActionResult> EditRoles(int id)
     {
         var user = await _context.Users
@@ -78,6 +82,7 @@ public class AdminUsersController : Controller
     }
 
     [HttpPost]
+    [Permission(SystemPermissions.Module_User, SystemPermissions.Action_Update)]
     public async Task<IActionResult> UpdateRoles(int id, List<int> roleIds)
     {
         var user = await _context.Users

@@ -15,6 +15,12 @@
     // Determine Main Image
     var mainImage = Model.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png";
     var otherImages = Model.BookImages?.OrderByDescending(i => i.IsMain).ToList() ?? new List<WedBanSach.Models.BookImage>();
+
+    // Initial Address Logic (Global Scope)
+    var initialAddress = "Phường Bến Nghé, Quận 1, Hồ Chí Minh";
+    if (ViewBag.UserProvinceName != null) {
+        initialAddress = $"{(ViewBag.UserHouseNumber != null ? ViewBag.UserHouseNumber + ", " : "")}{ViewBag.UserWardName}, {ViewBag.UserDistrictName}, {ViewBag.UserProvinceName}";
+    }
 }
 
 <!-- BREADCRUMB -->
@@ -40,7 +46,7 @@
             <!-- LEFT COLUMN: IMAGES & BUTTONS -->
             <div class="col-lg-5 mb-4 mb-lg-0">
                 <div class="position-relative mb-3 text-center border-soft p-2">
-                    <img id="mainProductImage" src="@mainImage" class="img-fluid" style="max-height: 450px; object-fit: contain;" alt="@Model.Title">
+                    <img id="mainProductImage" src="@mainImage" class="img-fluid cursor-pointer" style="max-height: 450px; object-fit: contain;" alt="@Model.Title" onclick="openGallery(0)">
                     @if (Model.DiscountPrice.HasValue && Model.DiscountPrice < Model.Price)
                     {
                         var discountPercent = (int)((1 - (Model.DiscountPrice.Value / Model.Price)) * 100);
@@ -54,11 +60,13 @@
                 <div class="d-flex gap-2 overflow-auto mb-4 pb-2" style="scrollbar-width: thin;">
                     @if (otherImages.Any())
                     {
+                        int mainThumbIdx = 0;
                         foreach (var img in otherImages)
                         {
-                            <div class="border rounded p-1 cursor-pointer hover-shadow" onclick="document.getElementById('mainProductImage').src='@img.ImageUrl'" style="min-width: 80px; width: 80px; height: 80px;">
+                            <div class="border rounded p-1 cursor-pointer hover-shadow" onclick="updateMainImage(@mainThumbIdx, '@img.ImageUrl')" style="min-width: 80px; width: 80px; height: 80px;">
                                 <img src="@img.ImageUrl" class="w-100 h-100" style="object-fit: contain;" alt="Thumbnail">
                             </div>
+                            mainThumbIdx++;
                         }
                     }
                     else 
@@ -179,12 +187,7 @@
                 <div class="mb-4">
                     <h6 class="fw-bold mb-2">Thông tin vận chuyển</h6>
                     <div class="d-flex gap-2 justify-content-between align-items-center small text-muted">
-                        @{
-                            var initialAddress = "Phường Bến Nghé, Quận 1, Hồ Chí Minh";
-                            if (ViewBag.UserProvinceName != null) {
-                                initialAddress = $"{(ViewBag.UserHouseNumber != null ? ViewBag.UserHouseNumber + ", " : "")}{ViewBag.UserWardName}, {ViewBag.UserDistrictName}, {ViewBag.UserProvinceName}";
-                            }
-                        }
+                    <div class="d-flex gap-2 justify-content-between align-items-center small text-muted">
                         <span>Giao hàng đến <span class="fw-bold text-dark" id="selectedAddress">@initialAddress</span></span>
                         <a href="#" class="text-primary text-decoration-none" data-bs-toggle="modal" data-bs-target="#shippingModal">Thay đổi</a>
                     </div>
@@ -407,38 +410,107 @@
     <!-- RELATED BOOKS -->
     <div class="bg-white rounded-3 p-4 shadow-sm">
         <h5 class="fw-bold mb-4 text-uppercase">Fahasa Giới Thiệu</h5>
-         <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
-             @if (relatedBooks != null)
-            {
-                @foreach (var rBook in relatedBooks)
+         <div class="position-relative product-carousel-container" id="related-carousel">
+             <!-- Carousel Controls -->
+            <button class="btn btn-light shadow-sm rounded-circle position-absolute start-0 top-50 translate-middle-y z-1 carousel-btn-prev" style="left: -20px !important; display: none;" onclick="scrollRelatedCarousel(-1)">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+             <div class="d-flex overflow-hidden related-scroll-wrapper" id="related-scroll-view" style="scroll-behavior: smooth; gap: 10px; overflow-x: auto !important; scrollbar-width: none; -ms-overflow-style: none;">
+                 @if (relatedBooks != null)
                 {
-                    <div class="col">
-                        <div class="book-card h-100 border-0 p-0">
-                            <div class="position-relative overflow-hidden group-hover-img mb-2">
-                                <a asp-controller="Books" asp-action="Details" asp-route-id="@rBook.BookID">
-                                    <img src="@(rBook.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
-                                         class="book-cover rounded-3 border" alt="@rBook.Title">
-                                </a>
-                                @if (rBook.DiscountPrice.HasValue && rBook.DiscountPrice < rBook.Price)
-                                {
-                                    <span class="position-absolute top-0 end-0 bg-danger text-white small fw-bold px-2 py-1 rounded-start" style="margin-top: 10px;">
-                                        -@( (int)((1 - (rBook.DiscountPrice.Value / rBook.Price)) * 100) )%
-                                    </span>
-                                }
-                            </div>
-                            <h6 class="book-title mb-1" style="font-size: 14px; height: 40px;"><a asp-controller="Books" asp-action="Details" asp-route-id="@rBook.BookID" class="text-decoration-none text-dark">@rBook.Title</a></h6>
-                            <div class="price-box gap-1 mb-0">
-                                <span class="current-price text-danger fw-bold" style="font-size: 16px;">@((rBook.DiscountPrice ?? rBook.Price).ToString("#,##0")) đ</span>
-                                @if(rBook.DiscountPrice.HasValue)
-                                {
-                                    <span class="original-price" style="font-size: 12px;">@rBook.Price.ToString("#,##0") đ</span>
-                                }
+                    @foreach (var rBook in relatedBooks)
+                    {
+                        <div class="flex-shrink-0" style="width: calc(16.666% - 10px); min-width: 160px;">
+                            <div class="book-card h-100 border-0 p-0">
+                                <div class="position-relative overflow-hidden group-hover-img mb-2">
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@rBook.BookID">
+                                        <img src="@(rBook.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                             class="book-cover rounded-3 border" alt="@rBook.Title">
+                                    </a>
+                                    @if (rBook.DiscountPrice.HasValue && rBook.DiscountPrice < rBook.Price)
+                                    {
+                                        <span class="position-absolute top-0 end-0 bg-danger text-white small fw-bold px-2 py-1 rounded-start" style="margin-top: 10px;">
+                                            -@( (int)((1 - (rBook.DiscountPrice.Value / rBook.Price)) * 100) )%
+                                        </span>
+                                    }
+                                </div>
+                                <h6 class="book-title mb-1" style="font-size: 13px; height: 35px;"><a asp-controller="Books" asp-action="Details" asp-route-id="@rBook.BookID" class="text-decoration-none text-dark">@rBook.Title</a></h6>
+                                <div class="price-box gap-1 mb-0">
+                                    <span class="current-price text-danger fw-bold text-nowrap" style="font-size: 14px;">@((rBook.DiscountPrice ?? rBook.Price).ToString("#,##0")) đ</span>
+                                    @if(rBook.DiscountPrice.HasValue)
+                                    {
+                                        <span class="original-price text-nowrap" style="font-size: 11px;">@rBook.Price.ToString("#,##0") đ</span>
+                                    }
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 }
-            }
+             </div>
+
+            <button class="btn btn-light shadow-sm rounded-circle position-absolute end-0 top-50 translate-middle-y z-1 carousel-btn-next" style="right: -20px !important;" onclick="scrollRelatedCarousel(1)">
+                <i class="bi bi-chevron-right"></i>
+            </button>
          </div>
+
+         <style>
+            /* Hide Scrollbar */
+            .related-scroll-wrapper::-webkit-scrollbar {
+                display: none;
+            }
+            
+            /* Responsive Widths */
+            .related-scroll-wrapper > div {
+                width: calc(16.666% - 9px); /* Desktop: 6 items */
+            }
+            @@media(max-width: 1200px) {
+                .related-scroll-wrapper > div { width: calc(20% - 10px); } /* 5 items */
+            }
+            @@media(max-width: 992px) {
+                 .related-scroll-wrapper > div { width: calc(25% - 10px); } /* 4 items */
+            }
+            @@media(max-width: 768px) {
+                 .related-scroll-wrapper > div { width: calc(50% - 10px); } /* 2 items */
+            }
+         </style>
+
+         <script>
+            function scrollRelatedCarousel(direction) {
+                const container = document.getElementById('related-scroll-view');
+                const scrollAmount = container.clientWidth;
+                
+                if (direction === 1) container.scrollLeft += scrollAmount;
+                else container.scrollLeft -= scrollAmount;
+                
+                setTimeout(updateRelatedButtons, 300);
+            }
+
+            function updateRelatedButtons() {
+                const container = document.getElementById('related-scroll-view');
+                const prevBtn = document.querySelector('.product-carousel-container .carousel-btn-prev'); // Might need more specific selector if multiple carousels
+                const nextBtn = document.querySelector('.product-carousel-container .carousel-btn-next');
+                
+                // Using ID context is safer if we reuse this code, but here we hardcoded IDs for simplicity in this specific view
+                const wrapper = document.getElementById('related-carousel');
+                const btnPrev = wrapper.querySelector('.carousel-btn-prev');
+                const btnNext = wrapper.querySelector('.carousel-btn-next');
+
+                if (container.scrollLeft <= 10) btnPrev.style.display = 'none';
+                else btnPrev.style.display = 'block';
+                
+                if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) btnNext.style.display = 'none';
+                else btnNext.style.display = 'block';
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const el = document.getElementById('related-scroll-view');
+                if(el) {
+                    updateRelatedButtons();
+                    el.addEventListener('scroll', updateRelatedButtons);
+                }
+            });
+         </script>
     </div>
 
 </div>
@@ -555,15 +627,62 @@
 
 
 
+
+
+    <!-- Image Gallery Modal -->
+    <div class="modal fade" id="imageGalleryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl"> <!-- Extra Large Modal -->
+            <div class="modal-content" style="background-color: transparent; border: none; box-shadow: none;">
+                <div class="position-relative d-flex justify-content-center align-items-center" style="height: 90vh;">
+                    
+                    <!-- Close Button -->
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 z-3" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                    <!-- Prev Button -->
+                    <button class="btn btn-dark rounded-circle position-absolute start-0 z-2 ms-2 gallery-prev-btn" onclick="changeGalleryImage(-1)">
+                       <i class="bi bi-chevron-left"></i>
+                    </button>
+
+                    <!-- Main Modal Image Container -->
+                    <div class="bg-white rounded-3 p-2 d-flex flex-column" style="max-height: 90vh; max-width: 90vw;">
+                        <div class="flex-grow-1 d-flex align-items-center justify-content-center overflow-hidden" style="min-height: 400px;">
+                             <img id="galleryMainImage" src="" class="img-fluid" style="max-height: 70vh; object-fit: contain;" alt="Gallery Image">
+                        </div>
+                        
+                        <!-- Modal Thumbnails -->
+                         <div class="d-flex gap-2 justify-content-center overflow-auto mt-3 pt-2 border-top" style="max-width: 80vw;">
+                             @if (otherImages.Any())
+                            {
+                                int idx = 0;
+                                foreach (var img in otherImages)
+                                {
+                                    <div class="border rounded p-1 cursor-pointer gallery-thumbnail-item" data-index="@idx" onclick="setGalleryImage(@idx, '@img.ImageUrl')">
+                                        <img src="@img.ImageUrl" class="" style="width: 60px; height: 60px; object-fit: contain;" alt="Thumbnail">
+                                    </div>
+                                    idx++;
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Next Button -->
+                    <button class="btn btn-dark rounded-circle position-absolute end-0 z-2 me-2 gallery-next-btn" onclick="changeGalleryImage(1)">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+
+
 @section Scripts {
     <script>
         // Review Submission
         $('#reviewForm').on('submit', function(e) {
             e.preventDefault();
-            
-            // Check logged in (simple check or let server handle)
-            // Get form data
-            var formData = $(this).serialize();
             
             // Check rating selected
             if (!$('input[name="rating"]:checked').val()) {
@@ -606,6 +725,56 @@
             qtyHidden.value = newQty;
         }
 
+        // Gallery State
+        let currentGalleryIndex = 0;
+        let activeImageIndex = 0; 
+        const galleryImages = [
+            @if(otherImages.Any()) {
+                @Html.Raw(string.Join(",", otherImages.Select(i => $"'{i.ImageUrl}'")))
+            } else {
+                 @Html.Raw($"'{mainImage}'")
+            }
+        ];
+
+        function updateMainImage(index, url) {
+            activeImageIndex = index;
+            document.getElementById('mainProductImage').src = url;
+            // No need to update onclick attribute anymore
+        }
+
+        function openGallery(startIndex) {
+            const idx = startIndex !== undefined ? startIndex : activeImageIndex;
+            const modalEl = document.getElementById('imageGalleryModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            setGalleryImage(idx, galleryImages[idx]);
+            modal.show();
+        }
+
+        function setGalleryImage(index, url) {
+            currentGalleryIndex = index;
+            document.getElementById('galleryMainImage').src = url;
+            
+            // Highlight active thumbnail
+            document.querySelectorAll('.gallery-thumbnail-item').forEach(el => el.classList.remove('border-primary', 'border-2'));
+            const activeThumb = document.querySelector(`.gallery-thumbnail-item[data-index="${index}"]`);
+            if(activeThumb) activeThumb.classList.add('border-primary', 'border-2');
+
+            // Button visibility
+            const prevBtn = document.querySelector('.gallery-prev-btn');
+            const nextBtn = document.querySelector('.gallery-next-btn');
+
+            if(prevBtn) prevBtn.style.visibility = index > 0 ? 'visible' : 'hidden';
+            if(nextBtn) nextBtn.style.visibility = index < galleryImages.length - 1 ? 'visible' : 'hidden';
+        }
+
+        function changeGalleryImage(direction) {
+            let newIndex = currentGalleryIndex + direction;
+            if (newIndex >= 0 && newIndex < galleryImages.length) {
+                setGalleryImage(newIndex, galleryImages[newIndex]);
+            }
+        }
+    </script>
+    <script>
         // Copy promo code function
         function copyPromoCode(code) {
             navigator.clipboard.writeText(code).then(function() {
@@ -620,7 +789,7 @@
         let selectedProvince = null;
         let selectedDistrict = null;
         let selectedWard = null;
-        let currentAddress = '@initialAddress'; // Store current address from server
+        let currentAddress = '@initialAddress'; 
 
         // Initial address state if available
         let savedProvince = { code: '@ViewBag.UserProvinceCode', name: '@ViewBag.UserProvinceName' };
@@ -806,7 +975,6 @@
             }
         }
 
-        // Reset functions
         function resetAddressSelects() {
             $('#provinceSelect').val('');
             resetDistrictAndWard();

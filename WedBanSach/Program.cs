@@ -166,6 +166,49 @@ namespace WedBanSach
                             context.Database.ExecuteSqlRaw("ALTER TABLE [dbo].[Users] ADD [AvatarUrl] [nvarchar](500) NULL");
                              Console.WriteLine("Auto-Fix: Added 'AvatarUrl' to 'Users' table.");
                         }
+
+                        // Auto-Fix: Add Slug to Categories if missing
+                        var slugColExists = context.Database.SqlQueryRaw<int>(
+                            "SELECT CASE WHEN COL_LENGTH('dbo.Categories', 'Slug') IS NOT NULL THEN 1 ELSE 0 END")
+                            .AsEnumerable().FirstOrDefault() == 1;
+
+                        if (!slugColExists)
+                        {
+                            context.Database.ExecuteSqlRaw("ALTER TABLE [dbo].[Categories] ADD [Slug] [nvarchar](150) NULL");
+                            Console.WriteLine("Auto-Fix: Added 'Slug' to 'Categories' table.");
+
+                            // Populate Slugs
+                            var categories = context.Categories.ToList();
+                            bool updated = false;
+                            foreach (var cat in categories)
+                            {
+                                if (string.IsNullOrEmpty(cat.Slug))
+                                {
+                                    // Simple Slugify Logic
+                                    string slug = cat.CategoryName.ToLower();
+                                    // Remove Vietnamese accents - quick hack or proper method
+                                    slug = System.Text.RegularExpressions.Regex.Replace(slug, "[áàảãạăắằẳẵặâấầẩẫậ]", "a");
+                                    slug = System.Text.RegularExpressions.Regex.Replace(slug, "[éèẻẽẹêếềểễệ]", "e");
+                                    slug = System.Text.RegularExpressions.Regex.Replace(slug, "[iíìỉĩị]", "i");
+                                    slug = System.Text.RegularExpressions.Regex.Replace(slug, "[óòỏõọôốồổỗộơớờởỡợ]", "o");
+                                    slug = System.Text.RegularExpressions.Regex.Replace(slug, "[uúùủũụưứừửữự]", "u");
+                                    slug = System.Text.RegularExpressions.Regex.Replace(slug, "[yýỳỷỹỵ]", "y");
+                                    slug = System.Text.RegularExpressions.Regex.Replace(slug, "[đ]", "d");
+                                    
+                                    // Remove special chars
+                                    slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\s-]", ""); 
+                                    slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-").Trim('-');
+
+                                    cat.Slug = slug;
+                                    updated = true;
+                                }
+                            }
+                            if (updated)
+                            {
+                                context.SaveChanges();
+                                Console.WriteLine("Auto-Fix: Populated Slugs for Categories.");
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
