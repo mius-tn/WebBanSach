@@ -165,7 +165,10 @@
                             <a class="nav-link @(ViewBag.CurrentStatus == "completed" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="completed">Đã giao</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewBag.CurrentStatus == "review" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="review">Đánh giá</a>
+                            <a class="nav-link @(ViewBag.CurrentStatus == "review" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="review">Chờ đánh giá</a>
+                        </li>
+                         <li class="nav-item">
+                            <a class="nav-link @(ViewBag.CurrentStatus == "my-reviews" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="my-reviews">Đánh giá của tôi</a>
                         </li>
                          <li class="nav-item">
                             <a class="nav-link @(ViewBag.CurrentStatus == "cancelled" ? "active" : "")" asp-controller="Order" asp-action="History" asp-route-status="cancelled">Đã hủy</a>
@@ -173,7 +176,51 @@
                     </ul>
                 </div>
                 <div class="card-body p-4 pt-4">
-                    @if (!Model.Any())
+                    @if (ViewBag.CurrentStatus == "my-reviews")
+                    {
+                        var reviews = ViewBag.UserReviews as List<WedBanSach.Models.Review>;
+                        if (reviews != null && reviews.Any())
+                        {
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var review in reviews)
+                                {
+                                    <div class="card border shadow-sm rounded-3 p-3">
+                                        <div class="d-flex gap-3">
+                                            <img src="@(review.Book?.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                                 class="rounded border" style="width: 60px; height: 90px; object-fit: cover;">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1 fw-bold"><a asp-controller="Books" asp-action="Details" asp-route-id="@review.BookID" class="text-decoration-none text-dark">@review.Book?.Title</a></h6>
+                                                        <div class="text-warning small mb-1">
+                                                            @for(int i=0; i<review.Rating; i++) { <i class="bi bi-star-fill"></i> }
+                                                        </div>
+                                                        <small class="text-muted d-block">@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                                    </div>
+                                                    <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="deleteReview(@review.ReviewID)" title="Xóa đánh giá">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                                <p class="mb-2 mt-2 text-dark small bg-light p-2 rounded">@review.Comment</p>
+                                                @if (!string.IsNullOrEmpty(review.ImageUrl))
+                                                {
+                                                    <img src="@review.ImageUrl" class="rounded border" style="max-height: 80px; width: auto;" alt="Review Image">
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i class="bi bi-chat-square-text fs-1 opacity-25 text-muted"></i>
+                                <h6 class="text-muted mt-2">Bạn chưa có đánh giá nào.</h6>
+                            </div>
+                        }
+                    }
+                    else if (!Model.Any())
                     {
                         <div class="text-center py-5">
                             <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" width="100" class="mb-3 opacity-50" alt="No Orders">
@@ -242,8 +289,14 @@
                                         </div>
                                         <div class="d-flex gap-2 ms-auto">
                                             @if(order.OrderStatus == "Completed" || order.OrderStatus == "Hoàn tất") {
-                                                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="alert('Tính năng đánh giá đang được cập nhật')">
+                                                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" 
+                                                        onclick="openSelectProductModal(@System.Text.Json.JsonSerializer.Serialize(order.OrderDetails.Select(od => new { id = od.BookID, title = od.Book.Title, image = od.Book.BookImages.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png" })))">
                                                     <i class="bi bi-star-fill me-1"></i> Đánh giá
+                                                </button>
+                                            }
+                                            @if(order.OrderStatus == "Pending" || order.OrderStatus == "Chờ xử lý") {
+                                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="cancelOrder(@order.OrderID)">
+                                                    Hủy đơn hàng
                                                 </button>
                                             }
                                             <a asp-controller="Order" asp-action="Details" asp-route-id="@order.OrderID" class="btn btn-sm btn-outline-danger rounded-pill px-4">Xem chi tiết</a>
@@ -292,4 +345,95 @@
             </div>
         </div>
     </div>
+    <!-- Partial Review Modal -->
+    <partial name="_ReviewModal" />
+
+    <!-- Select Product to Review Modal -->
+    <div class="modal fade" id="selectProductModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Chọn sản phẩm để đánh giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="productListContainer" class="d-flex flex-column gap-2">
+                        <!-- Products will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    function openSelectProductModal(products) {
+        const container = document.getElementById('productListContainer');
+        container.innerHTML = '';
+
+        if (products && products.length > 0) {
+            products.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'd-flex align-items-center gap-3 p-2 border rounded hover-shadow cursor-pointer';
+                item.onclick = function() {
+                    bootstrap.Modal.getInstance(document.getElementById('selectProductModal')).hide();
+                    openReviewModal(p.id, p.title);
+                };
+
+                item.innerHTML = `
+                    <img src="${p.image}" class="rounded border object-fit-cover" style="width: 50px; height: 70px;">
+                    <div class="flex-grow-1">
+                         <h6 class="mb-0 text-truncate" style="font-size: 14px; max-width: 300px;">${p.title}</h6>
+                         <small class="text-primary">Nhấn để đánh giá</small>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                `;
+                container.appendChild(item);
+            });
+            const modal = new bootstrap.Modal(document.getElementById('selectProductModal'));
+            modal.show();
+        }
+    }
+
+    function deleteReview(reviewId) {
+        if(confirm('Bạn có chắc chắn muốn xóa đánh giá này không?')) {
+            $.ajax({
+                url: '/Review/DeleteReview',
+                type: 'POST',
+                data: { reviewId: reviewId },
+                success: function(res) {
+                    if (res.success) {
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra. Vui lòng thử lại sau.');
+                }
+            });
+        }
+    }
+
+    function cancelOrder(orderId) {
+        if(confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?')) {
+            $.ajax({
+                url: '/Order/CancelOrder',
+                type: 'POST',
+                data: { orderId: orderId },
+                success: function(res) {
+                    if (res.success) {
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra. Vui lòng thử lại sau.');
+                }
+            });
+        }
+    }
+</script>

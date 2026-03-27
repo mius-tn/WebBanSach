@@ -24,7 +24,7 @@ public class HomeController : Controller
         return RedirectToAction("Index");
     }
 
-    [Route("trang-chu")]
+    [Route("trangchu")]
     public async Task<IActionResult> Index(int? categoryId)
     {
         // Cleanup Abandoned Orders
@@ -104,10 +104,6 @@ public class HomeController : Controller
         return View(viewModel);
     }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()

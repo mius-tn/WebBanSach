@@ -40,16 +40,17 @@ namespace WedBanSach.Controllers
                 case "cancelled":
                     query = query.Where(o => o.OrderStatus == "Cancelled" || o.OrderStatus == "Đã hủy");
                     break;
-                // "review" filter is tricky in SQL directly without joining Reviews. 
-                // For now, we returns 'completed' for 'review' tab and filter in memory or separate query if needed.
-                // Or simplified: Review tab shows Completed orders, user filters visually?
-                // The User asked for a specific column/tab.
-                // Let's implement robust "Review" filter later if needed, for now alias to Completed or handle in View?
-                // No, Controller filter is best.
-                // To do it properly: Orders where ANY detail is NOT reviewed.
-                // query = query.Where(o => (o.OrderStatus == "Completed" || o.OrderStatus == "Hoàn tất") && o.OrderDetails.Any(od => !od.Book.Reviews.Any(r => r.UserID == userId))); 
-                // That's complex EF. Let's start with basic statuses.
-                // Use "completed" for now and I will filter "unreviewed" in memory if status == "review".
+                case "my-reviews":
+                    var reviews = await _context.Reviews
+                        .Include(r => r.Book)
+                            .ThenInclude(b => b.BookImages)
+                        .Where(r => r.UserID == userId)
+                        .OrderByDescending(r => r.CreatedAt)
+                        .ToListAsync();
+                    ViewBag.UserReviews = reviews;
+                    // Return no orders for this tab, as we display reviews from ViewBag
+                    query = query.Where(o => false); 
+                    break;
             }
 
             var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
@@ -58,10 +59,9 @@ namespace WedBanSach.Controllers
             {
                 // In-memory filter for unreviewed items
                 // Only keep orders that are completed AND have at least one book not reviewed by this user
-                // We need to fetch user reviews to know this.
-                var userReviews = await _context.Reviews.Where(r => r.UserID == userId).Select(r => r.BookID).ToListAsync();
+                var userReviewBookIds = await _context.Reviews.Where(r => r.UserID == userId).Select(r => r.BookID).ToListAsync();
                 orders = orders.Where(o => (o.OrderStatus == "Completed" || o.OrderStatus == "Hoàn tất") 
-                                           && o.OrderDetails.Any(od => !userReviews.Contains(od.BookID)))
+                                           && o.OrderDetails.Any(od => !userReviewBookIds.Contains(od.BookID)))
                                .ToList();
             }
 
@@ -104,6 +104,29 @@ namespace WedBanSach.Controllers
             }
 
             return View(order);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> CancelOrder(int orderId)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdStr)) return Json(new { success = false, message = "Bạn cần đăng nhập." });
+
+            int userId = int.Parse(userIdStr);
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderID == orderId && o.UserID == userId);
+
+            if (order == null) return Json(new { success = false, message = "Không tìm thấy đơn hàng." });
+
+            if (order.OrderStatus != "Pending" && order.OrderStatus != "Chờ xử lý")
+            {
+                return Json(new { success = false, message = "Chỉ có thể hủy đơn hàng đang chờ xử lý." });
+            }
+
+            order.OrderStatus = "Cancelled";
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Đã hủy đơn hàng thành công." });
         }
     }
 }

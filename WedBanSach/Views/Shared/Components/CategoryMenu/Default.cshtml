@@ -13,7 +13,7 @@
                 <!-- If we have real DB data, we use it -->
                 @if (Model != null && Model.Any())
                 {
-                    @foreach (var parent in Model.Take(4)) /* Take 4 columns max for safety */
+                    @foreach (var parent in Model)
                     {
                         <div class="col-md-3">
                             <h6 class="text-uppercase fw-bold text-dark mb-3">@parent.CategoryName</h6>

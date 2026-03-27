@@ -313,7 +313,7 @@
                 
                 @if (ViewBag.CanReview == true)
                 {
-                    <button class="btn btn-warning rounded-pill mt-3 px-4 fw-bold text-white" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+                    <button class="btn btn-warning rounded-pill mt-3 px-4 fw-bold text-white" onclick="openReviewModal(@Model.BookID)">
                         <i class="bi bi-pencil-fill me-2"></i> Viết đánh giá
                     </button>
                 }
@@ -364,47 +364,8 @@
         </div>
     </div>
 
-    <!-- Review Modal -->
-    <div class="modal fade" id="writeReviewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold">Viết đánh giá</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="reviewForm" enctype="multipart/form-data">
-                        <input type="hidden" name="bookId" value="@Model.BookID">
-                        <div class="mb-3 text-center">
-                            <label class="form-label d-block fw-bold mb-2">Bạn chấm sản phẩm này bao nhiêu sao?</label>
-                            <div class="rating-input d-inline-flex flex-row-reverse gap-2 fs-3 text-secondary pointer-event">
-                                <input type="radio" name="rating" value="5" id="r5" class="d-none peer"><label for="r5" class="cursor-pointer text-warning hover-warning"><i class="bi bi-star-fill"></i></label>
-                                <input type="radio" name="rating" value="4" id="r4" class="d-none peer"><label for="r4" class="cursor-pointer text-warning hover-warning"><i class="bi bi-star-fill"></i></label>
-                                <input type="radio" name="rating" value="3" id="r3" class="d-none peer"><label for="r3" class="cursor-pointer text-warning hover-warning"><i class="bi bi-star-fill"></i></label>
-                                <input type="radio" name="rating" value="2" id="r2" class="d-none peer"><label for="r2" class="cursor-pointer text-warning hover-warning"><i class="bi bi-star-fill"></i></label>
-                                <input type="radio" name="rating" value="1" id="r1" class="d-none peer"><label for="r1" class="cursor-pointer text-warning hover-warning"><i class="bi bi-star-fill"></i></label>
-                            </div>
-                            <style>
-                                /* Simple star rating css trick */
-                                .rating-input input:checked ~ label, .rating-input label:hover, .rating-input label:hover ~ label { color: #ffc107 !important; }
-                            </style>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">Hình ảnh (Tùy chọn)</label>
-                            <input type="file" class="form-control form-control-sm" name="reviewImage" accept="image/*">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Nhận xét của bạn</label>
-                            <textarea class="form-control" name="comment" rows="3" placeholder="Chia sẻ cảm nhận về sản phẩm..." required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">Gửi đánh giá</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Review Modal Partial -->
+    <partial name="_ReviewModal" />
 </div>
 
     <!-- RELATED BOOKS -->
@@ -680,38 +641,6 @@
 
 @section Scripts {
     <script>
-        // Review Submission
-        $('#reviewForm').on('submit', function(e) {
-            e.preventDefault();
-            
-            // Check rating selected
-            if (!$('input[name="rating"]:checked').val()) {
-                alert('Vui lòng chọn số sao đánh giá!');
-                return;
-            }
-
-            var formData = new FormData(this);
-
-            $.ajax({
-                url: '/Review/SubmitReview',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(res) {
-                    if (res.success) {
-                        alert(res.message);
-                        location.reload(); 
-                    } else {
-                        alert(res.message);
-                    }
-                },
-                error: function() {
-                    alert('Có lỗi xảy ra. Vui lòng thử lại sau.');
-                }
-            });
-        });
-
         // Quantity update function
         function updateQuantity(change) {
             let qtyInput = document.getElementById('quantityDisplay');

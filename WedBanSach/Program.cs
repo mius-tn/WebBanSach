@@ -30,7 +30,6 @@ namespace WedBanSach
 
             // Register custom services
             builder.Services.AddScoped<WedBanSach.Services.EmailService>();
-            builder.Services.AddHttpClient<WedBanSach.Services.SmsService>();
 
             var app = builder.Build();
 

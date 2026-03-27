@@ -36,14 +36,6 @@
                 {
                     <input type="hidden" name="searchTerm" value="@searchTerm" />
                 }
-                @if (!string.IsNullOrEmpty(selectedPrice))
-                {
-                    <input type="hidden" name="priceRange" value="@selectedPrice" />
-                }
-                @if (!string.IsNullOrEmpty(selectedCoverType))
-                {
-                    <input type="hidden" name="coverType" value="@selectedCoverType" />
-                }
                 
                 <div class="bg-white p-3 rounded-3 shadow-sm border-soft mb-3">
                     <h6 class="fw-bold text-uppercase mb-3">Nhóm Sản Phẩm</h6>
@@ -125,10 +117,9 @@
                     function toggleFilter(radio) {
                         // Check if it was already checked based on server render attribute
                         if (radio.getAttribute('data-was-checked') === 'true') {
-                            // If yes, uncheck it
+                            // If yes, uncheck it and remove name to ensure it's not sent
                             radio.checked = false;
-                            radio.removeAttribute('data-was-checked');
-                            // Submit to clear the filter
+                            radio.name = ''; 
                             document.getElementById('filterForm').submit();
                         } else {
                             // Valid selection, just submit

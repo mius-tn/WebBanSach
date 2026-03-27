@@ -205,8 +205,15 @@ public class BooksController : Controller
             case "price_asc":
                 booksQuery = booksQuery.OrderBy(b => b.DiscountPrice ?? b.Price);
                 break;
-            default: // Newest
+            case "newest":
                 booksQuery = booksQuery.OrderByDescending(b => b.CreatedAt);
+                break;
+            default: // Best Selling Week (Default)
+                var sevenDaysAgo = DateTime.Now.AddDays(-7);
+                booksQuery = booksQuery.OrderByDescending(b => b.OrderDetails
+                    .Where(od => od.Order.OrderDate >= sevenDaysAgo && 
+                                (od.Order.OrderStatus == "Completed" || od.Order.OrderStatus == "Hoàn tất"))
+                    .Sum(od => (int?)od.Quantity) ?? 0);
                 break;
         }
 
