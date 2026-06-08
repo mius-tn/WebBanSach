@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
+using WedBanSach.Models;
 
 namespace WedBanSach.Services
 {
@@ -160,11 +161,18 @@ namespace WedBanSach.Services
                 var priceStyle = "font-weight: bold; color: #333;";
                 var totalStyle = "font-size: 18px; font-weight: bold; color: #C92127;";
                 
-                // Parse Shipping Address (Name | Phone | Address) if standard format
-                var parts = order.ShippingAddress?.Split('|');
-                var receiverName = parts != null && parts.Length > 0 ? parts[0].Trim() : order.User?.FullName;
-                var receiverPhone = parts != null && parts.Length > 1 ? parts[1].Trim() : order.User?.Phone;
-                var receiverAddress = parts != null && parts.Length > 2 ? parts[2].Trim() : order.ShippingAddress;
+                // Parse Shipping Address (Name | Phone | Address) if standard format (contains '|')
+                var receiverName = order.User?.FullName;
+                var receiverPhone = order.User?.Phone;
+                var receiverAddress = order.ShippingAddress;
+
+                if (order.ShippingAddress != null && order.ShippingAddress.Contains('|'))
+                {
+                    var parts = order.ShippingAddress.Split('|');
+                    if (parts.Length > 0) receiverName = parts[0].Trim();
+                    if (parts.Length > 1) receiverPhone = parts[1].Trim();
+                    if (parts.Length > 2) receiverAddress = parts[2].Trim();
+                }
 
                 var sb = new System.Text.StringBuilder();
                 sb.Append($@"
@@ -274,6 +282,125 @@ namespace WedBanSach.Services
                 Console.WriteLine($"Error sending order email: {ex.Message}");
                 return false;
             }
+        }
+
+        public async Task<bool> SendEmailGenericAsync(string toEmail, string subject, string body)
+        {
+            return await SendEmailAsync(toEmail, subject, body);
+        }
+
+        public async Task<bool> SendReturnRequestCreatedEmailAsync(string toEmail, string userName, ReturnRequest request)
+        {
+            var subject = $"Đăng ký yêu cầu đổi/trả/hoàn tiền #{request.Id} thành công - WedBanSach";
+            var typeText = request.RequestType switch
+            {
+                "Exchange" => "Đổi hàng",
+                "Return" => "Trả hàng",
+                "Refund" => "Hoàn tiền",
+                "Warranty" => "Bảo hành",
+                _ => request.RequestType
+            };
+            
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #fce4ec; border-radius: 10px; background-color: #fff;'>
+                        <h2 style='color: #e91e63; text-align: center; border-bottom: 2px solid #fce4ec; padding-bottom: 10px;'>Đăng Ký Đổi/Trả Thành Công</h2>
+                        <p>Xin chào <strong>{userName}</strong>,</p>
+                        <p>Chúng tôi xác nhận đã nhận được yêu cầu <strong>{typeText}</strong> từ bạn cho đơn hàng <strong>#{request.OrderId}</strong>.</p>
+                        <div style='background-color: #fff5f8; padding: 15px; border-radius: 8px; border: 1px solid #f8cdda; margin: 20px 0;'>
+                            <p style='margin: 5px 0;'><strong>Mã yêu cầu:</strong> #RQ-{request.Id}</p>
+                            <p style='margin: 5px 0;'><strong>Loại yêu cầu:</strong> {typeText}</p>
+                            <p style='margin: 5px 0;'><strong>Sản phẩm:</strong> {(request.Book?.Title ?? "Phụ kiện/Sách")}</p>
+                            <p style='margin: 5px 0;'><strong>Số lượng:</strong> {request.Quantity}</p>
+                            <p style='margin: 5px 0;'><strong>Lý do:</strong> {request.Reason}</p>
+                            <p style='margin: 5px 0;'><strong>Mô tả chi tiết:</strong> {request.Description ?? "Không có"}</p>
+                        </div>
+                        <p>Bộ phận CSKH đang tiến hành thẩm định lỗi sản phẩm của bạn qua hình ảnh đính kèm và sẽ liên hệ lại với bạn trong vòng 24h làm việc.</p>
+                        <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
+                        <p style='font-size: 12px; color: #999; text-align: center;'>&copy; 2026 WedBanSach - Inspired by Fahasa. All rights reserved.</p>
+                    </div>
+                </body>
+                </html>";
+
+            return await SendEmailAsync(toEmail, subject, body);
+        }
+
+        public async Task<bool> SendReturnRequestStatusUpdatedEmailAsync(string toEmail, string userName, ReturnRequest request)
+        {
+            var subject = $"Cập nhật trạng thái yêu cầu #{request.Id} - WedBanSach";
+            var typeText = request.RequestType switch
+            {
+                "Exchange" => "Đổi hàng",
+                "Return" => "Trả hàng",
+                "Refund" => "Hoàn tiền",
+                "Warranty" => "Bảo hành",
+                _ => request.RequestType
+            };
+            var statusText = request.Status switch
+            {
+                "Pending" => "Đang chờ xử lý",
+                "Approved" => "Đã được phê duyệt",
+                "Rejected" => "Bị từ chối",
+                "Completed" => "Đã hoàn thành",
+                _ => request.Status
+            };
+            var color = request.Status switch
+            {
+                "Approved" => "#28a745",
+                "Rejected" => "#dc3545",
+                "Completed" => "#007bff",
+                _ => "#ffc107"
+            };
+
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #fce4ec; border-radius: 10px; background-color: #fff;'>
+                        <h2 style='color: #e91e63; text-align: center; border-bottom: 2px solid #fce4ec; padding-bottom: 10px;'>Cập Nhật Trạng Thái Yêu Cầu</h2>
+                        <p>Xin chào <strong>{userName}</strong>,</p>
+                        <p>Yêu cầu <strong>{typeText}</strong> mã số <strong>#RQ-{request.Id}</strong> của bạn vừa có cập nhật mới:</p>
+                        <div style='background-color: #fff5f8; padding: 15px; border-radius: 8px; border: 1px solid #f8cdda; margin: 20px 0;'>
+                            <p style='margin: 5px 0; font-size: 18px;'><strong>Trạng thái:</strong> <span style='color: {color}; font-weight: bold;'>{statusText}</span></p>
+                            <p style='margin: 5px 0;'><strong>Phản hồi từ Admin:</strong> {request.AdminNote ?? "Đang xử lý"}</p>
+                            <p style='margin: 5px 0;'><strong>Thời gian cập nhật:</strong> {request.UpdatedAt:dd/MM/yyyy HH:mm:ss}</p>
+                        </div>
+                        { (request.Status == "Approved" ? "<p><strong>Bước tiếp theo:</strong> Nhân viên giao hàng sẽ liên hệ với bạn trong 1-2 ngày tới để tiến hành thu hồi sản phẩm lỗi và bàn giao sản phẩm đổi mới/tiến hành bước tiếp theo. Quý khách vui lòng đóng gói sản phẩm cẩn thận.</p>" : "") }
+                        { (request.Status == "Rejected" ? "<p>Nếu có bất kỳ thắc mắc nào về lý do từ chối đổi trả, vui lòng phản hồi email này hoặc liên hệ hotline để được hỗ trợ lại.</p>" : "") }
+                        <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
+                        <p style='font-size: 12px; color: #999; text-align: center;'>&copy; 2026 WedBanSach - Inspired by Fahasa. All rights reserved.</p>
+                    </div>
+                </body>
+                </html>";
+
+            return await SendEmailAsync(toEmail, subject, body);
+        }
+
+        public async Task<bool> SendRefundCompletedEmailAsync(string toEmail, string userName, ReturnRequest request, RefundTransaction transaction)
+        {
+            var subject = $"Hoàn tiền thành công cho yêu cầu #{request.Id} - WedBanSach";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #fce4ec; border-radius: 10px; background-color: #fff;'>
+                        <h2 style='color: #28a745; text-align: center; border-bottom: 2px solid #fce4ec; padding-bottom: 10px;'>Hoàn Tiền Thành Công</h2>
+                        <p>Xin chào <strong>{userName}</strong>,</p>
+                        <p>Chúng tôi vui mừng thông báo giao dịch hoàn tiền cho yêu cầu trả hàng <strong>#RQ-{request.Id}</strong> của quý khách đã hoàn tất thành công.</p>
+                        <div style='background-color: #f4fbf7; padding: 15px; border-radius: 8px; border: 1px solid #c3e6cb; margin: 20px 0; color: #155724;'>
+                            <p style='margin: 5px 0; font-size: 18px;'><strong>Số tiền hoàn:</strong> <strong>{request.RefundAmount ?? 0:N0} VND</strong></p>
+                            <p style='margin: 5px 0;'><strong>Phương thức hoàn:</strong> {transaction.RefundMethod}</p>
+                            <p style='margin: 5px 0;'><strong>Mã giao dịch:</strong> {transaction.TransactionCode}</p>
+                            <p style='margin: 5px 0;'><strong>Thời gian giao dịch:</strong> {transaction.RefundDate:dd/MM/yyyy HH:mm:ss}</p>
+                        </div>
+                        <p>Quý khách vui lòng kiểm tra tài khoản ngân hàng hoặc phương thức nhận tiền đã chọn. Số tiền có thể mất 1-3 ngày làm việc để hiển thị số dư tùy thuộc vào ngân hàng thụ hưởng.</p>
+                        <p>Cảm ơn quý khách đã tin tưởng mua sắm tại WedBanSach!</p>
+                        <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
+                        <p style='font-size: 12px; color: #999; text-align: center;'>&copy; 2026 WedBanSach - Inspired by Fahasa. All rights reserved.</p>
+                    </div>
+                </body>
+                </html>";
+
+            return await SendEmailAsync(toEmail, subject, body);
         }
 
         private async Task<bool> SendEmailAsync(string toEmail, string subject, string body)

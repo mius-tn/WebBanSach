@@ -1,0 +1,153 @@
+@model IEnumerable<WedBanSach.Models.WarrantyRequest>
+@{
+    ViewData["Title"] = "Quản lý Bảo hành Sách & Phụ kiện";
+    Layout = "_AdminLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/policy.css" asp-append-version="true" />
+}
+
+<div class="container-fluid animate-fade-in">
+    <div class="mb-4">
+        <h3 class="fw-bold"><i class="bi bi-shield-shaded text-pink"></i> Quản Lý Yêu Cầu Bảo Hành</h3>
+        <p class="text-muted">Trung tâm kiểm soát bảo hành sách lỗi kỹ thuật, quà tặng, bookmark và phụ kiện đi kèm.</p>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    <!-- Table Card -->
+    <div class="card shadow-sm border-0 rounded-3 mb-5">
+        <div class="card-header bg-white py-3">
+            <h5 class="fw-bold m-0 text-dark"><i class="bi bi-list-task"></i> Bảng Danh Sách Đăng Ký Bảo Hành</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="warrantiesTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 100px;">Mã BH</th>
+                            <th>Khách hàng</th>
+                            <th>Sản phẩm bảo hành</th>
+                            <th>Mô tả lỗi kỹ thuật</th>
+                            <th>Ngày đăng ký</th>
+                            <th style="width: 180px;">Trạng thái</th>
+                            <th class="text-end" style="width: 140px;">Cập nhật nhanh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var statusText = item.Status switch
+                            {
+                                "Pending" => "Chờ thẩm định",
+                                "Approved" => "Đã duyệt/Đang nhận hàng",
+                                "Rejected" => "Đã từ chối",
+                                "Completed" => "Đã xong (Đã giao lại)",
+                                _ => item.Status
+                            };
+
+                            var statusBadge = item.Status switch
+                            {
+                                "Pending" => "bg-warning text-dark",
+                                "Approved" => "bg-primary",
+                                "Rejected" => "bg-danger",
+                                "Completed" => "bg-success",
+                                _ => "bg-secondary"
+                            };
+
+                            <tr>
+                                <td class="fw-bold text-primary">#WR-@item.Id</td>
+                                <td>
+                                    <div class="fw-bold">@item.Customer.FullName</div>
+                                    <small class="text-muted text-xs">SĐT: @item.Customer.Phone</small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">@(item.Product?.Title ?? "N/A")</div>
+                                    <small class="text-muted text-xs">Mã sách: #@item.ProductId</small>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 250px;" title="@item.IssueDescription">
+                                        @item.IssueDescription
+                                    </span>
+                                </td>
+                                <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <span class="badge @statusBadge rounded-pill px-3 py-2 small" id="statusBadge-@item.Id">@statusText</span>
+                                </td>
+                                <td class="text-end">
+                                    <select class="form-select form-select-sm select-status-warranty" data-id="@item.Id">
+                                        <option value="Pending" selected="@(item.Status == "Pending")">Chờ thẩm định</option>
+                                        <option value="Approved" selected="@(item.Status == "Approved")">Duyệt &amp; Nhận hàng</option>
+                                        <option value="Completed" selected="@(item.Status == "Completed")">Đã bảo hành xong</option>
+                                        <option value="Rejected" selected="@(item.Status == "Rejected")">Từ chối bảo hành</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // Init DataTable
+            $('#warrantiesTable').DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                },
+                order: [[4, 'desc']] // sort by date descending
+            });
+
+            // Quick Status Change via Ajax
+            $('.select-status-warranty').on('change', function() {
+                const id = $(this).attr('data-id');
+                const status = $(this).val();
+                const token = $('input[name="__RequestVerificationToken"]').val();
+                const $badge = $(`#statusBadge-${id}`);
+
+                Swal.fire({
+                    title: 'Cập nhật trạng thái bảo hành?',
+                    text: "Hệ thống sẽ cập nhật trạng thái xử lý bảo hành mới và gửi email thông báo tự động cho khách hàng.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0d6efd',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Đồng ý cập nhật',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.showLoading();
+                        $.ajax({
+                            url: '/AdminWarranty/UpdateStatus',
+                            type: 'POST',
+                            data: { id: id, status: status, __RequestVerificationToken: token },
+                            success: function(res) {
+                                Swal.close();
+                                if (res.success) {
+                                    Swal.fire('Thành công!', res.message, 'success').then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Thất bại', res.message, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.close();
+                                Swal.fire('Lỗi kết nối', 'Đã xảy ra lỗi khi gửi yêu cầu lên server.', 'error');
+                            }
+                        });
+                    } else {
+                        // Reset to original selection
+                        location.reload();
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,262 @@
+@model IEnumerable<WedBanSach.Models.PolicyCategory>
+@{
+    ViewData["Title"] = "Trung tâm Chính sách & Hỗ trợ Khách hàng";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/policy.css" asp-append-version="true" />
+}
+
+<div class="container py-4 animate-fade-in">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-pink text-decoration-none"><i class="bi bi-house-door-fill me-1"></i>Trang chủ</a></li>
+            <li class="breadcrumb-item active text-muted" aria-current="page">Trung tâm Chính sách</li>
+        </ol>
+    </nav>
+
+    <!-- Hero Banner -->
+    <div class="policy-hero text-center text-md-start mb-5">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="badge bg-pink-light text-pink px-3 py-2 rounded-pill fw-bold mb-3 uppercase tracking-wider"><i class="bi bi-info-circle-fill me-1"></i>Hỗ trợ 24/7</span>
+                <h1 class="mb-3">Chính Sách Hỗ Trợ Khách Hàng</h1>
+                <p class="lead text-muted mb-4 fs-6">
+                    BookStore luôn cam kết mang lại trải nghiệm mua sắm an tâm nhất. Chúng tôi áp dụng chính sách đổi trả hàng lỗi siêu tốc trong 7 ngày và chính sách bảo hành in ấn trọn đời giúp bạn đọc trọn vẹn từng trang sách.
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
+                    <a asp-controller="ReturnRequest" class="btn btn-pink-filled px-4 py-2 fw-bold shadow-soft" asp-action="Create">
+                        <i class="bi bi-file-earmark-plus-fill me-2"></i> Gửi Yêu Cầu Hỗ Trợ
+                    </a>
+                    <a href="#quy-trinh" class="btn btn-pink px-4 py-2 fw-bold">
+                        Quy trình đổi trả <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-center position-relative">
+                <i class="bi bi-journal-check text-pink" style="font-size: 11rem; opacity: 0.12; display: inline-block;"></i>
+                <div class="position-absolute top-50 start-50 translate-middle">
+                    <i class="bi bi-shield-fill-check text-pink" style="font-size: 5rem; opacity: 0.85;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Box for FAQs and Policies -->
+    <div class="policy-search-container">
+        <i class="bi bi-search policy-search-icon"></i>
+        <input type="text" id="faqSearchInput" class="policy-search-input" placeholder="Bạn cần hỗ trợ gì? Tìm kiếm câu hỏi hoặc chính sách đổi trả..." />
+    </div>
+
+    <!-- Content Row -->
+    <div class="row mt-4">
+        <!-- Sidebar Menu -->
+        <div class="col-lg-3 mb-4">
+            <div class="policy-sidebar">
+                <h5 class="fw-bold mb-4 pb-2 border-bottom border-soft"><i class="bi bi-list-stars text-pink me-2"></i> Danh mục chính</h5>
+                <ul class="policy-menu list-unstyled m-0">
+                    <li class="policy-menu-item mb-2">
+                        <a asp-controller="Policy" asp-action="Index" class="policy-menu-link active">
+                            <i class="bi bi-house-door-fill"></i> Trang chủ chính sách
+                        </a>
+                    </li>
+                    <li class="policy-menu-item mb-2">
+                        <a asp-controller="Policy" asp-action="Exchange" class="policy-menu-link">
+                            <i class="bi bi-arrow-left-right"></i> Chính sách đổi hàng
+                        </a>
+                    </li>
+                    <li class="policy-menu-item mb-2">
+                        <a asp-controller="Policy" asp-action="Return" class="policy-menu-link">
+                            <i class="bi bi-arrow-return-left"></i> Chính sách trả hàng
+                        </a>
+                    </li>
+                    <li class="policy-menu-item mb-2">
+                        <a asp-controller="Policy" asp-action="Refund" class="policy-menu-link">
+                            <i class="bi bi-cash-coin"></i> Chính sách hoàn tiền
+                        </a>
+                    </li>
+                    <li class="policy-menu-item mb-2">
+                        <a asp-controller="Policy" asp-action="Warranty" class="policy-menu-link">
+                            <i class="bi bi-shield-shaded"></i> Chính sách bảo hành
+                        </a>
+                    </li>
+                </ul>
+                <div class="mt-4 pt-3 border-top border-soft text-center">
+                    <a asp-controller="ReturnRequest" asp-action="History" class="btn btn-outline-secondary w-100 py-2 btn-sm fw-bold">
+                        <i class="bi bi-clock-history me-1"></i> Tra cứu yêu cầu cũ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <!-- 4 Policy Cards Grid -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-6 col-xl-6">
+                    <div class="policy-card d-flex flex-column h-100">
+                        <div class="policy-card-icon"><i class="bi bi-arrow-left-right"></i></div>
+                        <h4 class="fw-bold mb-2">Đổi Hàng Siêu Tốc</h4>
+                        <p class="text-muted small">
+                            Đổi mới sản phẩm nhanh chóng trong 7 ngày nếu sách có lỗi kỹ thuật từ nhà in (nhòe chữ, mất trang, rách gáy do đóng gáy).
+                        </p>
+                        <a asp-controller="Policy" asp-action="Exchange" class="text-pink fw-bold text-decoration-none mt-auto fs-6">Xem chi tiết <i class="bi bi-chevron-right small"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-6">
+                    <div class="policy-card d-flex flex-column h-100">
+                        <div class="policy-card-icon"><i class="bi bi-arrow-return-left"></i></div>
+                        <h4 class="fw-bold mb-2">Trả Hàng Tiện Lợi</h4>
+                        <p class="text-muted small">
+                            Hỗ trợ trả hàng trong vòng 7 ngày kể từ khi nhận nếu thay đổi nhu cầu cá nhân. Điều kiện: sản phẩm còn mới nguyên seal nilon niêm phong.
+                        </p>
+                        <a asp-controller="Policy" asp-action="Return" class="text-pink fw-bold text-decoration-none mt-auto fs-6">Xem chi tiết <i class="bi bi-chevron-right small"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-6">
+                    <div class="policy-card d-flex flex-column h-100">
+                        <div class="policy-card-icon"><i class="bi bi-cash-coin"></i></div>
+                        <h4 class="fw-bold mb-2">Hoàn Tiền Minh Bạch</h4>
+                        <p class="text-muted small">
+                            Hoàn trả 100% tài chính nhanh gọn qua tài khoản ngân hàng hoặc ví điện tử trong 3 - 5 ngày làm việc cực kỳ bảo mật.
+                        </p>
+                        <a asp-controller="Policy" asp-action="Refund" class="text-pink fw-bold text-decoration-none mt-auto fs-6">Xem chi tiết <i class="bi bi-chevron-right small"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-6">
+                    <div class="policy-card d-flex flex-column h-100">
+                        <div class="policy-card-icon"><i class="bi bi-shield-shaded"></i></div>
+                        <h4 class="fw-bold mb-2">Bảo Hành Dài Hạn</h4>
+                        <p class="text-muted small">
+                            Bảo hành trọn đời đối với lỗi bản in sách. Bảo hành từ 1 - 3 tháng đối với các sản phẩm quà tặng phụ kiện,bookmark kim loại.
+                        </p>
+                        <a asp-controller="Policy" asp-action="Warranty" class="text-pink fw-bold text-decoration-none mt-auto fs-6">Xem chi tiết <i class="bi bi-chevron-right small"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline section -->
+            <div id="quy-trinh" class="mb-5 pt-3">
+                <h3 class="fw-bold text-center mb-4"><i class="bi bi-activity text-pink me-2"></i> Quy Trình Đổi Trả 4 Bước Siêu Tốc</h3>
+                <div class="row g-4 process-timeline">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="process-step-card text-center">
+                            <div class="step-num">1</div>
+                            <div class="step-icon mx-auto"><i class="bi bi-pencil-square text-pink"></i></div>
+                            <h6 class="fw-bold">Gửi yêu cầu</h6>
+                            <p class="text-muted x-small m-0">Điền form trực tuyến kèm tối thiểu 3 ảnh thực tế lỗi sản phẩm.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="process-step-card text-center">
+                            <div class="step-num">2</div>
+                            <div class="step-icon mx-auto"><i class="bi bi-search text-pink"></i></div>
+                            <h6 class="fw-bold">Thẩm định nhanh</h6>
+                            <p class="text-muted x-small m-0">Đội ngũ CSKH kiểm tra chất lượng qua ảnh và duyệt yêu cầu trong 24h.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="process-step-card text-center">
+                            <div class="step-num">3</div>
+                            <div class="step-icon mx-auto"><i class="bi bi-box-seam text-pink"></i></div>
+                            <h6 class="fw-bold">Thu hồi miễn phí</h6>
+                            <p class="text-muted x-small m-0">Shipper GHTK liên kết đến lấy sách lỗi tại nhà khách hàng hoàn toàn miễn phí.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="process-step-card text-center">
+                            <div class="step-num">4</div>
+                            <div class="step-icon mx-auto"><i class="bi bi-check2-circle text-pink"></i></div>
+                            <h6 class="fw-bold">Đổi mới/Hoàn tiền</h6>
+                            <p class="text-muted x-small m-0">Gửi sách đổi mới ngay lập tức hoặc bồi hoàn tiền tài khoản ngân hàng của bạn.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="mb-5" id="faq-section">
+                <h3 class="fw-bold mb-4"><i class="bi bi-question-circle text-pink me-2"></i> Câu Hỏi Thường Gặp (FAQ)</h3>
+                <div class="accordion policy-faq-accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button animate-fade-in" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Tôi muốn đổi sản phẩm do đổi ý không thích nữa được không?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <strong>Được hỗ trợ!</strong> Quý khách được quyền trả sản phẩm và nhận hoàn tiền trong vòng 7 ngày kể từ ngày nhận hàng với điều kiện sản phẩm còn nguyên màng bọc nilon (màng co nhiệt), mới 100% không rách nát, viết vẽ, và kèm hóa đơn mua hàng. Quý khách vui lòng chi trả cước phí vận chuyển thu hồi trong trường hợp này.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed animate-fade-in" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Đổi trả sách lỗi có mất phí vận chuyển không?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <strong>Hoàn toàn miễn phí!</strong> Nếu sách của quý khách bị lỗi kỹ thuật của nhà sản xuất hoặc rách/nát do vận chuyển của BookStore, quý khách sẽ được hỗ trợ thu hồi sản phẩm lỗi tại nhà và giao sách mới thay thế miễn phí 100%. Quý khách không phải trả thêm bất kỳ đồng nào.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed animate-fade-in" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Thời gian hoàn lại tiền mất bao lâu?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Sau khi nhận được sản phẩm lỗi gửi trả lại kho hàng, bộ phận kiểm kho của BookStore sẽ kiểm tra thực tế và xác nhận chất lượng trong vòng 24h. Sau khi xác nhận hoàn tất, tiền sẽ được hoàn trả lại tài khoản ngân hàng của quý khách từ <strong>3 đến 5 ngày làm việc</strong>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Real-time FAQ Search Filter
+            $('#faqSearchInput').on('keyup', function() {
+                const value = $(this).val().toLowerCase().trim();
+                let hasResults = false;
+                
+                $('.policy-faq-accordion .accordion-item').each(function() {
+                    const question = $(this).find('.accordion-button').text().toLowerCase();
+                    const answer = $(this).find('.accordion-body').text().toLowerCase();
+                    
+                    if (question.indexOf(value) > -1 || answer.indexOf(value) > -1) {
+                        $(this).show();
+                        hasResults = true;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                
+                // Show/hide empty state message
+                if (!hasResults && value !== '') {
+                    if ($('#faqEmptyState').length === 0) {
+                        $('#faqAccordion').after(`
+                            <div id="faqEmptyState" class="text-center py-5 bg-white border-soft rounded-3 shadow-soft animate-fade-in mt-3">
+                                <i class="bi bi-search text-muted" style="font-size: 3rem; opacity: 0.35;"></i>
+                                <h5 class="fw-bold text-muted mt-3">Không tìm thấy kết quả phù hợp</h5>
+                                <p class="text-muted small m-0">Thử tìm kiếm với từ khóa khác như "đổi trả", "hoàn tiền", "phí vận chuyển"...</p>
+                            </div>
+                        `);
+                    }
+                } else {
+                    $('#faqEmptyState').remove();
+                }
+            });
+        });
+    </script>
+}
+

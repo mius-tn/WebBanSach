@@ -124,9 +124,37 @@
                 </a>
             </li>
             <li>
+                <a href="/admin/ai-chat" class="@(currentController == "AdminAIChat" ? "active" : "")">
+                    <i class="bi bi-robot"></i>
+                    <span>AI Chatbot Dashboard</span>
+                </a>
+            </li>
+            <li>
                 <a href="@Url.Action("Index", "AdminReports")" class="@(currentController == "AdminReports" ? "active" : "")">
                     <i class="bi bi-graph-up"></i>
                     <span>Báo cáo</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <hr class="my-2 border-secondary" style="opacity: 0.15;" />
+                <div class="px-3 py-1 text-uppercase text-muted fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">Quản lý chính sách</div>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "AdminPolicy")" class="@(currentController == "AdminPolicy" ? "active" : "")">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Danh sách chính sách</span>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "AdminReturnRequest")" class="@(currentController == "AdminReturnRequest" ? "active" : "")">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Yêu cầu đổi trả</span>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "AdminWarranty")" class="@(currentController == "AdminWarranty" ? "active" : "")">
+                    <i class="bi bi-shield-shaded"></i>
+                    <span>Quản lý bảo hành</span>
                 </a>
             </li>
         </ul>

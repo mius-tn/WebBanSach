@@ -1,0 +1,390 @@
+@using System.Text.Json
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "AI Chatbot Dashboard";
+    var stats = ViewBag.Stats;
+    var topBooks = ViewBag.TopRecommendedBooks;
+    var recentSessions = ViewBag.RecentSessions;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800" style="font-weight: 800; font-family: 'Nunito', sans-serif;">AI CHATBOT ANALYTICS</h1>
+            <p class="text-muted mb-0">Theo dõi hiệu suất hoạt động và chuyển đổi mua hàng của Trợ lý AI MiuMiu.</p>
+        </div>
+        <div class="badge bg-danger p-2 fs-6">
+            <span class="spinner-grow spinner-grow-sm me-1"></span> AI Chatbot Active
+        </div>
+    </div>
+
+    <!-- 1. KPI SUMMARY CARDS -->
+    <div class="row g-3 mb-4">
+        <!-- Sessions Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-primary shadow h-100 py-2" style="border-left: 4px solid #e91e63 !important; border-radius: 12px;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-pink text-uppercase mb-1" style="color: #e91e63; font-size: 11px;">Tổng phiên chat</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@stats.TotalSessions</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-chat-dots-fill text-gray-300" style="font-size: 2rem; color: #dee2e6;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-success shadow h-100 py-2" style="border-left: 4px solid #2ec4b6 !important; border-radius: 12px;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #2ec4b6; font-size: 11px;">Tổng số tin nhắn</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@stats.TotalMessages</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-chat-left-quote-fill text-gray-300" style="font-size: 2rem; color: #dee2e6;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Recommendations Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-info shadow h-100 py-2" style="border-left: 4px solid #457b9d !important; border-radius: 12px;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #457b9d; font-size: 11px;">Đề xuất sách thành công</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@stats.TotalRecommendations</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-journal-bookmark-fill text-gray-300" style="font-size: 2rem; color: #dee2e6;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conversion Rate Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-warning shadow h-100 py-2" style="border-left: 4px solid #ffb703 !important; border-radius: 12px; background: linear-gradient(135deg, #ffffff 60%, #fffbe6 100%);">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #ff9f1c; font-size: 11px;">Tỉ lệ chuyển đổi mua hàng</div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">@stats.ConversionRate%</div>
+                                </div>
+                                <div class="col">
+                                    <div class="progress progress-sm mr-2" style="height: 6px;">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: @stats.ConversionRate%; background-color: #ffb703 !important;" aria-valuenow="@stats.ConversionRate" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-cart-check-fill text-gray-300" style="font-size: 2rem; color: #ffb703;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. ANALYTICS GRAPHS & TOP RECOMMENDATIONS -->
+    <div class="row mb-4 g-3">
+        <!-- Daily Chat Volume Chart -->
+        <div class="col-lg-7">
+            <div class="card shadow" style="border-radius: 12px; border: none;">
+                <div class="card-header bg-white py-3 border-bottom-0">
+                    <h6 class="m-0 font-weight-bold" style="color: #e91e63; font-weight: 700; font-family: 'Nunito', sans-serif;"><i class="bi bi-graph-up me-2"></i>Tần Suất Chat Trong Tuần</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 280px; position: relative;">
+                        <canvas id="sessionsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Sách Được AI Đề Xuất -->
+        <div class="col-lg-5">
+            <div class="card shadow h-100" style="border-radius: 12px; border: none;">
+                <div class="card-header bg-white py-3 border-bottom-0">
+                    <h6 class="m-0 font-weight-bold" style="color: #2ec4b6; font-weight: 700; font-family: 'Nunito', sans-serif;"><i class="bi bi-trophy-fill me-2"></i>Top Sách Đề Xuất Nhiều Nhất</h6>
+                </div>
+                <div class="card-body py-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr class="text-muted" style="font-size: 12px;">
+                                    <th>Sách</th>
+                                    <th class="text-center">Số lượt đề xuất</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (topBooks != null)
+                                {
+                                    foreach (var tb in topBooks)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    @{
+                                                        var bookImages = tb.Book.BookImages as IEnumerable<WedBanSach.Models.BookImage>;
+                                                        var mainImg = bookImages?.FirstOrDefault();
+                                                        var imgUrl = mainImg?.ImageUrl ?? "/images/default-book.png";
+                                                    }
+                                                    <img src="@imgUrl" class="rounded" style="width: 32px; height: 42px; object-fit: cover;" alt="@tb.Book.Title">
+                                                    <div>
+                                                        <div class="fw-bold text-truncate" style="max-width: 180px; font-size: 13px;">@tb.Book.Title</div>
+                                                        <div class="text-muted" style="font-size: 11px;">@string.Format("{0:N0}đ", tb.Book.Price)</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center fw-bold text-pink" style="color: #e91e63;">@tb.Count lần</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. CHAT SESSION INSPECTOR LIST -->
+    <div class="card shadow mb-4" style="border-radius: 12px; border: none;">
+        <div class="card-header bg-white py-3 border-bottom-0 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold" style="color: #e91e63; font-weight: 700; font-family: 'Nunito', sans-serif;"><i class="bi bi-clock-history me-2"></i>Lịch Sử Hội Thoại Gần Đây</h6>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="window.location.reload();"><i class="bi bi-arrow-clockwise me-1"></i>Tải lại</button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light text-muted" style="font-size: 12.5px;">
+                        <tr>
+                            <th>Khách hàng</th>
+                            <th>Email</th>
+                            <th>Bắt đầu</th>
+                            <th>Tương tác cuối</th>
+                            <th class="text-center">Số tin nhắn</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 13.5px;">
+                        @if (recentSessions != null)
+                        {
+                            foreach (var s in recentSessions)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-pink-light d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; background-color: #f8cdda; color: #e91e63;">
+                                                @s.CustomerName.Substring(0, Math.Min(1, s.CustomerName.Length)).ToUpper()
+                                            </div>
+                                            <span class="fw-bold">@s.CustomerName</span>
+                                        </div>
+                                    </td>
+                                    <td>@s.CustomerEmail</td>
+                                    <td class="text-muted">@s.StartedAt.ToString("HH:mm - dd/MM/yyyy")</td>
+                                    <td class="text-muted">@s.LastMessageAt.ToString("HH:mm - dd/MM/yyyy")</td>
+                                    <td class="text-center"><span class="badge bg-secondary rounded-pill">@s.MessageCount</span></td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-pink text-white btn-inspect-session" style="background-color: #e91e63; border: none; font-size: 12px; font-weight: 600;" data-session-id="@s.SessionId" data-customer="@s.CustomerName">
+                                            <i class="bi bi-eye-fill me-1"></i> Xem chi tiết
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- SESSION LOGS MODAL INSPECTOR -->
+<!-- ============================================== -->
+<div class="modal fade" id="sessionInspectorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header bg-light border-bottom-0 py-3">
+                <h5 class="modal-title fw-bold text-pink" style="color: #e91e63; font-family: 'Nunito', sans-serif;"><i class="bi bi-journal-text me-2"></i>Hội Thoại: <span id="modalCustomerName">Khách</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light-gray p-4" style="background-color: #fdfdfd; max-height: 480px; overflow-y: auto;" id="modalChatHistoryContainer">
+                <!-- Chat log items will be populated here -->
+            </div>
+            <div class="modal-footer bg-light border-top-0 py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Styles -->
+<style>
+    .bg-pink-light { background-color: #f8cdda; }
+    .text-pink { color: #e91e63 !important; }
+    .btn-pink:hover { background-color: #c2185b !important; }
+    
+    /* Dialog bubble styling */
+    .inspector-bubble {
+        max-width: 80%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        font-size: 13.5px;
+        margin-bottom: 12px;
+        line-height: 1.45;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    
+    .inspector-bubble.user {
+        align-self: flex-end;
+        background-color: #e91e63;
+        color: #ffffff;
+        border-bottom-right-radius: 2px;
+    }
+    
+    .inspector-bubble.ai {
+        align-self: flex-start;
+        background-color: #f1f3f5;
+        color: #333333;
+        border-bottom-left-radius: 2px;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+</style>
+
+<!-- Add Scripts & Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    $(document).ready(function () {
+        // Render Sessions Trend Chart
+        const ctx = document.getElementById('sessionsChart').getContext('2d');
+        const chartLabels = @Html.Raw(ViewBag.ChartLabels);
+        const chartCounts = @Html.Raw(ViewBag.ChartCounts);
+
+        // Gradient Background
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(233, 30, 99, 0.35)');
+        gradient.addColorStop(1, 'rgba(233, 30, 99, 0.00)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Số phiên chat',
+                    data: chartCounts,
+                    borderColor: '#e91e63',
+                    borderWidth: 3,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#e91e63',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.04)' },
+                        ticks: { stepSize: 1, color: '#777777', font: { family: 'Nunito' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#777777', font: { family: 'Nunito' } }
+                    }
+                }
+            }
+        });
+
+        // 2. Chat Inspector log loader
+        $(document).on("click", ".btn-inspect-session", function () {
+            const sessionId = $(this).data("session-id");
+            const customerName = $(this).data("customer");
+            
+            $("#modalCustomerName").text(customerName);
+            const $container = $("#modalChatHistoryContainer");
+            $container.empty().append('<div class="text-center py-4"><span class="spinner-border text-danger"></span><p class="text-muted mt-2">Đang tải lịch sử...</p></div>');
+            
+            $("#sessionInspectorModal").modal("show");
+
+            $.ajax({
+                url: `/admin/ai-chat/session-logs/${sessionId}`,
+                type: "GET",
+                success: function (res) {
+                    $container.empty();
+                    if (res.success && res.messages.length > 0) {
+                        let historyHtml = '<div class="d-flex flex-column">';
+                        res.messages.forEach(m => {
+                            const side = m.senderType === "User" ? "user" : "ai";
+                            const sideAlign = m.senderType === "User" ? "align-self-end" : "align-self-start";
+                            const displayName = m.senderType === "User" ? customerName : "MiuMiu AI";
+                            
+                            let booksHtml = '';
+                            const recommendedBooks = m.recommendedBooks || m.RecommendedBooks;
+                            if (recommendedBooks && recommendedBooks.length > 0) {
+                                booksHtml += '<div class="mt-2 d-flex flex-wrap gap-2">';
+                                recommendedBooks.forEach(b => {
+                                    const imgUrl = b.imageUrl || b.ImageUrl || '/images/default-book.png';
+                                    const title = b.title || b.Title || 'Sách';
+                                    const price = b.price !== undefined ? b.price : (b.Price || 0);
+                                    const discountPrice = b.discountPrice !== undefined ? b.discountPrice : b.DiscountPrice;
+                                    const finalPrice = discountPrice ? discountPrice : price;
+                                    
+                                    booksHtml += `
+                                        <div class="card p-1 shadow-sm" style="width: 140px; font-size: 11px; border-color: rgba(233, 30, 99, 0.2);">
+                                            <img src="${imgUrl}" class="card-img-top" style="height: 100px; object-fit: cover; border-radius: 4px;" alt="Book Cover">
+                                            <div class="card-body p-1 text-center">
+                                                <div class="text-truncate fw-bold mb-1" style="color: #333;" title="${title}">${title}</div>
+                                                <div class="text-pink fw-bold">${finalPrice ? finalPrice.toLocaleString('vi-VN') : '0'}đ</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                });
+                                booksHtml += '</div>';
+                            }
+
+                            historyHtml += `
+                                <div class="inspector-bubble ${side} ${sideAlign}">
+                                    <div class="fw-bold mb-1" style="font-size: 11px; opacity: 0.85;">${displayName}</div>
+                                    <div style="white-space: pre-wrap;">${m.message}</div>
+                                    ${booksHtml}
+                                    <div class="text-end mt-1" style="font-size: 9.5px; opacity: 0.7;">${m.createdAt}</div>
+                                </div>
+                            `;
+                        });
+                        historyHtml += '</div>';
+                        $container.append(historyHtml);
+                    } else {
+                        $container.append('<div class="text-center py-4 text-muted">Phiên hội thoại này chưa có tin nhắn nào.</div>');
+                    }
+                },
+                error: function () {
+                    $container.empty().append('<div class="text-center py-4 text-danger">Không thể tải dữ liệu. Vui lòng thử lại!</div>');
+                }
+            });
+        });
+    });
+</script>

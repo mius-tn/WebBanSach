@@ -1,0 +1,94 @@
+@model WedBanSach.Models.Policy
+@{
+    ViewData["Title"] = "Thêm Chính sách Mới";
+    Layout = "_AdminLayout";
+    var categories = ViewBag.Categories as IEnumerable<WedBanSach.Models.PolicyCategory> ?? new List<WedBanSach.Models.PolicyCategory>();
+}
+
+<div class="container-fluid">
+    <div class="mb-4">
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary mb-2">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách
+        </a>
+        <h3 class="fw-bold"><i class="bi bi-file-earmark-plus"></i> Thêm Chính Sách Mới</h3>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row g-3 mb-3">
+                    <!-- Title -->
+                    <div class="col-md-8">
+                        <label asp-for="Title" class="form-label fw-bold">Tiêu đề chính sách <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="Ví dụ: Chính sách đổi sách lỗi in ấn" required />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-md-4">
+                        <label asp-for="CategoryId" class="form-label fw-bold">Thuộc danh mục <span class="text-danger">*</span></label>
+                        <select asp-for="CategoryId" class="form-select" required>
+                            <option value="">-- Chọn danh mục chính sách --</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <!-- Thumbnail Url -->
+                    <div class="col-md-8">
+                        <label asp-for="Thumbnail" class="form-label fw-bold">Đường dẫn ảnh Thumbnail (Không bắt buộc)</label>
+                        <input asp-for="Thumbnail" class="form-control" placeholder="Ví dụ: /images/policy-exchange.png" />
+                        <span asp-validation-for="Thumbnail" class="text-danger small"></span>
+                    </div>
+
+                    <!-- IsPublished -->
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="form-check form-switch mt-4">
+                            <input asp-for="IsPublished" class="form-check-input" type="checkbox" id="isPubCheck" />
+                            <label class="form-check-label fw-bold" for="isPubCheck">Xuất bản ngay lập tức</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rich text content -->
+                <div class="mb-4">
+                    <label asp-for="Content" class="form-label fw-bold">Nội dung chi tiết chính sách <span class="text-danger">*</span></label>
+                    <textarea asp-for="Content" id="editor" class="form-control" style="min-height: 350px;" placeholder="Soạn thảo điều khoản đổi hàng, quy trình và các quyền lợi..."></textarea>
+                    <span asp-validation-for="Content" class="text-danger small"></span>
+                </div>
+
+                <div class="text-end pt-3 border-top">
+                    <a asp-action="Index" class="btn btn-secondary px-4 py-2 me-2">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary px-4 py-2">
+                        <i class="bi bi-save"></i> Lưu chính sách
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <!-- Include CKEditor 5 from CDN -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+    <script>
+        $(document).ready(function() {
+            ClassicEditor
+                .create(document.querySelector('#editor'), {
+                    toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'insertTable', 'undo', 'redo' ]
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+    </script>
+}

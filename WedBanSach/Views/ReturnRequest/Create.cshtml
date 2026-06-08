@@ -1,0 +1,636 @@
+@model WedBanSach.ViewModels.ReturnRequestViewModel
+@{
+    ViewData["Title"] = "Gửi Yêu Cầu Hỗ Trợ Đổi Trả & Bảo Hành";
+    var orders = ViewBag.Orders as IEnumerable<WedBanSach.Models.Order> ?? new List<WedBanSach.Models.Order>();
+    var products = ViewBag.Products as IEnumerable<WedBanSach.Models.Book> ?? new List<WedBanSach.Models.Book>();
+    var selectedOrderId = ViewBag.SelectedOrderId as int?;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/policy.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <style>
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .preview-wrapper {
+            position: relative;
+            width: 105px;
+            height: 140px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.06);
+            border: 2px solid var(--primary-light-pink);
+            transition: var(--transition-smooth);
+            animation: fadeIn 0.3s ease;
+        }
+        .preview-wrapper:hover {
+            transform: scale(1.05);
+            border-color: var(--primary-pink);
+            box-shadow: 0 6px 16px rgba(233, 30, 99, 0.12);
+        }
+        .preview-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .remove-preview-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(233, 30, 99, 0.9);
+            color: #ffffff;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+        .remove-preview-btn:hover {
+            background: #d81b60;
+            transform: scale(1.15) rotate(90deg);
+        }
+        /* Product visual selection cards */
+        .product-select-card {
+            background-color: #ffffff;
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 14px;
+            transition: var(--transition-smooth);
+            position: relative;
+            user-select: none;
+        }
+        .product-select-card:hover {
+            border-color: var(--primary-light-pink) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.05);
+        }
+        .product-select-card.selected {
+            border-color: var(--primary-pink) !important;
+            background-color: var(--primary-pastel-bg);
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.08);
+        }
+        .product-select-card.selected .select-indicator {
+            background-color: var(--primary-pink) !important;
+            border-color: var(--primary-pink) !important;
+        }
+        .product-select-card.selected .select-indicator i {
+            display: block !important;
+        }
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        .min-w-0 {
+            min-width: 0;
+        }
+        .product-select-card .product-title {
+            font-size: 14px;
+            margin-bottom: 4px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal !important;
+            word-break: break-word;
+            max-height: 40px;
+        }
+        .quantity-picker-wrapper {
+            background: #fff5f7;
+            border: 1px solid var(--primary-light-pink);
+            border-radius: 20px;
+            padding: 2px 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(233, 30, 99, 0.04);
+            margin-left: auto;
+        }
+        .quantity-picker-wrapper span {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .quantity-picker-wrapper .btn-qty {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1px solid var(--primary-pink);
+            background: #ffffff;
+            color: var(--primary-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .quantity-picker-wrapper .btn-qty:hover {
+            background: var(--primary-pink);
+            color: #ffffff;
+        }
+        .quantity-picker-wrapper .item-qty {
+            width: 24px;
+            height: 20px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary-pink);
+            outline: none;
+            padding: 0;
+        }
+        /* Hide number input spinners */
+        .item-qty::-webkit-outer-spin-button,
+        .item-qty::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .item-qty[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-pink text-decoration-none"><i class="bi bi-house-door-fill me-1"></i>Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Policy" asp-action="Index" class="text-pink text-decoration-none">Trung tâm Chính sách</a></li>
+            <li class="breadcrumb-item active text-muted" aria-current="page">Gửi Yêu Cầu</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="form-card mb-5">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-pink"><i class="bi bi-file-earmark-plus-fill me-2"></i> Gửi Yêu Cầu Hỗ Trợ Đổi/Trả/Bảo Hành</h2>
+                    <p class="text-muted">Quý khách vui lòng cung cấp đầy đủ thông tin bên dưới để được thẩm định hỗ trợ nhanh nhất trong 24h.</p>
+                </div>
+
+                <form id="returnRequestForm" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Hidden order input -->
+                    <input type="hidden" asp-for="OrderId" value="@ViewBag.OrderId" id="orderSelect" />
+
+                    <!-- Header Order Banner -->
+                    <div class="alert bg-pastel border-soft p-3 mb-4 d-flex align-items-center justify-content-between rounded-3 animate-fade-in">
+                        <div>
+                            <small class="text-muted d-block" style="font-family: 'Nunito', sans-serif !important;">Đang xử lý hỗ trợ cho</small>
+                            <strong class="fs-5 text-pink" style="font-family: 'Nunito', sans-serif !important;"><i class="bi bi-box-seam me-1"></i>Đơn hàng #@ViewBag.OrderId</strong>
+                        </div>
+                        <a href="/lich-su-don-hang" class="btn btn-sm btn-pink"><i class="bi bi-arrow-left me-1"></i>Chọn đơn khác</a>
+                    </div>
+
+                    <!-- 1. Product select cards -->
+                    <div class="mb-4 animate-fade-in">
+                        <label class="form-label d-block mb-3">1. Chọn sản phẩm cần hỗ trợ <span class="text-danger">*</span></label>
+                        <div class="row g-3" id="productCardContainer">
+                            @foreach (var p in ViewBag.OrderProducts)
+                            {
+                                <div class="col-md-6 col-lg-6">
+                                    <div class="product-select-card d-flex align-items-center gap-3 p-3 cursor-pointer" data-id="@p.BookID" data-max-qty="@p.QuantityBought">
+                                        <img src="@p.ImageUrl" class="rounded border object-fit-cover" style="width: 60px; height: 80px;" />
+                                        <div class="flex-grow-1 min-w-0">
+                                            <h6 class="mb-1 fw-bold text-dark product-title" style="font-size: 14px;" title="@p.Title">@p.Title</h6>
+                                            <div class="small text-muted mb-1" style="font-size: 13px;">Số lượng mua: <strong>@p.QuantityBought</strong></div>
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                                <div class="fw-bold text-pink small">@p.Price.ToString("N0") đ</div>
+                                                
+                                                <!-- Inline quantity picker -->
+                                                <div class="quantity-picker-wrapper d-none">
+                                                    <span style="font-family: 'Nunito', sans-serif !important;">Hỗ trợ:</span>
+                                                    <button class="btn-qty qty-minus" type="button">-</button>
+                                                    <input type="number" class="item-qty" value="1" min="1" max="@p.QuantityBought" readonly />
+                                                    <button class="btn-qty qty-plus" type="button">+</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="select-indicator d-flex align-items-center justify-content-center border rounded-circle flex-shrink-0" style="width: 24px; height: 24px; border-color: #cbd5e1 !important; transition: all 0.2s;">
+                                            <i class="bi bi-check-lg text-white d-none" style="font-size: 14px;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <input type="hidden" asp-for="BookID" id="selectedBookId" />
+                        <span asp-validation-for="BookID" class="text-danger small d-block mt-2" id="bookIdError"></span>
+                    </div>
+
+                    <div class="row g-3 mb-4 animate-fade-in">
+                        <!-- 2. Request Type selection -->
+                        <div class="col-md-8 col-sm-12">
+                            <label asp-for="RequestType" class="form-label">2. Chọn loại yêu cầu <span class="text-danger">*</span></label>
+                            <select asp-for="RequestType" class="form-select">
+                                <option value="">-- Chọn hình thức xử lý --</option>
+                                <option value="Exchange">Đổi sản phẩm mới (Lỗi do nhà sản xuất)</option>
+                                <option value="Return">Trả hàng (Thu hồi và hoàn tiền)</option>
+                                <option value="Refund">Yêu cầu hoàn tiền (Huỷ đơn hoặc chuyển khoản lỗi)</option>
+                                <option value="Warranty">Yêu cầu bảo hành (Phụ kiện/Bookmark quà tặng)</option>
+                            </select>
+                            <span asp-validation-for="RequestType" class="text-danger small"></span>
+                        </div>
+
+                        <!-- 3. Quantity -->
+                        <div class="col-md-4 col-sm-12" id="quantitySection">
+                            <label class="form-label">3. Số lượng cần hỗ trợ <span class="text-danger">*</span></label>
+                            <div class="form-control-plaintext text-pink fw-bold" id="totalQtySelected" style="font-size: 15px; font-family: 'Nunito', sans-serif !important;">Chưa chọn sản phẩm nào.</div>
+                            <span class="text-muted x-small d-block" style="font-family: 'Nunito', sans-serif !important;">Vui lòng điều chỉnh số lượng trực tiếp trên từng sản phẩm đã chọn ở mục 1.</span>
+                            <input asp-for="Quantity" id="Quantity" type="hidden" value="1" />
+                            <span asp-validation-for="Quantity" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Reason -->
+                    <div class="mb-4 animate-fade-in">
+                        <label asp-for="Reason" class="form-label">4. Lý do chính <span class="text-danger">*</span></label>
+                        <select asp-for="Reason" id="reasonSelect" class="form-select mb-2">
+                            <option value="">-- Chọn lý do phù hợp --</option>
+                            <option value="Sách bị rách, nát, rụng keo gáy gáy gáy gáy gáy gáy gáy">Sách bị rách nát, rụng keo gáy do sản xuất</option>
+                            <option value="Lỗi in ấn: mất trang, ngược trang, mờ chữ">Lỗi in ấn: mất trang, ngược trang, mờ chữ</option>
+                            <option value="Sách móp méo nặng do khâu đóng gói vận chuyển">Sách móp méo nặng do vận chuyển</option>
+                            <option value="Cửa hàng gửi nhầm tựa sách khác">Cửa hàng gửi nhầm tựa sách</option>
+                            <option value="Phụ kiện/Bookmark bị hỏng, lỗi kỹ thuật">Phụ kiện/Bookmark bị hỏng, lỗi kỹ thuật (Bảo hành)</option>
+                            <option value="Khác">Lý do khác (Vui lòng ghi rõ ở mô tả bên dưới)</option>
+                        </select>
+                        <input type="text" id="customReason" class="form-control d-none" placeholder="Nhập lý do chi tiết của bạn..." />
+                        <span asp-validation-for="Reason" class="text-danger small"></span>
+                    </div>
+
+                    <!-- 5. Detailed Description -->
+                    <div class="mb-4 animate-fade-in">
+                        <label asp-for="Description" class="form-label">5. Mô tả chi tiết vấn đề (Không bắt buộc)</label>
+                        <textarea asp-for="Description" rows="4" class="form-control" placeholder="Mô tả cụ thể trạng thái sản phẩm lúc nhận hàng để chúng tôi hỗ trợ nhanh nhất..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <!-- 6. Drag-Drop Image Upload Area -->
+                    <div class="mb-4 animate-fade-in">
+                        <label class="form-label">6. Đính kèm hình ảnh sản phẩm lỗi (3 - 5 ảnh) <span class="text-danger">*</span></label>
+                        <div class="drag-drop-zone" id="dropzone">
+                            <i class="bi bi-cloud-arrow-up drag-drop-icon"></i>
+                            <h5 class="fw-bold">Kéo và thả ảnh của bạn vào đây</h5>
+                            <p class="text-muted small">Hoặc nhấp chuột để chọn tệp từ máy tính</p>
+                            <p class="x-small text-muted m-0">Định dạng chấp nhận: .jpg, .png, .webp (Tối đa 5MB/file)</p>
+                            <input type="file" id="fileInput" name="ProductImages" multiple class="d-none" accept="image/*" />
+                        </div>
+                        <div class="image-preview-container" id="previewContainer"></div>
+                        <span class="text-danger small" id="imageValError"></span>
+                    </div>
+
+                    <!-- 7. Accept Terms -->
+                    <div class="form-check mb-4 animate-fade-in">
+                        <input asp-for="AcceptTerms" type="checkbox" class="form-check-input" id="termsCheck" />
+                        <label class="form-check-label text-muted small" for="termsCheck">
+                            Tôi cam kết thông tin cung cấp và hình ảnh sản phẩm lỗi đính kèm là chính xác 100%. Tôi đã đọc và hoàn toàn đồng ý với <a asp-controller="Policy" asp-action="Exchange" target="_blank" class="text-pink text-decoration-none fw-bold">Điều khoản & Chính sách đổi trả</a> của BookStore.
+                        </label>
+                        <br />
+                        <span asp-validation-for="AcceptTerms" class="text-danger small"></span>
+                    </div>
+
+                    <div class="text-center animate-fade-in">
+                        <button type="submit" class="btn btn-pink-filled px-5 py-3 fs-5" id="submitBtn">
+                            <i class="bi bi-send-fill me-2"></i> GỬI YÊU CẦU HỖ TRỢ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function() {
+            const $reasonSelect = $('#reasonSelect');
+            const $customReason = $('#customReason');
+            const $dropzone = $('#dropzone');
+            const $fileInput = $('#fileInput');
+            const $previewContainer = $('#previewContainer');
+            const $form = $('#returnRequestForm');
+            let fileList = []; // Track actual files selected
+
+            // 1. Handle Product Selection Card Click
+            $('.product-select-card').on('click', function(e) {
+                // If the click is inside the quantity picker, do not toggle selection
+                if ($(e.target).closest('.quantity-picker-wrapper').length) {
+                    return;
+                }
+
+                $(this).toggleClass('selected');
+                
+                const isSelected = $(this).hasClass('selected');
+                const $indicator = $(this).find('.select-indicator i');
+                const $qtyWrapper = $(this).find('.quantity-picker-wrapper');
+                
+                if (isSelected) {
+                    $indicator.removeClass('d-none');
+                    $qtyWrapper.removeClass('d-none').addClass('d-flex');
+                } else {
+                    $indicator.addClass('d-none');
+                    $qtyWrapper.addClass('d-none').removeClass('d-flex');
+                    // Reset quantity to 1 when unselected
+                    $qtyWrapper.find('.item-qty').val(1);
+                }
+                
+                // Update selected product ID input (just to satisfy hidden validation or simple tracking if needed)
+                const selectedIds = $('.product-select-card.selected').map(function() {
+                    return $(this).attr('data-id');
+                }).get();
+                
+                $('#selectedBookId').val(selectedIds.length > 0 ? selectedIds[0] : '');
+                
+                // Clear validation error on BookID
+                if (selectedIds.length > 0) {
+                    $('#bookIdError').text('');
+                }
+                
+                updateTotalQuantitySection();
+            });
+
+            // Plus and Minus button events for quantity pickers
+            $(document).on('click', '.qty-minus', function(e) {
+                e.stopPropagation();
+                const $input = $(this).siblings('.item-qty');
+                let val = parseInt($input.val());
+                const min = parseInt($input.attr('min')) || 1;
+                if (val > min) {
+                    $input.val(val - 1);
+                    updateTotalQuantitySection();
+                }
+            });
+
+            $(document).on('click', '.qty-plus', function(e) {
+                e.stopPropagation();
+                const $input = $(this).siblings('.item-qty');
+                let val = parseInt($input.val());
+                const max = parseInt($input.attr('max'));
+                if (val < max) {
+                    $input.val(val + 1);
+                    updateTotalQuantitySection();
+                }
+            });
+
+            function updateTotalQuantitySection() {
+                const selectedCards = $('.product-select-card.selected');
+                const totalItems = selectedCards.length;
+                let totalQty = 0;
+                
+                selectedCards.each(function() {
+                    totalQty += parseInt($(this).find('.item-qty').val()) || 1;
+                });
+                
+                if (totalItems > 0) {
+                    $('#totalQtySelected').html(`Đang chọn: <span class="text-pink">${totalItems}</span> sản phẩm (Tổng số lượng: <span class="text-pink">${totalQty}</span>)`);
+                } else {
+                    $('#totalQtySelected').html('<span class="text-muted">Chưa chọn sản phẩm nào.</span>');
+                }
+            }
+
+            // 2. Handle Custom Reason
+            $reasonSelect.on('change', function() {
+                if ($(this).val() === 'Khác') {
+                    $customReason.removeClass('d-none').focus();
+                } else {
+                    $customReason.addClass('d-none');
+                }
+            });
+
+            // 3. Drag and Drop File Upload
+            $dropzone.on('click', function() {
+                $fileInput.click();
+            });
+
+            $dropzone.on('dragover', function(e) {
+                e.preventDefault();
+                $(this).addClass('dragover');
+            });
+
+            $dropzone.on('dragleave', function(e) {
+                e.preventDefault();
+                $(this).removeClass('dragover');
+            });
+
+            $dropzone.on('drop', function(e) {
+                e.preventDefault();
+                $(this).removeClass('dragover');
+                const files = e.originalEvent.dataTransfer.files;
+                handleFiles(files);
+            });
+
+            $fileInput.on('change', function() {
+                const files = this.files;
+                handleFiles(files);
+            });
+
+            function handleFiles(files) {
+                const allowedExtensions = /(\.jpg|\.jpeg|\.png|\.webp)$/i;
+                $('#imageValError').text('');
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    
+                    // Validate File Extension
+                    if (!allowedExtensions.exec(file.name)) {
+                        $('#imageValError').text('Chỉ chấp nhận các tệp ảnh dạng .jpg, .jpeg, .png, .webp');
+                        continue;
+                    }
+
+                    // Validate Size (5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        $('#imageValError').text('Tệp ảnh vượt quá giới hạn 5MB.');
+                        continue;
+                    }
+
+                    fileList.push(file);
+
+                    // Create Preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const html = `
+                            <div class="preview-wrapper" data-index="${fileList.length - 1}">
+                                <img src="${e.target.result}" class="preview-thumb" />
+                                <button type="button" class="remove-preview-btn"><i class="bi bi-x"></i></button>
+                            </div>
+                        `;
+                        $previewContainer.append(html);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            // Remove preview image
+            $previewContainer.on('click', '.remove-preview-btn', function() {
+                const $wrapper = $(this).closest('.preview-wrapper');
+                const index = parseInt($wrapper.attr('data-index'));
+                fileList.splice(index, 1); // remove from array
+                $wrapper.remove();
+
+                // Re-index remaining preview wrappers
+                $previewContainer.find('.preview-wrapper').each(function(i) {
+                    $(this).attr('data-index', i);
+                });
+            });
+
+            // 4. Form Submit handler using Ajax
+            $form.on('submit', function(e) {
+                e.preventDefault();
+                
+                // Clear any manual validation messages
+                $('[data-valmsg-for="AcceptTerms"]').text('');
+                $('#bookIdError').text('');
+
+                const selectedCards = $('.product-select-card.selected');
+ 
+                // Validate Product Selection
+                if (selectedCards.length === 0) {
+                    $('#bookIdError').text('Quý khách vui lòng chọn sản phẩm cần hỗ trợ.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Chưa chọn sản phẩm',
+                        text: 'Vui lòng nhấp chọn sản phẩm cần hỗ trợ trong đơn hàng phía trên.',
+                        confirmButtonColor: '#e91e63'
+                    });
+                    return false;
+                }
+ 
+                if (!$('#termsCheck').is(':checked')) {
+                    $('[data-valmsg-for="AcceptTerms"]').text('Bạn cần đồng ý với các điều khoản đổi trả.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Chưa đồng ý điều khoản',
+                        text: 'Vui lòng tích chọn đồng ý với các điều khoản & chính sách đổi trả của BookStore.',
+                        confirmButtonColor: '#e91e63'
+                    });
+                    return false;
+                }
+                
+                if (!$form.valid()) {
+                    return false;
+                }
+ 
+                if (fileList.length < 3) {
+                    $('#imageValError').text('Quý khách vui lòng cung cấp tối thiểu 3 hình ảnh chứng minh lỗi sản phẩm để được kiểm duyệt nhanh.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Thiếu hình ảnh',
+                        text: 'Vui lòng đính kèm tối thiểu 3 hình ảnh sản phẩm lỗi thực tế.',
+                        confirmButtonColor: '#e91e63'
+                    });
+                    return false;
+                }
+ 
+                // Show Loading
+                Swal.fire({
+                    title: 'Đang gửi yêu cầu...',
+                    text: 'Hệ thống đang tải lên tệp ảnh và lưu dữ liệu. Vui lòng chờ.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+ 
+                $('#submitBtn').prop('disabled', true);
+
+                const promises = [];
+                const requestToken = $('input[name="__RequestVerificationToken"]').val();
+                let reason = $reasonSelect.val();
+                if (reason === 'Khác') {
+                    reason = $customReason.val();
+                }
+
+                selectedCards.each(function() {
+                    const card = $(this);
+                    const bookId = card.attr('data-id');
+                    const qty = card.find('.item-qty').val();
+
+                    const formData = new FormData();
+                    formData.append('OrderId', $('#orderSelect').val());
+                    formData.append('BookID', bookId);
+                    formData.append('Quantity', qty);
+                    formData.append('RequestType', $('#RequestType').val());
+                    formData.append('Reason', reason);
+                    formData.append('Description', $('#Description').val());
+                    formData.append('AcceptTerms', 'true');
+                    formData.append('__RequestVerificationToken', requestToken);
+
+                    // Add our files
+                    fileList.forEach(file => {
+                        formData.append('ProductImages', file);
+                    });
+
+                    const promise = $.ajax({
+                        url: '/ReturnRequest/Submit',
+                        type: 'POST',
+                        data: formData,
+                        contentType: false,
+                        processData: false
+                    });
+                    promises.push(promise);
+                });
+
+                Promise.all(promises)
+                    .then(results => {
+                        $('#submitBtn').prop('disabled', false);
+                        Swal.close();
+
+                        const failed = results.filter(r => !r.success);
+                        if (failed.length === 0) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Gửi thành công!',
+                                text: 'Tất cả yêu cầu đổi trả của bạn đã được gửi và đang chờ duyệt!',
+                                confirmButtonColor: '#e91e63',
+                                confirmButtonText: 'Đồng ý'
+                            }).then((result) => {
+                                window.location.href = '/ReturnRequest/History';
+                            });
+                        } else {
+                            const errorMsgs = results.map((r, idx) => {
+                                const card = $(selectedCards[idx]);
+                                const title = card.find('.product-title').attr('title') || 'Sản phẩm';
+                                return `<li><strong>${title}</strong>: ${r.message || 'Lỗi không xác định'}</li>`;
+                            }).join('');
+
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Gửi yêu cầu có lỗi',
+                                html: `<ul class="text-start mb-0 ps-3">${errorMsgs}</ul>`,
+                                confirmButtonColor: '#e91e63'
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        $('#submitBtn').prop('disabled', false);
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi hệ thống',
+                            text: 'Đã xảy ra lỗi khi truyền tải yêu cầu. Vui lòng liên hệ hỗ trợ hoặc thử lại sau.',
+                            confirmButtonColor: '#e91e63'
+                        });
+                    });
+            });
+        });
+    </script>
+}

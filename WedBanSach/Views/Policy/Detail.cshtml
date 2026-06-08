@@ -1,0 +1,191 @@
+@model WedBanSach.Models.PolicyCategory
+@{
+    var title = ViewData["Title"] as string ?? "Chính sách chi tiết";
+    var slug = Model?.Slug ?? "";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/policy.css" asp-append-version="true" />
+}
+
+<div class="container py-4 animate-fade-in">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-pink text-decoration-none"><i class="bi bi-house-door-fill me-1"></i>Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Policy" asp-action="Index" class="text-pink text-decoration-none">Trung tâm Chính sách</a></li>
+            <li class="breadcrumb-item active text-muted" aria-current="page">@title</li>
+        </ol>
+    </nav>
+
+    <!-- Main Content Grid -->
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3 mb-4">
+            <div class="policy-sidebar">
+                <h5 class="fw-bold mb-4 pb-2 border-bottom border-soft"><i class="bi bi-list-stars text-pink me-2"></i> Danh mục chính</h5>
+                <ul class="policy-menu list-unstyled m-0">
+                    <li class="policy-menu-item mb-2">
+                        <a asp-controller="Policy" asp-action="Index" class="policy-menu-link">
+                            <i class="bi bi-house-door-fill"></i> Trang chủ chính sách
+                        </a>
+                    </li>
+                    <li class="policy-menu-item mb-2">
+                        <a asp-controller="Policy" asp-action="Exchange" class="policy-menu-link @(title.Contains("Đổi") ? "active" : "")">
+                            <i class="bi bi-arrow-left-right"></i> Chính sách đổi hàng
+                        </a>
+                    </li>
+                    <li class="policy-menu-item mb-2">
+                        <a asp-controller="Policy" asp-action="Return" class="policy-menu-link @(title.Contains("Trả") ? "active" : "")">
+                            <i class="bi bi-arrow-return-left"></i> Chính sách trả hàng
+                        </a>
+                    </li>
+                    <li class="policy-menu-item mb-2">
+                        <a asp-controller="Policy" asp-action="Refund" class="policy-menu-link @(title.Contains("Tiền") ? "active" : "")">
+                            <i class="bi bi-cash-coin"></i> Chính sách hoàn tiền
+                        </a>
+                    </li>
+                    <li class="policy-menu-item mb-2">
+                        <a asp-controller="Policy" asp-action="Warranty" class="policy-menu-link @(title.Contains("Hành") ? "active" : "")">
+                            <i class="bi bi-shield-shaded"></i> Chính sách bảo hành
+                        </a>
+                    </li>
+                </ul>
+                <div class="mt-4 pt-3 border-top border-soft text-center">
+                    <a asp-controller="ReturnRequest" asp-action="Create" class="btn btn-pink-filled w-100 py-2 fw-bold shadow-soft">
+                        <i class="bi bi-file-earmark-plus-fill me-2"></i> Gửi Yêu Cầu Hỗ Trợ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Content -->
+        <div class="col-lg-9">
+            <div class="policy-content-card shadow-soft mb-5">
+                <h2 class="fw-bold text-pink mb-4 pb-2 border-bottom border-soft"><i class="bi bi-info-circle-fill me-2"></i> @title</h2>
+                
+                <div class="policy-article-content text-muted fs-6">
+                    @if (Model != null && Model.Policies != null && Model.Policies.Any())
+                    {
+                        var policy = Model.Policies.FirstOrDefault(p => p.IsPublished);
+                        if (policy != null)
+                        {
+                            @Html.Raw(policy.Content)
+                        }
+                        else
+                        {
+                            <p class="text-muted italic">Nội dung chính sách đang được cập nhật. Vui lòng quay lại sau.</p>
+                        }
+                    }
+                    else
+                    {
+                        <!-- Fallback content if DB seed not run yet -->
+                        @if (title.Contains("Đổi"))
+                        {
+                            <div class="policy-note-box">
+                                <h5 class="fw-bold text-pink"><i class="bi bi-shield-check me-1"></i> Điều kiện đổi mới sản phẩm</h5>
+                                <p class="m-0">Sản phẩm được hỗ trợ đổi mới 1-1 miễn phí trong vòng <strong>7 ngày</strong> kể từ khi khách hàng nhận được kiện hàng thành công nếu lỗi do quá trình in ấn hoặc vận chuyển.</p>
+                            </div>
+                            <h4 class="fw-bold text-dark mt-4 mb-3">1. Các trường hợp được hỗ trợ</h4>
+                            <ul>
+                                <li>Sách bị mất trang, trùng trang, ngược trang, hoặc chữ nhòe không thể đọc được.</li>
+                                <li>Bản in bị keo gáy bong tróc, đóng rách mép gáy từ nhà in.</li>
+                                <li>Sản phẩm hư hỏng nặng do khâu đóng gói hoặc vận chuyển của BookStore.</li>
+                            </ul>
+                            <h4 class="fw-bold text-dark mt-4 mb-3">2. Các trường hợp từ chối đổi</h4>
+                            <ul>
+                                <li>Sách đã bị bôi bẩn, rách nát, viết vẽ hoặc hư hại do quá trình sử dụng của khách hàng.</li>
+                                <li>Yêu cầu gửi sau thời hạn 7 ngày quy định.</li>
+                            </ul>
+                        }
+                        else if (title.Contains("Trả"))
+                        {
+                            <div class="policy-note-box">
+                                <h5 class="fw-bold text-pink"><i class="bi bi-arrow-counterclockwise me-1"></i> Trả hàng hoàn tiền theo nhu cầu</h5>
+                                <p class="m-0">Quý khách được quyền hoàn trả lại sản phẩm đã mua và yêu cầu hoàn trả tiền trong vòng <strong>7 ngày</strong> làm việc kể từ ngày nhận hàng thành công.</p>
+                            </div>
+                            <h4 class="fw-bold text-dark mt-4 mb-3">1. Điều kiện áp dụng trả hàng</h4>
+                            <ul>
+                                <li>Sách phải còn mới 100%, nguyên màng bọc nilon (màng co nhiệt) chưa bị khui mở.</li>
+                                <li>Sách không bị cong mép, gãy bìa hoặc dính bẩn.</li>
+                                <li>Các phụ kiện đi kèm như quà tặng, postcard, bookmark phải được gửi trả lại đầy đủ.</li>
+                            </ul>
+                            <div class="policy-alert-box">
+                                <h6 class="fw-bold text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i> Lưu ý cước phí vận chuyển</h6>
+                                <p class="m-0 small">Trong trường hợp trả hàng do thay đổi nhu cầu cá nhân (không phải lỗi sản phẩm), quý khách vui lòng chi trả cước phí vận chuyển thu hồi hàng về kho của BookStore.</p>
+                            </div>
+                        }
+                        else if (title.Contains("Tiền"))
+                        {
+                            <div class="policy-note-box">
+                                <h5 class="fw-bold text-pink"><i class="bi bi-wallet2 me-1"></i> Thời gian và phương thức bồi hoàn</h5>
+                                <p class="m-0">Sau khi kho nhận lại sách hoàn trả và xác nhận chất lượng đạt chuẩn, BookStore sẽ tiến hành hoàn tiền cho quý khách trong vòng <strong>3 đến 5 ngày làm việc</strong>.</p>
+                            </div>
+                            <h4 class="fw-bold text-dark mt-4 mb-3">1. Phương thức bồi hoàn tài chính</h4>
+                            <ul>
+                                <li>Chuyển khoản trực tiếp qua tài khoản ngân hàng (ATM/Internet Banking) của quý khách.</li>
+                                <li>Hoàn tiền qua ví điện tử liên kết (Momo, ZaloPay).</li>
+                            </ul>
+                            <h4 class="fw-bold text-dark mt-4 mb-3">2. Chi phí giao dịch</h4>
+                            <p>BookStore cam kết hoàn tiền 100% giá trị sản phẩm mà khách hàng đã thanh toán và miễn phí hoàn toàn phí giao dịch chuyển khoản.</p>
+                        }
+                        else
+                        {
+                            <div class="policy-note-box">
+                                <h5 class="fw-bold text-pink"><i class="bi bi-shield-shaded me-1"></i> Bảo hành lỗi in ấn và phụ kiện</h5>
+                                <p class="m-0">BookStore áp dụng chính sách bảo hành trọn đời lỗi in ấn đối với sách và bảo hành từ 1 - 3 tháng đối với các sản phẩm quà tặng phụ kiện.</p>
+                            </div>
+                            <h4 class="fw-bold text-dark mt-4 mb-3">1. Bảo hành lỗi in ấn (Sách)</h4>
+                            <p>Bất kỳ thời điểm nào trong quá trình đọc sách, nếu quý khách phát hiện lỗi mất trang, mờ chữ nghiêm trọng từ nhà sản xuất, chúng tôi sẽ hỗ trợ đổi mới cuốn sách đó cho quý khách hoàn toàn miễn phí trọn đời.</p>
+                            <h4 class="fw-bold text-dark mt-4 mb-3">2. Bảo hành phụ kiện và quà tặng</h4>
+                            <ul>
+                                <li>Bookmark kim loại, Bookmark gỗ: bảo hành bong tróc sơn, rỉ sét nặng trong <strong>1 tháng</strong>.</li>
+                                <li>Đèn đọc sách mini, túi vải canvas: bảo hành lỗi kỹ thuật của nhà sản xuất trong <strong>3 tháng</strong>.</li>
+                            </ul>
+                        }
+                    }
+                </div>
+                
+                <hr class="my-4 border-soft">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 bg-pastel p-3 rounded-3 border-soft">
+                    <div>
+                        <h6 class="fw-bold m-0"><i class="bi bi-shield-fill-check text-pink me-1"></i> Bạn cần gửi yêu cầu xử lý đổi trả?</h6>
+                        <small class="text-muted">Hệ thống phản hồi thẩm định trong vòng tối đa 24h làm việc.</small>
+                    </div>
+                    <a asp-controller="ReturnRequest" asp-action="Create" class="btn btn-pink-filled px-4">Đến Form Yêu Cầu <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+
+            <!-- FAQ Section specific to this policy -->
+            <div class="mb-5">
+                <h3 class="fw-bold mb-4"><i class="bi bi-patch-question-fill text-pink me-2"></i> FAQ - Câu Hỏi Thường Gặp</h3>
+                <div class="accordion policy-faq-accordion" id="detailFaq">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faqH1">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqC1" aria-expanded="true" aria-controls="faqC1">
+                                Tôi ở xa thì gửi hàng lỗi về BookStore bằng cách nào?
+                            </button>
+                        </h2>
+                        <div id="faqC1" class="accordion-collapse collapse show" aria-labelledby="faqH1" data-bs-parent="#detailFaq">
+                            <div class="accordion-body">
+                                Quý khách chỉ cần điền Form yêu cầu online trên website. Sau khi yêu cầu được phê duyệt, BookStore sẽ điều phối đơn vị vận chuyển đối tác (GHTK, VNPost) đến tận nhà thu hồi hàng lỗi. Quý khách **không cần đem hàng ra bưu cục** và **không phải thanh toán bất cứ cước phí nào** cho shipper thu hồi.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faqH2">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqC2" aria-expanded="false" aria-controls="faqC2">
+                                Sản phẩm mua vào đợt Sale/Khuyến mãi lớn có được đổi trả không?
+                            </button>
+                        </h2>
+                        <div id="faqC2" class="accordion-collapse collapse" aria-labelledby="faqH2" data-bs-parent="#detailFaq">
+                            <div class="accordion-body">
+                                <strong>Vẫn được áp dụng!</strong> Tất cả các sản phẩm mua trong đợt sale lớn, áp mã giảm giá nếu gặp lỗi in ấn, rách hỏng do sản xuất hoặc vận chuyển đều được bảo hành, đổi mới 100% miễn phí theo đúng quy định.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -59,7 +59,15 @@
                     <option value="">Tất cả trạng thái</option>
                     @foreach (var s in ViewBag.Statuses as string[])
                     {
-                        <option value="@s" selected="@(ViewBag.Status == s)">@s</option>
+                        var displayName = s switch
+                        {
+                            "Pending" => "Đang chờ",
+                            "Paid" => "Đã thanh toán",
+                            "Failed" => "Thất bại",
+                            "Refunded" => "Hoàn tiền",
+                            _ => s
+                        };
+                        <option value="@s" selected="@(ViewBag.Status == s)">@displayName</option>
                     }
                 </select>
             </div>
@@ -74,8 +82,7 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="bg-light">
                 <tr>
-                    <th class="ps-4">ID</th>
-                    <th>Đơn hàng</th>
+                    <th class="ps-4">Đơn hàng</th>
                     <th>Khách hàng</th>
                     <th>Số tiền</th>
                     <th>Ngày giao dịch</th>
@@ -87,8 +94,7 @@
                 @foreach (var payment in Model)
                 {
                     <tr>
-                        <td class="ps-4">#@payment.PaymentID</td>
-                        <td>
+                        <td class="ps-4">
                             <a href="@Url.Action("Details", "AdminOrders", new { id = payment.OrderID })" class="text-decoration-none fw-bold text-primary">
                                 #@payment.OrderID
                             </a>

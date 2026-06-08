@@ -1,0 +1,357 @@
+@model WedBanSach.Models.ReturnRequest
+@{
+    ViewData["Title"] = $"Chi tiết yêu cầu #{Model.Id}";
+
+    var typeText = Model.RequestType switch
+    {
+        "Exchange" => "Đổi sản phẩm mới",
+        "Return" => "Trả hàng hoàn tiền",
+        "Refund" => "Yêu cầu hoàn tiền",
+        "Warranty" => "Yêu cầu bảo hành",
+        _ => Model.RequestType
+    };
+
+    var statusText = Model.Status switch
+    {
+        "Pending" => "Đang chờ kiểm duyệt",
+        "Approved" => "Đã duyệt - Đang xử lý đổi/thu hồi",
+        "Rejected" => "Bị từ chối hỗ trợ",
+        "Completed" => "Đã hoàn thành thành công",
+        _ => Model.Status
+    };
+
+    var statusClass = Model.Status switch
+    {
+        "Pending" => "badge-pending",
+        "Approved" => "badge-approved",
+        "Rejected" => "badge-rejected",
+        "Completed" => "badge-completed",
+        _ => ""
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/policy.css" asp-append-version="true" />
+    <style>
+        .detail-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid var(--border-soft);
+            box-shadow: var(--shadow-premium);
+            padding: 40px;
+        }
+        .proof-img {
+            width: 120px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid var(--primary-light-pink);
+            transition: var(--transition-smooth);
+            cursor: pointer;
+        }
+        .proof-img:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-premium-hover);
+            border-color: var(--primary-pink);
+        }
+        /* Vertical Step Tracker for Detail Page */
+        .step-tracker {
+            list-style: none;
+            padding: 0;
+            position: relative;
+        }
+        .step-tracker::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20px;
+            width: 3px;
+            height: 100%;
+            background-color: #f1f3f5;
+            z-index: 1;
+        }
+        .tracker-item {
+            margin-bottom: 25px;
+            position: relative;
+            padding-left: 55px;
+            animation: fadeIn 0.4s ease;
+        }
+        .tracker-bullet {
+            position: absolute;
+            left: 5px;
+            top: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            z-index: 2;
+            transition: var(--transition-smooth);
+            border: 2px solid #ffffff;
+        }
+        .tracker-item.completed .tracker-bullet {
+            background-color: #2ecc71;
+            color: white;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.25);
+        }
+        .tracker-item.active .tracker-bullet {
+            background-color: var(--primary-pink);
+            color: white;
+            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.25);
+        }
+        .tracker-item.rejected .tracker-bullet {
+            background-color: #e74c3c;
+            color: white;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.25);
+        }
+        .tracker-content {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 18px 22px;
+            border: 1px solid #e9ecef;
+            transition: var(--transition-smooth);
+        }
+        .tracker-item.active .tracker-content {
+            background-color: var(--primary-pastel-bg);
+            border-color: var(--primary-light-pink);
+        }
+    </style>
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-pink text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="ReturnRequest" asp-action="History" class="text-pink text-decoration-none">Lịch sử yêu cầu</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Yêu cầu #RQ-@Model.Id</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- 1. Left Column: Details -->
+        <div class="col-lg-7 mb-4">
+            <div class="detail-card mb-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pb-3 mb-4 border-bottom border-soft">
+                    <h3 class="fw-bold text-pink m-0"><i class="bi bi-file-earmark-text"></i> Yêu cầu #RQ-@Model.Id</h3>
+                    <span class="badge @statusClass px-3 py-2 rounded-pill fs-6 font-weight-bold">@statusText</span>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Mã đơn hàng</small>
+                        <strong class="fs-5">#@Model.OrderId</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Thời gian gửi</small>
+                        <strong class="fs-6">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</strong>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Loại hỗ trợ</small>
+                        <strong class="text-pink fs-6">@typeText</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Lý do chính</small>
+                        <strong class="fs-6 text-dark">@Model.Reason</strong>
+                    </div>
+                </div>
+
+                <div class="mb-4 bg-pastel p-3 rounded-3 border-soft">
+                    <small class="text-muted d-block mb-1">Sản phẩm yêu cầu</small>
+                    <h5 class="fw-bold m-0 text-dark">
+                        @(Model.Book?.Title ?? "N/A")
+                        @if (Model.Quantity > 1)
+                        {
+                            <span class="badge bg-secondary ms-2">Số lượng: @Model.Quantity</span>
+                        }
+                    </h5>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mb-4">
+                        <small class="text-muted d-block mb-1">Mô tả chi tiết của khách hàng</small>
+                        <p class="border rounded p-3 bg-light text-muted">@Model.Description</p>
+                    </div>
+                }
+
+                @if (Model.RefundAmount.HasValue && Model.RefundAmount > 0)
+                {
+                    <div class="mb-4 bg-light-green p-3 rounded-3 border border-success text-success d-flex align-items-center gap-3" style="background-color: #f4fbf7;">
+                        <i class="bi bi-wallet2 fs-2"></i>
+                        <div>
+                            <small class="d-block text-muted">Số tiền được hoàn lại</small>
+                            <h4 class="fw-bold m-0 text-success">@Model.RefundAmount.Value.ToString("N0") VND</h4>
+                        </div>
+                    </div>
+                }
+
+                <!-- Images Proof -->
+                <div class="mb-2">
+                    <small class="text-muted d-block mb-2">Hình ảnh chứng minh sản phẩm lỗi</small>
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (Model.Images != null && Model.Images.Any())
+                        {
+                            foreach (var img in Model.Images)
+                            {
+                                <img src="@img.ImageUrl" class="proof-img shadow-soft img-zoomable" alt="Ảnh lỗi" />
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted small">Không đính kèm hình ảnh.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Right Column: Timeline / Progress Tracker -->
+        <div class="col-lg-5">
+            <div class="detail-card">
+                <h4 class="fw-bold text-dark mb-4"><i class="bi bi-gear-wide-connected text-pink me-2"></i> Tiến Trình Xử Lý</h4>
+
+                <ul class="step-tracker">
+                    <!-- Step 1: Received -->
+                    <li class="tracker-item completed">
+                        <span class="tracker-bullet"><i class="bi bi-check"></i></span>
+                        <div class="tracker-content">
+                            <h6 class="fw-bold m-0 text-success">Bước 1: Hệ thống tiếp nhận</h6>
+                            <small class="text-muted">Chúng tôi đã nhận được thông tin đăng ký của bạn lúc @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm").</small>
+                        </div>
+                    </li>
+
+                    @if (Model.Status == "Rejected")
+                    {
+                        <!-- Step 2 Rejected -->
+                        <li class="tracker-item rejected">
+                            <span class="tracker-bullet"><i class="bi bi-x-lg"></i></span>
+                            <div class="tracker-content">
+                                <h6 class="fw-bold m-0 text-danger">Đã từ chối hỗ trợ</h6>
+                                <p class="text-muted small m-0 mt-2">Rất tiếc, yêu cầu hỗ trợ của quý khách đã bị từ chối thẩm định lỗi.</p>
+                                @if (!string.IsNullOrEmpty(Model.AdminNote))
+                                {
+                                    <div class="mt-2 p-2 bg-white rounded border border-danger text-danger small">
+                                        <strong>Lý do từ chối:</strong> @Model.AdminNote
+                                    </div>
+                                }
+                            </div>
+                        </li>
+                    }
+                    else
+                    {
+                        <!-- Step 2: Approved -->
+                        <li class="tracker-item @(Model.Status == "Approved" ? "active" : Model.Status == "Completed" ? "completed" : "")">
+                            <span class="tracker-bullet">
+                                @if (Model.Status == "Completed") { <i class="bi bi-check"></i> } else { <span>2</span> }
+                            </span>
+                            <div class="tracker-content">
+                                <h6 class="fw-bold m-0 @(Model.Status == "Completed" ? "text-success" : Model.Status == "Approved" ? "text-pink" : "text-muted")">
+                                    Bước 2: Phê duyệt của Admin
+                                </h6>
+                                <small class="text-muted">
+                                    @if (Model.Status == "Approved" || Model.Status == "Completed")
+                                    {
+                                        <span>Yêu cầu đã được kiểm duyệt và chấp thuận.</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Bộ phận CSKH đang thẩm định lỗi sản phẩm của quý khách qua ảnh chụp.</span>
+                                    }
+                                </small>
+                                @if ((Model.Status == "Approved" || Model.Status == "Completed") && !string.IsNullOrEmpty(Model.AdminNote))
+                                {
+                                    <div class="mt-2 p-2 bg-white rounded border border-soft text-pink small">
+                                        <strong>Ý kiến Admin:</strong> @Model.AdminNote
+                                    </div>
+                                }
+                            </div>
+                        </li>
+
+                        <!-- Step 3: Recalling or Processing -->
+                        <li class="tracker-item @(Model.Status == "Approved" ? "active" : Model.Status == "Completed" ? "completed" : "")">
+                            <span class="tracker-bullet">
+                                @if (Model.Status == "Completed") { <i class="bi bi-check"></i> } else { <span>3</span> }
+                            </span>
+                            <div class="tracker-content">
+                                <h6 class="fw-bold m-0 @(Model.Status == "Completed" ? "text-success" : Model.Status == "Approved" ? "text-pink" : "text-muted")">
+                                    Bước 3: Thu hồi sản phẩm lỗi / Đóng gói đổi mới
+                                </h6>
+                                <small class="text-muted">
+                                    @if (Model.Status == "Approved")
+                                    {
+                                        <span>Shipper đang liên hệ đến tận nhà thu hồi hàng cũ và gửi hàng mới/hoàn tiền.</span>
+                                    }
+                                    else if (Model.Status == "Completed")
+                                    {
+                                        <span>Đã thu hồi sản phẩm lỗi thành công.</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Chờ xử lý sau khi được duyệt.</span>
+                                    }
+                                </small>
+                            </div>
+                        </li>
+
+                        <!-- Step 4: Completed -->
+                        <li class="tracker-item @(Model.Status == "Completed" ? "completed" : "")">
+                            <span class="tracker-bullet">
+                                @if (Model.Status == "Completed") { <i class="bi bi-check"></i> } else { <span>4</span> }
+                            </span>
+                            <div class="tracker-content">
+                                <h6 class="fw-bold m-0 @(Model.Status == "Completed" ? "text-success" : "text-muted")">
+                                    Bước 4: Hoàn thành
+                                </h6>
+                                <small class="text-muted">
+                                    @if (Model.Status == "Completed")
+                                    {
+                                        <span>Đổi hàng/Hoàn tiền đã kết thúc thành công tốt đẹp. Cảm ơn quý khách!</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Yêu cầu sẽ chuyển sang hoàn thành khi khách hàng nhận được tiền hoàn hoặc sản phẩm thay thế.</span>
+                                    }
+                                </small>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dynamic Modal for Zooming Proof Images -->
+<div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 bg-transparent">
+            <div class="modal-body p-0 text-center">
+                <img id="modalZoomImg" src="" class="img-fluid rounded-3 shadow-lg" style="max-height: 85vh;" />
+                <button type="button" class="btn btn-sm btn-pink-filled rounded-circle mt-3" data-bs-dismiss="modal" style="width: 40px; height: 40px;"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Click image to zoom modal
+            $('.img-zoomable').on('click', function() {
+                const src = $(this).attr('src');
+                $('#modalZoomImg').attr('src', src);
+                const zoomModal = new bootstrap.Modal(document.getElementById('imageZoomModal'));
+                zoomModal.show();
+            });
+        });
+    </script>
+}

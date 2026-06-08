@@ -41,6 +41,12 @@
     box-sizing: border-box;
 }
 
+html,
+body {
+    height: 100%;
+    overflow: hidden; /* Khóa scroll toàn trang */
+}
+
 body {
     font-family: 'Poppins', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: linear-gradient(135deg, #fde7f0 0%, #ffffff 50%, #fde7f0 100%);
@@ -184,8 +190,10 @@ body {
 
 .main-content {
     margin-left: var(--sidebar-width);
-    min-height: 100vh;
-    padding: 0;
+    height: 100vh;           /* Chiếm đúng 100% chiều cao viewport */
+    overflow: hidden;        /* Không cho main-content tự scroll */
+    display: flex;
+    flex-direction: column;  /* Topbar trên, content-area dưới */
     transition: var(--transition);
 }
 
@@ -196,11 +204,10 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: sticky;
-    top: 0;
+    flex-shrink: 0;          /* Topbar không co lại */
     z-index: 100;
-    backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--pink-border);
+    backdrop-filter: blur(10px);
 }
 
 .top-navbar h5 {
@@ -211,9 +218,10 @@ body {
 }
 
 .content-area {
+    flex: 1;                 /* Chiếm toàn bộ phần còn lại */
+    overflow-y: auto;        /* Chỉ vùng này scroll */
     padding: 32px;
-    max-width: 1400px;
-    margin: 0 auto;
+    max-width: 100%;
 }
 
 /* ============================================
@@ -667,6 +675,7 @@ img {
 
     .main-content {
         margin-left: 0;
+        height: 100vh;
     }
 
     .content-area {

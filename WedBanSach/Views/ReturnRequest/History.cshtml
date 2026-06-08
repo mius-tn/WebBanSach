@@ -1,0 +1,198 @@
+@{
+    ViewData["Title"] = "Lịch sử yêu cầu hỗ trợ của tôi";
+    var returnRequests = ViewBag.ReturnRequests as IEnumerable<WedBanSach.Models.ReturnRequest> ?? new List<WedBanSach.Models.ReturnRequest>();
+    var warrantyRequests = ViewBag.WarrantyRequests as IEnumerable<WedBanSach.Models.WarrantyRequest> ?? new List<WedBanSach.Models.WarrantyRequest>();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/policy.css" asp-append-version="true" />
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-pink text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Policy" asp-action="Index" class="text-pink text-decoration-none">Trung tâm Chính sách</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Lịch sử yêu cầu</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-pink"><i class="bi bi-clock-history"></i> Lịch Sử Yêu Cầu Hỗ Trợ</h2>
+            <p class="text-muted m-0">Xem và theo dõi trạng thái thẩm định các yêu cầu Đổi, Trả, Hoàn tiền hoặc Bảo hành của bạn.</p>
+        </div>
+        <a asp-controller="ReturnRequest" asp-action="Create" class="btn btn-pink-filled px-4 py-2">
+            <i class="bi bi-file-earmark-plus-fill me-2"></i> Gửi Yêu Cầu Mới
+        </a>
+    </div>
+
+    <!-- Tabs for Return vs Warranty -->
+    <ul class="nav nav-pills mb-4 gap-2" id="requestTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link btn-pink active px-4" id="return-tab" data-bs-toggle="pill" data-bs-target="#return-pane" type="button" role="tab" aria-controls="return-pane" aria-selected="true">
+                <i class="bi bi-arrow-left-right me-1"></i> Đổi / Trả / Hoàn Tiền (@returnRequests.Count())
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link btn-pink px-4" id="warranty-tab" data-bs-toggle="pill" data-bs-target="#warranty-pane" type="button" role="tab" aria-controls="warranty-pane" aria-selected="false">
+                <i class="bi bi-shield-shaded me-1"></i> Yêu Cầu Bảo Hành (@warrantyRequests.Count())
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="requestTabContent">
+        <!-- 1. Return Requests Tab -->
+        <div class="tab-pane fade show active" id="return-pane" role="tabpanel" aria-labelledby="return-tab" tabindex="0">
+            @if (!returnRequests.Any())
+            {
+                <div class="text-center py-5 bg-white border-soft rounded-3 shadow-soft mb-5">
+                    <i class="bi bi-folder2-open text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
+                    <h4 class="fw-bold text-muted mt-3">Chưa có yêu cầu đổi trả nào</h4>
+                    <p class="text-muted small mb-4">Các yêu cầu đổi/trả hàng hoặc hoàn tiền của quý khách sẽ được lưu trữ tại đây.</p>
+                    <a asp-controller="ReturnRequest" asp-action="Create" class="btn btn-pink-filled">Đến trang Gửi yêu cầu</a>
+                </div>
+            }
+            else
+            {
+                <div class="card border-soft shadow-soft overflow-hidden mb-5">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-pastel text-pink">
+                                <tr>
+                                    <th class="py-3 ps-4" style="width: 140px;">Mã yêu cầu</th>
+                                    <th class="py-3">Ngày gửi</th>
+                                    <th class="py-3">Đơn hàng</th>
+                                    <th class="py-3">Sản phẩm</th>
+                                    <th class="py-3">Hình thức</th>
+                                    <th class="py-3">Trạng thái</th>
+                                    <th class="py-3 text-end pe-4" style="width: 140px;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var req in returnRequests)
+                                {
+                                    var typeText = req.RequestType switch
+                                    {
+                                        "Exchange" => "Đổi sản phẩm",
+                                        "Return" => "Trả hàng hoàn tiền",
+                                        "Refund" => "Hoàn tiền",
+                                        "Warranty" => "Bảo hành",
+                                        _ => req.RequestType
+                                    };
+
+                                    var statusText = req.Status switch
+                                    {
+                                        "Pending" => "Chờ xử lý",
+                                        "Approved" => "Đang xử lý",
+                                        "Rejected" => "Bị từ chối",
+                                        "Completed" => "Đã hoàn thành",
+                                        _ => req.Status
+                                    };
+
+                                    var statusClass = req.Status switch
+                                    {
+                                        "Pending" => "badge-pending",
+                                        "Approved" => "badge-approved",
+                                        "Rejected" => "badge-rejected",
+                                        "Completed" => "badge-completed",
+                                        _ => ""
+                                    };
+
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-pink">#RQ-@req.Id</td>
+                                        <td>@req.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td><strong>#@req.OrderId</strong></td>
+                                        <td>
+                                            <div class="d-flex align-items-center" style="max-width: 250px;">
+                                                <span class="text-truncate" title="@(req.Book?.Title ?? "N/A")">@(req.Book?.Title ?? "N/A")</span>
+                                                @if (req.Quantity > 1)
+                                                {
+                                                    <span class="badge bg-secondary ms-2">x @req.Quantity</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td><span class="text-dark fw-bold">@typeText</span></td>
+                                        <td>
+                                            <span class="badge @statusClass px-3 py-2 rounded-pill font-weight-bold">@statusText</span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a asp-action="Detail" asp-route-id="@req.Id" class="btn btn-sm btn-pink">Chi tiết</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- 2. Warranty Requests Tab -->
+        <div class="tab-pane fade" id="warranty-pane" role="tabpanel" aria-labelledby="warranty-tab" tabindex="0">
+            @if (!warrantyRequests.Any())
+            {
+                <div class="text-center py-5 bg-white border-soft rounded-3 shadow-soft mb-5">
+                    <i class="bi bi-shield-check text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
+                    <h4 class="fw-bold text-muted mt-3">Chưa có yêu cầu bảo hành nào</h4>
+                    <p class="text-muted small mb-4">Danh sách các sản phẩm phụ kiện/sách bạn gửi yêu cầu bảo hành kỹ thuật sẽ hiển thị ở đây.</p>
+                </div>
+            }
+            else
+            {
+                <div class="card border-soft shadow-soft overflow-hidden mb-5">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-pastel text-pink">
+                                <tr>
+                                    <th class="py-3 ps-4" style="width: 140px;">Mã bảo hành</th>
+                                    <th class="py-3">Ngày đăng ký</th>
+                                    <th class="py-3">Sản phẩm</th>
+                                    <th class="py-3">Mô tả lỗi</th>
+                                    <th class="py-3">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var req in warrantyRequests)
+                                {
+                                    var statusText = req.Status switch
+                                    {
+                                        "Pending" => "Chờ thẩm định",
+                                        "Approved" => "Đã duyệt nhận bảo hành",
+                                        "Rejected" => "Từ chối",
+                                        "Completed" => "Đã xong (Trả lại hàng mới)",
+                                        _ => req.Status
+                                    };
+
+                                    var statusClass = req.Status switch
+                                    {
+                                        "Pending" => "badge-pending",
+                                        "Approved" => "badge-approved",
+                                        "Rejected" => "badge-rejected",
+                                        "Completed" => "badge-completed",
+                                        _ => ""
+                                    };
+
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-pink">#WR-@req.Id</td>
+                                        <td>@req.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td><strong>@(req.Product?.Title ?? "N/A")</strong></td>
+                                        <td>
+                                            <span class="text-truncate d-inline-block" style="max-width: 300px;" title="@req.IssueDescription">
+                                                @req.IssueDescription
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge @statusClass px-3 py-2 rounded-pill font-weight-bold">@statusText</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

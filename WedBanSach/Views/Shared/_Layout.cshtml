@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="~/css/fahasa-theme.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/notifications.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ai-chat.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -195,7 +196,8 @@
                 <div class="col-md-2 mb-4">
                     <h6 class="fw-bold mb-3">HỖ TRỢ</h6>
                     <ul class="list-unstyled text-muted" style="font-size: 14px;">
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Chính sách đổi - trả</a></li>
+                        <li class="mb-2"><a asp-controller="Policy" asp-action="Index" class="text-decoration-none text-muted">Chính sách đổi - trả</a></li>
+                        <li class="mb-2"><a asp-controller="ReturnRequest" asp-action="History" class="text-decoration-none text-muted">Lịch sử đổi trả hỗ trợ</a></li>
                         <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Chính sách khách sỉ</a></li>
                         <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Phương thức vận chuyển</a></li>
                         <li class="mb-2"><a href="#" class="text-decoration-none text-muted">Phương thức thanh toán</a></li>
@@ -244,6 +246,152 @@
         </div>
     </div>
 
+    <!-- ====================================================== -->
+    <!-- AI CHATBOT WIDGET WITH WAVING MASCOT (PINK-WHITE THEME) -->
+    <!-- ====================================================== -->
+    <div class="ai-mascot-container" id="aiMascotContainer">
+        <!-- Speech Bubble -->
+        <div class="ai-speech-bubble">
+            Cần tìm sách gì cứ hỏi tớ nha! 📚🐾
+        </div>
+        
+        <!-- Mascot Thinking Dots -->
+        <div class="mascot-thinking-dots">
+            <div class="thinking-dot"></div>
+            <div class="thinking-dot"></div>
+            <div class="thinking-dot"></div>
+        </div>
+
+        <!-- SVG Cute Pink Cat Mascot -->
+        <svg class="ai-mascot-svg mascot-normal" id="aiMascot" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Tail -->
+            <path class="mascot-tail" d="M 65 75 Q 80 65 75 50" fill="none" stroke="#e91e63" stroke-width="6" stroke-linecap="round" />
+            
+            <!-- Left Arm -->
+            <ellipse cx="25" cy="62" rx="6" ry="12" fill="#e91e63" transform="rotate(-15 25 62)" />
+            
+            <!-- Body -->
+            <ellipse cx="37" cy="65" rx="18" ry="22" fill="#e91e63" />
+            <!-- Tummy -->
+            <ellipse cx="37" cy="67" rx="12" ry="15" fill="#f8cdda" />
+            
+            <!-- Left Leg -->
+            <ellipse cx="28" cy="85" rx="7" ry="5" fill="#c2185b" />
+            <!-- Right Leg -->
+            <ellipse cx="46" cy="85" rx="7" ry="5" fill="#c2185b" />
+
+            <!-- Left Ear -->
+            <polygon points="20 30, 28 15, 36 27" fill="#e91e63" stroke="#e91e63" stroke-width="2" stroke-linejoin="round" />
+            <!-- Right Ear -->
+            <polygon points="46 27, 54 15, 62 30" fill="#e91e63" stroke="#e91e63" stroke-width="2" stroke-linejoin="round" />
+            <!-- Inner Left Ear -->
+            <polygon points="23 27, 28 18, 33 25" fill="#f8cdda" />
+            <!-- Inner Right Ear -->
+            <polygon points="49 25, 54 18, 59 27" fill="#f8cdda" />
+
+            <!-- Head Group -->
+            <g class="mascot-head">
+                <ellipse cx="41" cy="38" rx="20" ry="16" fill="#e91e63" />
+                
+                <!-- Face Mask -->
+                <ellipse cx="33" cy="40" rx="6" ry="5" fill="#f8cdda" />
+                <ellipse cx="49" cy="40" rx="6" ry="5" fill="#f8cdda" />
+                
+                <!-- Eyes Normal (hidden on hover) -->
+                <g class="mascot-eyes mascot-eyes-normal">
+                    <circle cx="33" cy="36" r="3" fill="#333333" />
+                    <circle cx="49" cy="36" r="3" fill="#333333" />
+                    <circle cx="32" cy="35" r="1" fill="#ffffff" />
+                    <circle cx="48" cy="35" r="1" fill="#ffffff" />
+                </g>
+                <!-- Eyes Happy ^^ (shown on hover) -->
+                <g class="mascot-eyes-happy">
+                    <path d="M 30 37 Q 33 33 36 37" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" />
+                    <path d="M 46 37 Q 49 33 52 37" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" />
+                </g>
+                
+                <!-- Nose & Mouth -->
+                <polygon points="41 40, 39 38, 43 38" fill="#c2185b" />
+                <path d="M 38 41 Q 41 44 44 41" fill="none" stroke="#c2185b" stroke-width="1.5" stroke-linecap="round" />
+                
+                <!-- Rosy Cheeks -->
+                <circle cx="27" cy="41" r="2.5" fill="#f06292" opacity="0.6" />
+                <circle cx="55" cy="41" r="2.5" fill="#f06292" opacity="0.6" />
+
+                <!-- Headset -->
+                <path d="M 21 38 A 20 20 0 0 1 61 38" fill="none" stroke="#333" stroke-width="3" />
+                <rect x="18" y="34" width="4" height="8" rx="2" fill="#333" />
+                <rect x="59" y="34" width="4" height="8" rx="2" fill="#333" />
+                <path d="M 59 38 Q 50 48 45 46" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" />
+            </g>
+
+            <!-- Waving Right Arm -->
+            <g class="mascot-arm-right">
+                <path d="M 52 58 C 55 50 63 40 70 38 C 73 37 77 42 74 46 C 68 52 58 64 53 66" fill="#e91e63" stroke="#e91e63" stroke-width="2" />
+                <ellipse cx="71" cy="40" rx="4" ry="4" fill="#f8cdda" />
+            </g>
+
+            <!-- Book Decoration -->
+            <rect x="25" y="60" width="12" height="15" rx="1.5" fill="#ffffff" stroke="#c2185b" stroke-width="1.5" transform="rotate(-10 25 60)" />
+            <line x1="28" y1="64" x2="34" y2="62" stroke="#e91e63" stroke-width="1" />
+            <line x1="28" y1="68" x2="34" y2="66" stroke="#e91e63" stroke-width="1" />
+            <line x1="28" y1="72" x2="34" y2="70" stroke="#e91e63" stroke-width="1" />
+        </svg>
+    </div>
+
+    <!-- AI Chat Popup Dialog -->
+    <div class="ai-chat-popup" id="aiChatPopup">
+        <!-- Header -->
+        <div class="ai-chat-header">
+            <div class="ai-chat-header-info">
+                <div class="ai-header-avatar">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12v5c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-3v8h3c1.66 0 3-1.34 3-3v-5c0-5.52-4.48-10-10-10z"/>
+                    </svg>
+                </div>
+                <div class="ai-header-title">
+                    <h4>MiuMiu Trợ Lý AI</h4>
+                    <p><span class="ai-online-dot"></span>Sẵn sàng hỗ trợ 24/7</p>
+                </div>
+            </div>
+            <div class="ai-chat-actions">
+                <button type="button" class="ai-action-btn" id="aiSoundToggle" title="Bật/Tắt âm thanh">
+                    <i class="bi bi-volume-up-fill"></i>
+                </button>
+                <button type="button" class="ai-action-btn" id="aiCloseChat" title="Đóng chat">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Body -->
+        <div class="ai-chat-body" id="aiChatBody">
+            <div class="ai-msg-bubble ai">
+                Xin chào! Tớ là <b>MiuMiu</b> 🐾 - Trợ lý AI thông minh của <b>WebBanSach</b>.<br>
+                Tớ có thể giúp bạn tìm sách, tư vấn chọn sách phù hợp hoặc kiểm tra tình trạng đơn hàng của bạn cực nhanh đấy! Bạn cần tớ hỗ trợ gì nào? 😊💖
+            </div>
+        </div>
+
+        <!-- Suggestion Chips -->
+        <div class="ai-suggestion-chips">
+            <button type="button" class="ai-chip">Tìm sách bán chạy nhất</button>
+            <button type="button" class="ai-chip">Sách học lập trình C#</button>
+            <button type="button" class="ai-chip">Đơn hàng của tôi ở đâu?</button>
+            <button type="button" class="ai-chip">Chính sách đổi trả ra sao?</button>
+        </div>
+
+        <!-- Chat Input Footer -->
+        <div class="ai-chat-footer">
+            <button type="button" class="ai-footer-btn mic" id="aiVoiceBtn" title="Nói tiếng Việt">
+                <i class="bi bi-mic-fill"></i>
+            </button>
+            <input type="text" class="ai-footer-input" id="aiChatInput" placeholder="Hỏi MiuMiu..." autocomplete="off">
+            <button type="button" class="ai-footer-btn send" id="aiSendBtn" title="Gửi">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -258,6 +406,7 @@
         if (!currentUserEmail) currentUserEmail = '@Context.Session.GetString("UserName")'; // Fallback
     </script>
     <script src="~/js/chat.js" asp-append-version="true"></script>
+    <script src="~/js/ai-chat.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function() {
             function setupSearchSuggestions(inputId, suggestionsId) {

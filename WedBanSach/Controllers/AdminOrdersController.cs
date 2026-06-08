@@ -83,8 +83,9 @@ public class AdminOrdersController : Controller
         var order = await _context.Orders
             .Include(o => o.User)
             .Include(o => o.OrderDetails)
-            .ThenInclude(od => od.Book)
-            .ThenInclude(b => b.BookImages)
+                .ThenInclude(od => od.Book)
+                .ThenInclude(b => b.BookImages)
+            .Include(o => o.Payments)
             .FirstOrDefaultAsync(o => o.OrderID == id);
 
         if (order == null)
@@ -92,6 +93,18 @@ public class AdminOrdersController : Controller
 
         string oldStatus = order.OrderStatus ?? "";
         order.OrderStatus = status;
+
+        // Also update associated payment statuses to "Failed" (which represents Canceled/Hủy) if the order is cancelled
+        if (status == "Cancelled")
+        {
+            if (order.Payments != null)
+            {
+                foreach (var payment in order.Payments)
+                {
+                    payment.PaymentStatus = "Failed";
+                }
+            }
+        }
 
         // Logic: Only update stock/sold when status changes TO "Completed"
         if (status == "Completed" && oldStatus != "Completed")

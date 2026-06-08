@@ -449,11 +449,9 @@
 
             function updateRelatedButtons() {
                 const container = document.getElementById('related-scroll-view');
-                const prevBtn = document.querySelector('.product-carousel-container .carousel-btn-prev'); // Might need more specific selector if multiple carousels
-                const nextBtn = document.querySelector('.product-carousel-container .carousel-btn-next');
-                
-                // Using ID context is safer if we reuse this code, but here we hardcoded IDs for simplicity in this specific view
                 const wrapper = document.getElementById('related-carousel');
+                if (!wrapper) return;
+                
                 const btnPrev = wrapper.querySelector('.carousel-btn-prev');
                 const btnNext = wrapper.querySelector('.carousel-btn-next');
 
@@ -473,6 +471,116 @@
             });
          </script>
     </div>
+
+    <!-- SUGGESTED FOR YOU (GỢI Ý CHO BẠN) -->
+    <div class="mt-4 bg-white rounded-3 shadow-sm overflow-hidden" id="suggestions-section" style="font-family: 'Nunito', sans-serif !important;">
+        <!-- Header Banner -->
+        <div class="d-flex align-items-center justify-content-center py-3 px-4 text-white" style="background: linear-gradient(135deg, #e91e63 0%, #ff6090 100%); position: relative;">
+            <div class="text-center">
+                <h4 class="fw-bold m-0 text-uppercase d-flex align-items-center justify-content-center gap-2" style="letter-spacing: 1px; font-size: 1.3rem;">
+                    <span>✨</span> GỢI Ý CHO BẠN <span>✨</span>
+                </h4>
+            </div>
+        </div>
+        
+        <!-- Suggestions Grid -->
+        <div class="p-4" style="background-color: #fff8fa;">
+            <div class="row g-3">
+                @if (relatedBooks != null && relatedBooks.Any())
+                {
+                    foreach (var rBook in relatedBooks)
+                    {
+                        var discountPercent = rBook.DiscountPrice.HasValue && rBook.DiscountPrice < rBook.Price 
+                            ? (int)((1 - (rBook.DiscountPrice.Value / rBook.Price)) * 100) 
+                            : 0;
+
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <a asp-action="Details" asp-controller="Books" asp-route-id="@rBook.BookID" class="text-decoration-none text-dark">
+                            <div class="card h-100 suggestion-book-card border-soft bg-white p-2 position-relative cursor-pointer">
+                                <!-- Image Container -->
+                                <div class="position-relative overflow-hidden mb-2 text-center" style="height: 180px; border-radius: 8px;">
+                                    <img src="@(rBook.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                         class="w-100 h-100 object-fit-contain img-zoom-hover" alt="@rBook.Title">
+                                    @if (discountPercent > 0)
+                                    {
+                                        <span class="position-absolute top-0 end-0 bg-danger text-white small fw-bold px-2 py-1" style="border-bottom-left-radius: 8px; border-top-right-radius: 4px; font-size: 11px;">
+                                            -@discountPercent%
+                                        </span>
+                                    }
+                                </div>
+                                
+                                <!-- Text Container -->
+                                <div class="card-body p-0 d-flex flex-column justify-content-between flex-grow-1">
+                                    <div>
+                                        <h6 class="book-title mb-1 suggestion-title" title="@rBook.Title">@rBook.Title</h6>
+                                        
+                                        <!-- Rating & Sold count -->
+                                        <div class="d-flex align-items-center gap-1 mb-2" style="font-size: 11px;">
+                                            <span class="text-warning"><i class="bi bi-star-fill"></i></span>
+                                            <span class="text-muted fw-bold">@(rBook.Reviews?.Any() == true ? rBook.Reviews.Average(r => r.Rating).ToString("0.0") : "5.0")</span>
+                                            <span class="text-muted">• Đã bán @(rBook.SoldQuantity > 0 ? rBook.SoldQuantity : (rBook.BookID * 7) % 50)</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Price Box -->
+                                    <div class="price-box d-flex flex-column">
+                                        <span class="text-danger fw-bold text-nowrap" style="font-size: 14px;">@((rBook.DiscountPrice ?? rBook.Price).ToString("#,##0")) đ</span>
+                                        @if (rBook.DiscountPrice.HasValue && rBook.DiscountPrice < rBook.Price)
+                                        {
+                                            <span class="text-muted text-decoration-line-through text-nowrap" style="font-size: 11px;">@rBook.Price.ToString("#,##0") đ</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12 text-center py-4 text-muted">
+                        <i class="bi bi-book fs-3 opacity-50 mb-2"></i>
+                        <p class="small mb-0">Hiện chưa có gợi ý phù hợp cho bạn.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Custom Styles for Suggestions -->
+    <style>
+        .suggestion-book-card {
+            border-radius: 14px;
+            transition: all 0.25s ease;
+            border: 1px solid #f8cdda !important;
+            box-shadow: 0 2px 6px rgba(233, 30, 99, 0.02);
+        }
+        .suggestion-book-card:hover {
+            transform: translateY(-5px);
+            border-color: #e91e63 !important;
+            box-shadow: 0 8px 20px rgba(233, 30, 99, 0.08) !important;
+        }
+        .suggestion-book-card .suggestion-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2d3748;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal !important;
+            word-break: break-word;
+            height: 36px;
+        }
+        .suggestion-book-card .img-zoom-hover {
+            transition: transform 0.3s ease;
+        }
+        .suggestion-book-card:hover .img-zoom-hover {
+            transform: scale(1.05);
+        }
+    </style>
 
 </div>
 

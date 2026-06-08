@@ -203,6 +203,7 @@ body {
     color: #333;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     height: 48px;
@@ -456,6 +457,7 @@ body {
         height: 40px;
         /* adjust height for 2 lines */
         -webkit-line-clamp: 2;
+    line-clamp: 2;
     }
 
     .current-price {
@@ -508,4 +510,123 @@ body {
 
 .chat-drag-active .chat-drag-overlay {
     display: flex;
+}
+
+/* =========================================
+   TAG HELPER COMPONENTS CSS
+   ========================================= */
+
+/* --- BookCard: Discount Badge --- */
+.book-discount-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    z-index: 2;
+    letter-spacing: 0.5px;
+}
+
+/* Hover lift effect for book card */
+.book-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.book-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 24px rgba(233, 30, 99, 0.18) !important;
+}
+
+/* --- BookList: Section title bar --- */
+.section-title-bar {
+    display: inline-block;
+    width: 4px;
+    height: 22px;
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+/* --- CategoryMenu Sidebar --- */
+.category-sidebar {
+    background: #fff;
+    border-radius: var(--border-radius);
+    padding: 12px;
+    border: 1px solid var(--primary-light);
+}
+
+.category-menu-list {
+    margin: 0;
+    padding: 0;
+}
+
+.category-menu-item {
+    border-bottom: 1px solid #fce4ec;
+}
+.category-menu-item:last-child {
+    border-bottom: none;
+}
+
+.category-menu-link {
+    display: block;
+    padding: 9px 10px;
+    color: #444;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.category-menu-link:hover,
+.category-menu-link.active {
+    color: var(--primary-color);
+    background-color: var(--primary-bg);
+    padding-left: 14px;
+}
+
+.category-arrow {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+}
+
+.category-menu-link[aria-expanded="true"] .category-arrow {
+    transform: rotate(180deg);
+}
+
+.category-submenu {
+    padding: 4px 0 4px 20px;
+}
+
+.category-submenu-link {
+    display: block;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #666;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.category-submenu-link:hover,
+.category-submenu-link.active {
+    color: var(--primary-color);
+    background-color: var(--primary-bg);
+}
+
+/* --- HeaderSearch --- */
+.fahasa-header-search {
+    background: #fff;
+    border-bottom: 1px solid var(--primary-light);
+}
+
+/* --- BannerSlider: smooth fade transition --- */
+.carousel-fade .carousel-item {
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out;
+}
+.carousel-fade .carousel-item.active {
+    opacity: 1;
 }

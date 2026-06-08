@@ -93,11 +93,17 @@ public class HomeController : Controller
 
         var categories = await _context.Categories.ToListAsync();
 
+        var recommendedBooks = await booksQuery
+            .OrderBy(b => Guid.NewGuid())
+            .Take(30)
+            .ToListAsync();
+
         var viewModel = new HomeViewModel
         {
             Categories = categories,
             FeaturedBooks = featuredBooks,
             NewBooks = newBooks,
+            RecommendedBooks = recommendedBooks,
             CategoryBooks = categoryBooksDict
         };
 

@@ -35,6 +35,16 @@ public class BookStoreDbContext : DbContext
     public DbSet<PaymentSetting> PaymentSettings { get; set; }
     public DbSet<ChatRoom> ChatRooms { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
+    public DbSet<PolicyCategory> PolicyCategories { get; set; }
+    public DbSet<Policy> Policies { get; set; }
+    public DbSet<ReturnRequest> ReturnRequests { get; set; }
+    public DbSet<ReturnRequestImage> ReturnRequestImages { get; set; }
+    public DbSet<RefundTransaction> RefundTransactions { get; set; }
+    public DbSet<WarrantyRequest> WarrantyRequests { get; set; }
+    public DbSet<AIChatSession> AIChatSessions { get; set; }
+    public DbSet<AIChatMessage> AIChatMessages { get; set; }
+    public DbSet<AIRecommendation> AIRecommendations { get; set; }
+    public DbSet<CustomerPreference> CustomerPreferences { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -124,5 +134,30 @@ public class BookStoreDbContext : DbContext
 
         modelBuilder.Entity<Review>()
             .ToTable(t => t.HasCheckConstraint("CK_Review_Rating", "Rating BETWEEN 1 AND 5"));
+
+        // Policy / ReturnRequest / WarrantyRequest Configurations
+        modelBuilder.Entity<ReturnRequest>()
+            .HasOne(rr => rr.Customer)
+            .WithMany()
+            .HasForeignKey(rr => rr.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ReturnRequest>()
+            .HasOne(rr => rr.Order)
+            .WithMany()
+            .HasForeignKey(rr => rr.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<WarrantyRequest>()
+            .HasOne(wr => wr.Customer)
+            .WithMany()
+            .HasForeignKey(wr => wr.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<WarrantyRequest>()
+            .HasOne(wr => wr.Product)
+            .WithMany()
+            .HasForeignKey(wr => wr.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

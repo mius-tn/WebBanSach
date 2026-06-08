@@ -38,6 +38,7 @@ public class Book
 
     public int StockQuantity { get; set; } = 0;
     public int SoldQuantity { get; set; } = 0;
+    public int FaultyQuantity { get; set; } = 0;
 
     public int? PublisherID { get; set; }
 

@@ -58,6 +58,18 @@ Trước khi bắt đầu test, bạn cần khởi tạo Roles và tài khoản 
 *   Đơn vừa đặt sẽ có trạng thái "Chờ xử lý" (Pending).
 *   Bấm "Chi tiết" để xem lại các sách đã mua.
 
+### 1.4. Trợ lý ảo AI (Chatbot) & Gợi ý sách (Mới)
+1. **Chat với AI:** Tìm biểu tượng Chatbot (thường ở góc dưới màn hình), mở khung chat và hỏi thử các câu như "Tư vấn cho tôi sách về kinh doanh", "Tôi muốn tìm tiểu thuyết trinh thám".
+2. **Gợi ý sách:** Ở trang chủ hoặc chi tiết sản phẩm, kiểm tra các phần "Gợi ý cho bạn" do AI đề xuất.
+
+### 1.5. Yêu cầu Đổi/Trả hàng & Bảo hành (Mới)
+1. **Xem chính sách:** Truy cập trang Chính sách (Policy) để đọc quy định đổi trả, bảo hành.
+2. **Tạo yêu cầu đổi/trả:** 
+   * Vào "Lịch sử mua hàng", chọn đơn hàng đã giao thành công.
+   * Chọn sản phẩm và nhấn "Yêu cầu đổi/trả" hoặc "Bảo hành".
+   * Điền lý do, mô tả lỗi và upload hình ảnh minh họa tình trạng sách.
+   * Gửi yêu cầu và theo dõi trạng thái.
+
 ---
 
 ## 2. Hướng dẫn Test cho Admin
@@ -89,6 +101,18 @@ Sau khi đăng nhập, bạn sẽ được chuyển hướng tới trang Dashboa
 *   **Quản lý User:** Xem danh sách người dùng, có thể khóa tài khoản spam.
 *   **Categories/Authors:** Thử thêm một danh mục sách mới (ví dụ: "Sách Khoa học").
 *   **Promotions:** Tạo mã giảm giá (Voucher) mới (Ví dụ code: `SALE50`, giảm 50%).
+
+### 2.4. Quản lý AI & Thống kê (Mới)
+*   **AI Dashboard:** Truy cập trang quản trị AI để xem thống kê hiệu suất chatbot, các câu hỏi phổ biến và phân tích tương tác của khách hàng.
+
+### 2.5. Quản lý Đổi trả, Bảo hành & Chính sách (Mới)
+1. **Chính sách (Policies):** Vào menu Quản lý chính sách, thử tạo/sửa một chính sách mới (vd: "Chính sách hoàn tiền trong 7 ngày").
+2. **Duyệt đổi/trả (Return Requests):**
+   * Vào danh sách Yêu cầu đổi trả.
+   * Xem chi tiết lý do và hình ảnh do khách tải lên.
+   * Thử "Duyệt" (Approve) hoặc "Từ chối" (Reject).
+   * Kiểm tra giao dịch hoàn tiền (RefundTransaction) nếu có.
+3. **Bảo hành (Warranty Requests):** Tương tự, vào quản lý và duyệt các yêu cầu bảo hành từ khách hàng.
 
 ## 3. Lưu ý Fix lỗi (Troubleshooting)
 

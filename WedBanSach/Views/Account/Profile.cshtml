@@ -56,7 +56,7 @@
                     {
                         <div class="alert alert-success rounded-3 mb-4">@TempData["Success"]</div>
                     }
-                    @if (TempData["Error"] != null)
+                    @if (TempData["Error"] != null && TempData["Error"].ToString() != "Vui lòng chọn đơn hàng cần đổi trả/bảo hành từ lịch sử mua hàng của bạn.")
                     {
                         <div class="alert alert-danger rounded-3 mb-4">@TempData["Error"]</div>
                     }

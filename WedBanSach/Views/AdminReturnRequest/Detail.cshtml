@@ -1,0 +1,426 @@
+@model WedBanSach.Models.ReturnRequest
+@{
+    ViewData["Title"] = $"Thẩm định yêu cầu #RQ-{Model.Id}";
+    Layout = "_AdminLayout";
+
+    var typeText = Model.RequestType switch
+    {
+        "Exchange" => "Đổi hàng mới",
+        "Return" => "Trả hàng hoàn tiền",
+        "Refund" => "Hoàn tiền",
+        "Warranty" => "Bảo hành",
+        _ => Model.RequestType
+    };
+
+    var statusText = Model.Status switch
+    {
+        "Pending" => "Chờ xử lý",
+        "Approved" => "Đã duyệt/Thu hồi",
+        "Rejected" => "Đã từ chối",
+        "Completed" => "Đã hoàn thành",
+        _ => Model.Status
+    };
+
+    var statusBadge = Model.Status switch
+    {
+        "Pending" => "bg-warning text-dark",
+        "Approved" => "bg-primary",
+        "Rejected" => "bg-danger",
+        "Completed" => "bg-success",
+        _ => "bg-secondary"
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/policy.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <style>
+        .detail-header {
+            border-bottom: 1px solid var(--border-soft);
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        .proof-thumbnail {
+            width: 120px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px solid var(--primary-light-pink);
+            transition: var(--transition-smooth);
+        }
+        .proof-thumbnail:hover {
+            transform: scale(1.05);
+            border-color: var(--primary-pink);
+            box-shadow: var(--shadow-premium-hover);
+        }
+        .console-card {
+            background-color: #ffffff;
+            border-radius: 18px;
+            border: 1px solid var(--border-soft);
+            box-shadow: var(--shadow-premium);
+        }
+    </style>
+}
+
+<div class="container-fluid">
+    <div class="mb-4">
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary mb-2">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách
+        </a>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 detail-header">
+            <div>
+                <h3 class="fw-bold m-0"><i class="bi bi-shield-fill-check"></i> Yêu Cầu Thẩm Định #RQ-@Model.Id</h3>
+                <small class="text-muted">Được gửi bởi khách hàng lúc @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</small>
+            </div>
+            <div>
+                <span class="badge @statusBadge rounded-pill px-3 py-2 fs-6">@statusText</span>
+            </div>
+        </div>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <!-- 1. Left Side: Request Information and Image Proofs -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+                <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">Thông Tin Yêu Cầu</h5>
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Khách hàng</small>
+                        <strong>@Model.Customer.FullName</strong>
+                        <div class="text-xs text-muted">Email: @Model.Customer.Email</div>
+                        <div class="text-xs text-muted">SĐT: @Model.Customer.Phone</div>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Mã đơn đặt hàng</small>
+                        <strong class="fs-5 text-primary">#@Model.OrderId</strong>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Hình thức yêu cầu</small>
+                        <strong class="text-info fs-6">@typeText</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Lý do từ khách hàng</small>
+                        <strong class="text-dark">@Model.Reason</strong>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 mb-3 border">
+                    <small class="text-muted d-block mb-1">Sản phẩm khai báo lỗi</small>
+                    <h5 class="fw-bold m-0 text-dark">
+                        @(Model.Book?.Title ?? "N/A")
+                        <span class="badge bg-secondary ms-2">Số lượng: @Model.Quantity</span>
+                    </h5>
+                    <small class="text-muted d-block mt-1">Đơn giá khi mua: @((Model.Book?.Price ?? 0).ToString("N0")) đ</small>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mb-4">
+                        <small class="text-muted d-block mb-1">Mô tả chi tiết từ khách</small>
+                        <div class="p-3 bg-light rounded text-muted small border">@Model.Description</div>
+                    </div>
+                }
+
+                <!-- Proof images -->
+                <div>
+                    <h6 class="fw-bold text-muted mb-3">Hình ảnh bằng chứng đính kèm (Nhấp để phóng to)</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (Model.Images != null && Model.Images.Any())
+                        {
+                            foreach (var img in Model.Images)
+                            {
+                                <img src="@img.ImageUrl" class="proof-thumbnail img-trigger" alt="Ảnh bằng chứng" />
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted italic small">Khách hàng không tải lên hình ảnh đính kèm.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Right Side: Admin decision panels -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3 p-4 console-card h-100">
+                <h5 class="fw-bold text-dark mb-4 border-bottom pb-2"><i class="bi bi-sliders"></i> Bảng Điều Khiển CSKH</h5>
+
+                @if (Model.Status == "Completed")
+                {
+                    <div class="alert alert-success text-center py-4 rounded-3 border-success mb-0">
+                        <i class="bi bi-check-circle-fill fs-1 d-block mb-2"></i>
+                        <h5 class="fw-bold">Yêu cầu đã hoàn thành thành công</h5>
+                        <p class="small m-0">Quy trình đổi trả/hoàn tiền đã kết thúc. Mọi nhật ký kho lỗi đã được tự động lưu vết.</p>
+                        @if (Model.RefundAmount.HasValue)
+                        {
+                            <h4 class="fw-bold mt-3 text-success">Đã hoàn tiền: @Model.RefundAmount.Value.ToString("N0") đ</h4>
+                        }
+                    </div>
+                }
+                else if (Model.Status == "Rejected")
+                {
+                    <div class="alert alert-danger text-center py-4 rounded-3 border-danger mb-0">
+                        <i class="bi bi-x-circle-fill fs-1 d-block mb-2"></i>
+                        <h5 class="fw-bold">Yêu cầu đã bị từ chối hỗ trợ</h5>
+                        <p class="small">Lý do từ chối đã được gửi email thông báo trực tiếp đến khách hàng.</p>
+                        <div class="p-2 bg-white rounded border text-danger small text-start">
+                            <strong>Ghi chú từ chối:</strong> @Model.AdminNote
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- ACTIVE CONSOLE FORM -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Ghi chú của CSKH / Phản hồi đến khách hàng <span class="text-danger">*</span></label>
+                        <textarea id="adminNote" rows="3" class="form-control" placeholder="Nhập ghi chú phản hồi, lý do từ chối hoặc hướng dẫn khách gói hàng..."></textarea>
+                    </div>
+
+                    <!-- Action buttons based on status -->
+                    @if (Model.Status == "Pending")
+                    {
+                        <!-- Step 1 Actions: Approve to recieving/exchange or Reject -->
+                        <div class="d-grid gap-2 mb-4">
+                            <button type="button" class="btn btn-primary btn-lg" id="approveRequestBtn">
+                                <i class="bi bi-check2-circle me-1"></i> Phê duyệt &amp; Thu hồi hàng lỗi
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" id="rejectRequestBtn">
+                                <i class="bi bi-x-lg me-1"></i> Từ chối yêu cầu đổi trả
+                            </button>
+                        </div>
+                        <div class="alert alert-info small rounded-3 m-0">
+                            <i class="bi bi-info-circle-fill me-1"></i>
+                            <strong>Mẹo:</strong> Sau khi nhấp "Phê duyệt", hệ thống sẽ tự động trừ kho/cộng kho lỗi và gửi email hướng dẫn khách hàng đóng gói để Shipper đến lấy hàng lỗi.
+                        </div>
+                    }
+                    else if (Model.Status == "Approved")
+                    {
+                        <!-- Step 2 Actions: Refund Console (If Return/Refund) or Complete Exchange -->
+                        @if (Model.RequestType == "Return" || Model.RequestType == "Refund")
+                        {
+                            <!-- Financial Refund Console -->
+                            <div class="border-top pt-4 mt-2">
+                                <h6 class="fw-bold text-success mb-3"><i class="bi bi-cash-coin"></i> BẢNG ĐIỀU KHIỂN HOÀN TIỀN NGÂN HÀNG</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Số tiền bồi hoàn (VND) <span class="text-danger">*</span></label>
+                                    <input type="number" id="refundAmount" class="form-control form-control-lg text-success fw-bold" value="@(Model.Book?.Price * Model.Quantity ?? 0)" min="0" />
+                                    <span class="text-muted x-small">Tự động gợi ý bằng tổng giá sản phẩm lỗi của khách.</span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Phương thức bồi hoàn <span class="text-danger">*</span></label>
+                                    <select id="refundMethod" class="form-select">
+                                        <option value="Bank Transfer">Chuyển khoản Ngân hàng (Ví điện tử)</option>
+                                        <option value="COD">Bù tiền trực tiếp khi giao hàng lỗi</option>
+                                        <option value="Coupon">Hoàn tiền bằng Voucher giảm giá</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Mã giao dịch ngân hàng (Mã GD)</label>
+                                    <input type="text" id="transactionCode" class="form-control" placeholder="Ví dụ: FT26012903293..." />
+                                </div>
+
+                                <button type="button" class="btn btn-success btn-lg w-100 py-3 mt-2" id="completeRefundBtn">
+                                    <i class="bi bi-wallet2 me-1"></i> XÁC NHẬN HOÀN TIỀN THÀNH CÔNG
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Exchange/Warranty Complete action -->
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-success btn-lg py-3" id="completeExchangeBtn">
+                                    <i class="bi bi-check2-square me-1"></i> XÁC NHẬN ĐÃ ĐỔI MỚI / HOÀN TẤT
+                                </button>
+                            </div>
+                            <div class="alert alert-info small rounded-3 mt-3">
+                                <i class="bi bi-info-circle-fill me-1"></i>
+                                <strong>Thông báo:</strong> Nhấp nút trên sau khi shipper báo đã giao sách đổi mới/phụ kiện mới đến tay khách hàng thành công.
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Proof Zoom -->
+<div class="modal fade" id="proofModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 bg-transparent">
+            <div class="modal-body p-0 text-center">
+                <img id="proofModalImg" src="" class="img-fluid rounded-3 shadow-lg" style="max-height: 85vh;" />
+                <button type="button" class="btn btn-sm btn-light rounded-circle mt-3" data-bs-dismiss="modal" style="width: 40px; height: 40px;"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            const requestId = @Model.Id;
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
+            // Click img to zoom
+            $('.img-trigger').on('click', function() {
+                const src = $(this).attr('src');
+                $('#proofModalImg').attr('src', src);
+                const prModal = new bootstrap.Modal(document.getElementById('proofModal'));
+                prModal.show();
+            });
+
+            // 1. Phê duyệt ban đầu (Approve Request to Approved status)
+            $('#approveRequestBtn').on('click', function() {
+                const note = $('#adminNote').val();
+
+                Swal.fire({
+                    title: 'Phê duyệt yêu cầu?',
+                    text: "Hệ thống sẽ chuyển trạng thái sang Đã Duyệt, ghi nhận kho hàng lỗi và gửi email hướng dẫn đóng gói cho khách.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0d6efd',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Phê duyệt ngay',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.showLoading();
+                        $.ajax({
+                            url: '/AdminReturnRequest/UpdateStatus',
+                            type: 'POST',
+                            data: { id: requestId, status: 'Approved', adminNote: note, __RequestVerificationToken: token },
+                            success: function(res) {
+                                Swal.close();
+                                if (res.success) {
+                                    Swal.fire('Thành công', res.message, 'success').then(() => location.reload());
+                                } else {
+                                    Swal.fire('Thất bại', res.message, 'error');
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            // 2. Từ chối yêu cầu (Reject Request)
+            $('#rejectRequestBtn').on('click', function() {
+                const note = $('#adminNote').val();
+
+                if (!note) {
+                    Swal.fire('Thiếu lý do từ chối', 'Vui lòng nhập lý do từ chối cụ thể vào ô ghi chú phản hồi khách hàng để gửi email giải thích.', 'warning');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Từ chối yêu cầu hỗ trợ?',
+                    text: "Khách hàng sẽ nhận được email thông báo từ chối kèm lý do bạn cung cấp.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Từ chối hỗ trợ',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.showLoading();
+                        $.ajax({
+                            url: '/AdminReturnRequest/RejectRequest',
+                            type: 'POST',
+                            data: { id: requestId, adminNote: note, __RequestVerificationToken: token },
+                            success: function(res) {
+                                Swal.close();
+                                if (res.success) {
+                                    Swal.fire('Đã từ chối', res.message, 'success').then(() => location.reload());
+                                } else {
+                                    Swal.fire('Thất bại', res.message, 'error');
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            // 3. Phê duyệt hoàn tiền ngân hàng (Approve Refund & Complete status)
+            $('#completeRefundBtn').on('click', function() {
+                const amount = $('#refundAmount').val();
+                const method = $('#refundMethod').val();
+                const txCode = $('#transactionCode').val();
+                const note = $('#adminNote').val();
+
+                Swal.fire({
+                    title: 'Xác nhận hoàn tiền?',
+                    text: `Hệ thống sẽ hoàn tất bồi hoàn số tiền ${new Intl.NumberFormat('vi-VN').format(amount)} đ qua ${method} và kết thúc yêu cầu.`,
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Xác nhận bồi hoàn',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.showLoading();
+                        $.ajax({
+                            url: '/AdminReturnRequest/ApproveRefund',
+                            type: 'POST',
+                            data: { id: requestId, refundAmount: amount, method: method, adminNote: note, transactionCode: txCode, __RequestVerificationToken: token },
+                            success: function(res) {
+                                Swal.close();
+                                if (res.success) {
+                                    Swal.fire('Hoàn tiền thành công!', res.message, 'success').then(() => location.reload());
+                                } else {
+                                    Swal.fire('Thất bại', res.message, 'error');
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            // 4. Xác nhận hoàn tất đổi hàng (Complete Exchange status)
+            $('#completeExchangeBtn').on('click', function() {
+                const note = $('#adminNote').val();
+
+                Swal.fire({
+                    title: 'Hoàn tất đổi mới sản phẩm?',
+                    text: "Nhấp đồng ý sau khi khách hàng đã nhận được sản phẩm đổi mới.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Đã hoàn thành',
+                    cancelButtonText: 'Quay lại'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.showLoading();
+                        $.ajax({
+                            url: '/AdminReturnRequest/UpdateStatus',
+                            type: 'POST',
+                            data: { id: requestId, status: 'Completed', adminNote: note, __RequestVerificationToken: token },
+                            success: function(res) {
+                                Swal.close();
+                                if (res.success) {
+                                    Swal.fire('Thành công tốt đẹp', res.message, 'success').then(() => location.reload());
+                                } else {
+                                    Swal.fire('Thất bại', res.message, 'error');
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

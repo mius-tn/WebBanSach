@@ -114,7 +114,9 @@ namespace WedBanSach.Controllers
             if (string.IsNullOrEmpty(userIdStr)) return Json(new { success = false, message = "Bạn cần đăng nhập." });
 
             int userId = int.Parse(userIdStr);
-            var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderID == orderId && o.UserID == userId);
+            var order = await _context.Orders
+                .Include(o => o.Payments)
+                .FirstOrDefaultAsync(o => o.OrderID == orderId && o.UserID == userId);
 
             if (order == null) return Json(new { success = false, message = "Không tìm thấy đơn hàng." });
 
@@ -124,6 +126,16 @@ namespace WedBanSach.Controllers
             }
 
             order.OrderStatus = "Cancelled";
+
+            // Also update associated payment statuses to "Failed" (which represents Canceled/Hủy)
+            if (order.Payments != null)
+            {
+                foreach (var payment in order.Payments)
+                {
+                    payment.PaymentStatus = "Failed";
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "Đã hủy đơn hàng thành công." });

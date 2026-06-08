@@ -40,12 +40,12 @@
     
     .sidebar-menu .nav-link:hover {
         background-color: var(--pink-light);
-        color: #C92127;
+        color: #e91e63;
     }
     
     .sidebar-menu .nav-link.active {
         background-color: var(--pink-main);
-        color: #C92127;
+        color: #e91e63;
         font-weight: 600;
     }
 
@@ -97,12 +97,12 @@
         margin-bottom: 0;
     }
     .history-tabs .nav-link:hover {
-        color: #C92127; /* Hover đỏ */
-        background-color: rgba(201, 33, 39, 0.05) !important; /* Đỏ nhẹ background */
+        color: #e91e63; /* Hover hồng */
+        background-color: rgba(233, 30, 99, 0.05) !important; /* Hồng nhẹ background */
     }
     .history-tabs .nav-link.active {
-        color: #C92127 !important;
-        border-bottom: 2px solid #C92127;
+        color: #e91e63 !important;
+        border-bottom: 2px solid #e91e63;
         font-weight: 600;
     }
 
@@ -116,7 +116,7 @@
         justify-content: center;
         border: 2px solid var(--pink-main);
         background-color: var(--pink-main);
-        color: #C92127;
+        color: #e91e63;
         font-weight: 600;
         margin: 0 4px;
         transition: all 0.2s;
@@ -124,20 +124,20 @@
 
     .pagination .page-link:hover {
         background-color: #fff;
-        color: #C92127;
-        border-color: #C92127;
+        color: #e91e63;
+        border-color: #e91e63;
     }
 
     .pagination .page-item.active .page-link {
-        background-color: #C92127;
+        background-color: #e91e63;
         color: #fff;
-        border-color: #C92127;
+        border-color: #e91e63;
     }
     
     .pagination .page-item.disabled .page-link {
-        background-color: #f1f1f1;
+        background-color: #fde7f0;
         color: #ccc;
-        border-color: #ddd;
+        border-color: #f8cdda;
     }
 </style>
 
@@ -176,6 +176,14 @@
                     </ul>
                 </div>
                 <div class="card-body p-4 pt-4">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success rounded-3 mb-4">@TempData["Success"]</div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger rounded-3 mb-4">@TempData["Error"]</div>
+                    }
                     @if (ViewBag.CurrentStatus == "my-reviews")
                     {
                         var reviews = ViewBag.UserReviews as List<WedBanSach.Models.Review>;
@@ -293,6 +301,9 @@
                                                         onclick="openSelectProductModal(@System.Text.Json.JsonSerializer.Serialize(order.OrderDetails.Select(od => new { id = od.BookID, title = od.Book.Title, image = od.Book.BookImages.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png" })))">
                                                     <i class="bi bi-star-fill me-1"></i> Đánh giá
                                                 </button>
+                                                 <a asp-controller="ReturnRequest" asp-action="Create" asp-route-orderId="@order.OrderID" class="btn btn-sm btn-pink rounded-pill px-3">
+                                                     <i class="bi bi-arrow-left-right me-1"></i> Đổi trả/Bảo hành
+                                                 </a>
                                             }
                                             @if(order.OrderStatus == "Pending" || order.OrderStatus == "Chờ xử lý") {
                                                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="cancelOrder(@order.OrderID)">
@@ -321,7 +332,7 @@
                                 }
 
                                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                                    <a class="page-link" asp-controller="Order" asp-action="History" asp-route-status="@status" asp-route-page="@(currentPage - 1)" aria-label="Previous">
+                                    <a class="page-link" href="/lich-su-don-hang?status=@status&page=@(currentPage - 1)" aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
                                 </li>
@@ -329,12 +340,12 @@
                                 @for (int i = 1; i <= totalPages; i++)
                                 {
                                     <li class="page-item @(i == currentPage ? "active" : "")">
-                                        <a class="page-link" asp-controller="Order" asp-action="History" asp-route-status="@status" asp-route-page="@i">@i</a>
+                                        <a class="page-link" href="/lich-su-don-hang?status=@status&page=@i">@i</a>
                                     </li>
                                 }
 
                                 <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                                    <a class="page-link" asp-controller="Order" asp-action="History" asp-route-status="@status" asp-route-page="@(currentPage + 1)" aria-label="Next">
+                                    <a class="page-link" href="/lich-su-don-hang?status=@status&page=@(currentPage + 1)" aria-label="Next">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>
                                 </li>

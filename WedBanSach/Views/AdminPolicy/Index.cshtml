@@ -1,0 +1,231 @@
+@model IEnumerable<WedBanSach.Models.Policy>
+@{
+    ViewData["Title"] = "Quản lý Chính sách";
+    Layout = "_AdminLayout";
+    var categories = ViewBag.Categories as IEnumerable<WedBanSach.Models.PolicyCategory> ?? new List<WedBanSach.Models.PolicyCategory>();
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold"><i class="bi bi-shield-check text-primary"></i> Quản Lý Điều Khoản & Chính Sách</h3>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+                <i class="bi bi-folder-plus"></i> Thêm Danh Mục
+            </button>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Thêm Chính Sách Mới
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Tab Section -->
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="policiesTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 80px;">ID</th>
+                            <th>Tiêu đề chính sách</th>
+                            <th>Danh mục chính sách</th>
+                            <th>Ngày cập nhật</th>
+                            <th style="width: 120px;">Trạng thái</th>
+                            <th class="text-end" style="width: 160px;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>#@item.Id</td>
+                                <td class="fw-bold">@item.Title</td>
+                                <td><span class="badge bg-secondary">@item.Category.Name</span></td>
+                                <td>@item.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggle-publish" type="checkbox" data-id="@item.Id" checked="@item.IsPublished" />
+                                        <label class="form-check-label text-muted small">@(item.IsPublished ? "Xuất bản" : "Nháp")</label>
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Sửa nội dung">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-btn" data-id="@item.Id" title="Xóa chính sách">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create Policy Category -->
+<div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="createCategoryLabel">Thêm Danh Mục Chính Sách</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createCategoryForm">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên danh mục <span class="text-danger">*</span></label>
+                        <input type="text" id="catName" class="form-control" placeholder="Ví dụ: Chính sách thanh toán" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Đường dẫn Slug <span class="text-danger">*</span></label>
+                        <input type="text" id="catSlug" class="form-control" placeholder="Ví dụ: thanh-toan" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả tóm tắt</label>
+                        <textarea id="catDescription" rows="3" class="form-control" placeholder="Mô tả quyền lợi..."></textarea>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-primary">Lưu Danh Mục</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // Init DataTable
+            $('#policiesTable').DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                }
+            });
+
+            // Toggle Publish Switch via Ajax
+            $('.toggle-publish').on('change', function() {
+                const id = $(this).attr('data-id');
+                const $label = $(this).siblings('label');
+                const token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '/AdminPolicy/TogglePublish',
+                    type: 'POST',
+                    data: { id: id, __RequestVerificationToken: token },
+                    success: function(res) {
+                        if (res.success) {
+                            $label.text(res.isPublished ? "Xuất bản" : "Nháp");
+                        }
+                    }
+                });
+            });
+
+            // Auto slugify category name
+            $('#catName').on('input', function() {
+                let name = $(this).val().toLowerCase();
+                // Simple slugify
+                name = name.replace(/[áàảãạăắằẳẵặâấầẩẫậ]/g, "a");
+                name = name.replace(/[éèẻẽẹêếềểễệ]/g, "e");
+                name = name.replace(/[iíìỉĩị]/g, "i");
+                name = name.replace(/[óòỏõọôốồổỗộơớờởỡợ]/g, "o");
+                name = name.replace(/[uúùủũụưứừửữự]/g, "u");
+                name = name.replace(/[yýỳỷỹỵ]/g, "y");
+                name = name.replace(/[đ]/g, "d");
+                name = name.replace(/[^a-z0-9\s-]/g, "");
+                name = name.replace(/\s+/g, "-").trim('-');
+                $('#catSlug').val(name);
+            });
+
+            // Submit Category Form via Ajax
+            $('#createCategoryForm').on('submit', function(e) {
+                e.preventDefault();
+                const name = $('#catName').val();
+                const slug = $('#catSlug').val();
+                const desc = $('#catDescription').val();
+                const token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '/AdminPolicy/CreateCategory',
+                    type: 'POST',
+                    data: { name: name, slug: slug, description: desc, __RequestVerificationToken: token },
+                    success: function(res) {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công',
+                                text: res.message
+                            }).then(() => {
+                                $('#createCategoryModal').modal('hide');
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: res.message
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Handle Policy Delete
+            $('.delete-btn').on('click', function() {
+                const id = $(this).attr('data-id');
+                const token = $('input[name="__RequestVerificationToken"]').val();
+
+                Swal.fire({
+                    title: 'Bạn có chắc chắn muốn xóa chính sách này?',
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Đồng ý xóa',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '/AdminPolicy/Delete',
+                            type: 'POST',
+                            data: { id: id, __RequestVerificationToken: token },
+                            success: function(res) {
+                                if (res.success) {
+                                    Swal.fire(
+                                        'Đã xóa!',
+                                        res.message,
+                                        'success'
+                                    ).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire(
+                                        'Lỗi!',
+                                        res.message,
+                                        'error'
+                                    );
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}
