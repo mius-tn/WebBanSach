@@ -7,99 +7,154 @@
     <h2><i class="bi bi-graph-up"></i> Báo cáo & Thống kê</h2>
 </div>
 
-<div class="card mb-3">
-    <div class="card-header">
-        <form method="get" class="row g-3">
+<div class="card mb-3 shadow-sm border-0 bg-light">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end" id="filterForm">
             <div class="col-md-3">
-                <select name="period" class="form-select" onchange="this.form.submit()">
+                <label class="form-label fw-bold text-secondary">Khoảng thời gian:</label>
+                <select name="period" id="periodSelect" class="form-select border-0 shadow-sm">
                     <option value="week" selected="@(ViewBag.Period == "week")">7 ngày qua</option>
                     <option value="month" selected="@(ViewBag.Period == "month")">Tháng này</option>
                     <option value="year" selected="@(ViewBag.Period == "year")">Năm nay</option>
+                    <option value="custom" selected="@(ViewBag.Period == "custom")">Tùy chọn khoảng ngày</option>
                 </select>
+            </div>
+            
+            <div class="col-md-3 date-range-input" style="display: @(ViewBag.Period == "custom" ? "block" : "none");">
+                <label class="form-label fw-bold text-secondary">Từ ngày:</label>
+                <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control border-0 shadow-sm" />
+            </div>
+            
+            <div class="col-md-3 date-range-input" style="display: @(ViewBag.Period == "custom" ? "block" : "none");">
+                <label class="form-label fw-bold text-secondary">Đến ngày:</label>
+                <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control border-0 shadow-sm" />
+            </div>
+            
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary border-0 shadow-sm px-4 w-100">
+                    <i class="bi bi-filter"></i> Lọc báo cáo
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="mb-0">Doanh thu theo ngày</h5>
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-primary text-white h-100">
+            <div class="card-body py-4 d-flex flex-column justify-content-center">
+                <h6 class="text-white-50 mb-2 uppercase fw-bold small">Tổng Doanh Thu</h6>
+                <h3 class="mb-0 fw-bold">@string.Format("{0:N0}", ViewBag.TotalPeriodRevenue) VNĐ</h3>
             </div>
-            <div class="card-body">
-                <canvas id="revenueChart" height="80"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-secondary text-white h-100">
+            <div class="card-body py-4 d-flex flex-column justify-content-center">
+                <h6 class="text-white-50 mb-2 uppercase fw-bold small">Tổng Giá Nhập Ước Tính</h6>
+                <h3 class="mb-0 fw-bold">@string.Format("{0:N0}", ViewBag.TotalPeriodCost) VNĐ</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm @(ViewBag.TotalPeriodProfit >= 0 ? "bg-success text-white" : "bg-danger text-white") h-100">
+            <div class="card-body py-4 d-flex flex-column justify-content-center">
+                <h6 class="text-white-50 mb-2 uppercase fw-bold small">Tổng Lợi Nhuận (Lời/Lỗ)</h6>
+                <h3 class="mb-0 fw-bold">@string.Format("{0:N0}", ViewBag.TotalPeriodProfit) VNĐ</h3>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Top 10 sách bán chạy</h5>
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0 fw-bold text-secondary">Doanh thu & Lợi nhuận chi tiết theo sản phẩm</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
                             <tr>
                                 <th>STT</th>
                                 <th>Tên sách</th>
-                                <th>Số lượng</th>
+                                <th class="text-center">Số lượng</th>
                                 <th>Doanh thu</th>
+                                <th>Giá nhập TB</th>
+                                <th>Lời / Lỗ</th>
                             </tr>
                         </thead>
                         <tbody>
                             @{
                                 int index = 1;
                             }
-                            @foreach (var item in ViewBag.TopBooks)
+                            @foreach (var item in ViewBag.BookRevenues)
                             {
                                 <tr>
                                     <td>@index</td>
-                                    <td>@item.Book.Title</td>
-                                    <td><span class="badge bg-primary">@item.TotalSold</span></td>
-                                    <td>@string.Format("{0:N0}", item.Revenue) VNĐ</td>
+                                    <td class="fw-bold">@item.Book.Title</td>
+                                    <td class="text-center"><span class="badge bg-primary px-2 py-1">@item.TotalSold</span></td>
+                                    <td>@string.Format("{0:N0}", item.Revenue) đ</td>
+                                    <td class="text-muted">@string.Format("{0:N0}", item.AvgImportPrice) đ</td>
+                                    <td class="@(item.ProfitOrLoss >= 0 ? "text-success fw-bold" : "text-danger fw-bold")">
+                                        @(item.ProfitOrLoss >= 0 ? "+" : "")@string.Format("{0:N0}", item.ProfitOrLoss) đ
+                                    </td>
                                 </tr>
                                 index++;
+                            }
+                            @if (ViewBag.BookRevenues == null || ViewBag.BookRevenues.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">Không có sản phẩm nào phát sinh doanh thu trong kỳ báo cáo này.</td>
+                                </tr>
                             }
                         </tbody>
                     </table>
                 </div>
+                <small class="text-muted"><i class="bi bi-info-circle me-1"></i> Giá nhập TB được tính từ các phiếu nhập kho. Nếu chưa có phiếu nhập, hệ thống mặc định giá nhập bằng 60% giá gốc.</small>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Top 10 khách hàng</h5>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0 fw-bold text-secondary">Top 10 khách hàng</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
                             <tr>
                                 <th>STT</th>
                                 <th>Khách hàng</th>
-                                <th>Số đơn</th>
+                                <th class="text-center">Số đơn</th>
                                 <th>Tổng chi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @{
-                                index = 1;
+                                int indexCust = 1;
                             }
                             @foreach (var item in ViewBag.TopCustomers)
                             {
                                 <tr>
-                                    <td>@index</td>
-                                    <td>@item.User.FullName</td>
-                                    <td><span class="badge bg-info">@item.OrderCount</span></td>
-                                    <td>@string.Format("{0:N0}", item.TotalSpent) VNĐ</td>
+                                    <td>@indexCust</td>
+                                    <td class="fw-bold text-secondary">@item.User.FullName</td>
+                                    <td class="text-center"><span class="badge bg-info px-2 py-1 text-dark">@item.OrderCount</span></td>
+                                    <td>@string.Format("{0:N0}", item.TotalSpent) đ</td>
                                 </tr>
-                                index++;
+                                indexCust++;
+                            }
+                            @if (ViewBag.TopCustomers == null || ViewBag.TopCustomers.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">Không có khách hàng nào phát sinh giao dịch trong kỳ báo cáo này.</td>
+                                </tr>
                             }
                         </tbody>
                     </table>
@@ -111,34 +166,15 @@
 
 @section Scripts {
     <script>
-        const revenueData = @Html.Raw(Json.Serialize(ViewBag.RevenueByDay));
-        const ctx = document.getElementById('revenueChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: revenueData.map(x => new Date(x.date).toLocaleDateString('vi-VN')),
-                datasets: [{
-                    label: 'Doanh thu (VNĐ)',
-                    data: revenueData.map(x => x.revenue),
-                    backgroundColor: 'rgba(248, 200, 220, 0.8)',
-                    borderColor: '#f5b0cc',
-                    borderWidth: 2,
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString('vi-VN') + ' VNĐ';
-                            }
-                        }
-                    }
-                }
+        document.getElementById('periodSelect').addEventListener('change', function() {
+            var period = this.value;
+            var dateInputs = document.querySelectorAll('.date-range-input');
+            if (period === 'custom') {
+                dateInputs.forEach(el => el.style.display = 'block');
+            } else {
+                dateInputs.forEach(el => el.style.display = 'none');
+                // Auto submit for predefined periods
+                document.getElementById('filterForm').submit();
             }
         });
     </script>

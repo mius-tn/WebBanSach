@@ -1,0 +1,131 @@
+@model IEnumerable<WedBanSach.Models.PromotionCampaign>
+@{
+    ViewData["Title"] = "Quản lý Chiến Dịch Khuyến Mãi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Quản lý Chiến Dịch Khuyến Mãi</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin/Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item active">Khuyến Mãi</li>
+    </ol>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-percent me-1"></i>
+                Danh sách Chiến Dịch
+            </div>
+            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Tạo Chiến Dịch Mới
+            </a>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped" id="datatablesSimple">
+                <thead>
+                    <tr>
+                        <th>Tên Chiến Dịch</th>
+                        <th>Giảm Giá</th>
+                        <th>Số Sách</th>
+                        <th>Bắt Đầu</th>
+                        <th>Kết Thúc</th>
+                        <th>Trạng Thái</th>
+                        <th>Kích Hoạt</th>
+                        <th>Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        string status = "Sắp diễn ra";
+                        string badge = "bg-secondary";
+                        if (DateTime.Now >= item.StartDate && DateTime.Now <= item.EndDate)
+                        {
+                            status = "Đang diễn ra";
+                            badge = "bg-success";
+                        }
+                        else if (DateTime.Now > item.EndDate)
+                        {
+                            status = "Đã kết thúc";
+                            badge = "bg-danger";
+                        }
+
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>
+                                @if (item.DiscountType == "Percentage")
+                                {
+                                    @($"{item.DiscountValue}%")
+                                }
+                                else
+                                {
+                                    @($"{item.DiscountValue:N0}đ")
+                                }
+                            </td>
+                            <td>@item.CampaignBooks.Count</td>
+                            <td>@item.StartDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@item.EndDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td><span class="badge @badge">@status</span></td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Có</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Không</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <a href="@Url.Action("Details", new { id = item.CampaignID })" class="btn btn-info btn-sm" title="Chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="@Url.Action("Edit", new { id = item.CampaignID })" class="btn btn-warning btn-sm" title="Sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    @if (item.IsActive)
+                                    {
+                                        <form asp-action="Deactivate" asp-route-id="@item.CampaignID" method="post" style="display:inline;"
+                                              onsubmit="return confirm('Bạn có chắc muốn vô hiệu hóa chiến dịch này?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-secondary btn-sm" title="Vô hiệu hóa">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Activate" asp-route-id="@item.CampaignID" method="post" style="display:inline;"
+                                              onsubmit="return confirm('Bạn có chắc muốn kích hoạt chiến dịch này?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-success btn-sm" title="Kích hoạt">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    <form asp-action="Delete" asp-route-id="@item.CampaignID" method="post" style="display:inline;"
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa chiến dịch này? Hành động này không thể hoàn tác!');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

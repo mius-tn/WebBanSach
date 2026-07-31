@@ -11,12 +11,14 @@ public class CartController : Controller
 {
     private readonly BookStoreDbContext _context;
     private readonly WedBanSach.Services.EmailService _emailService;
+    private readonly WedBanSach.Services.Apriori.IAprioriService _aprioriService;
     private const string CART_KEY = "Cart";
 
-    public CartController(BookStoreDbContext context, WedBanSach.Services.EmailService emailService)
+    public CartController(BookStoreDbContext context, WedBanSach.Services.EmailService emailService, WedBanSach.Services.Apriori.IAprioriService aprioriService)
     {
         _context = context;
         _emailService = emailService;
+        _aprioriService = aprioriService;
     }
 
     [Route("gio-hang")]
@@ -66,6 +68,14 @@ public class CartController : Controller
         var standardShipping = await _context.ShippingMethods
             .FirstOrDefaultAsync(s => s.Name.Contains("tiêu chuẩn") || s.Name.Contains("Standard"));
         ViewBag.StandardShippingFee = standardShipping?.Price ?? 0;
+
+        // Apriori Recommendations based on cart items
+        if (cart.Items.Any())
+        {
+            var cartItemIds = cart.Items.Select(i => i.BookID).ToList();
+            var recommendations = await _aprioriService.GetRecommendationsForCartAsync(cartItemIds, 5);
+            ViewBag.AprioriRecommendations = recommendations;
+        }
 
         return View(cart);
     }
@@ -173,8 +183,8 @@ public class CartController : Controller
             {
                 BookID = book.BookID,
                 Title = book.Title,
-                Price = book.Price,
-                DiscountPrice = book.DiscountPrice,
+                OriginalPrice = book.OriginalPrice,
+                CurrentPrice = book.CurrentPrice,
                 ImageUrl = book.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png",
                 Quantity = quantity
             });
@@ -217,8 +227,8 @@ public class CartController : Controller
             {
                 BookID = book.BookID,
                 Title = book.Title,
-                Price = book.Price,
-                DiscountPrice = book.DiscountPrice,
+                OriginalPrice = book.OriginalPrice,
+                CurrentPrice = book.CurrentPrice,
                 ImageUrl = book.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png",
                 Quantity = 1
             });
@@ -404,9 +414,22 @@ public class CartController : Controller
         _context.Shippings.Add(shipping);
         await _context.SaveChangesAsync();
 
-        // Create OrderDetails
+        // Check inventory and reserve stock
+        var bookIds = cart.Items.Select(i => i.BookID).ToList();
+        var booksInCart = await _context.Books.Where(b => bookIds.Contains(b.BookID)).ToListAsync();
+
         foreach (var item in cart.Items)
         {
+            var book = booksInCart.FirstOrDefault(b => b.BookID == item.BookID);
+            if (book == null || (book.TotalStock - book.ReservedStock) < item.Quantity)
+            {
+                TempData["ErrorMsg"] = $"Sản phẩm '{book?.Title ?? "N/A"}' không đủ số lượng trong kho.";
+                return RedirectToAction("Index");
+            }
+            
+            // Reserve stock
+            book.ReservedStock += item.Quantity;
+
             var orderDetail = new OrderDetail
             {
                 OrderID = order.OrderID,

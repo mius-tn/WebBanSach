@@ -45,7 +45,24 @@ public class BookStoreDbContext : DbContext
     public DbSet<AIChatMessage> AIChatMessages { get; set; }
     public DbSet<AIRecommendation> AIRecommendations { get; set; }
     public DbSet<CustomerPreference> CustomerPreferences { get; set; }
+    
+    // Apriori Module
+    public DbSet<WedBanSach.Models.Apriori.AprioriConfig> AprioriConfigs { get; set; }
+    public DbSet<WedBanSach.Models.Apriori.AprioriFrequentItemset> AprioriFrequentItemsets { get; set; }
+    public DbSet<WedBanSach.Models.Apriori.AprioriRule> AprioriRules { get; set; }
+    public DbSet<WedBanSach.Models.Apriori.AprioriTrainingHistory> AprioriTrainingHistories { get; set; }
+    public DbSet<WedBanSach.Models.Apriori.AprioriRecommendation> AprioriRecommendations { get; set; }
+    public DbSet<WedBanSach.Models.Apriori.AprioriLog> AprioriLogs { get; set; }
 
+    // New tables for Inventory & Pricing Module
+    public DbSet<PriceHistory> PriceHistories { get; set; }
+    public DbSet<Warehouse> Warehouses { get; set; }
+    public DbSet<WarehouseStock> WarehouseStocks { get; set; }
+    public DbSet<GoodsReceipt> GoodsReceipts { get; set; }
+    public DbSet<GoodsReceiptDetail> GoodsReceiptDetails { get; set; }
+    public DbSet<PromotionCampaign> PromotionCampaigns { get; set; }
+    public DbSet<CampaignBook> CampaignBooks { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -59,6 +76,12 @@ public class BookStoreDbContext : DbContext
 
         modelBuilder.Entity<BookCategory>()
             .HasKey(bc => new { bc.BookID, bc.CategoryID });
+
+        modelBuilder.Entity<WarehouseStock>()
+            .HasKey(ws => new { ws.WarehouseID, ws.BookID });
+
+        modelBuilder.Entity<CampaignBook>()
+            .HasKey(cb => new { cb.CampaignID, cb.BookID });
 
         // Configure relationships
         modelBuilder.Entity<UserRole>()
@@ -121,7 +144,11 @@ public class BookStoreDbContext : DbContext
 
         // Configure constraints
         modelBuilder.Entity<Book>()
-            .ToTable(t => t.HasCheckConstraint("CK_Book_StockQuantity", "StockQuantity >= 0"));
+            .ToTable(t => {
+                t.HasCheckConstraint("CK_Book_TotalStock", "TotalStock >= 0");
+                t.HasCheckConstraint("CK_Book_ReservedStock", "ReservedStock >= 0");
+                t.HasCheckConstraint("CK_Book_SoldStock", "SoldStock >= 0");
+            });
 
         modelBuilder.Entity<CartItem>()
             .ToTable(t => t.HasCheckConstraint("CK_CartItem_Quantity", "Quantity > 0"));

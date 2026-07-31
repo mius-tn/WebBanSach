@@ -1,0 +1,73 @@
+@model WedBanSach.ViewModels.PaginatedResult<WedBanSach.ViewModels.AprioriRuleViewModel>
+@{
+    ViewData["Title"] = "Association Rules";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-2 text-gray-800">Luật kết hợp (Association Rules)</h1>
+            <p class="mb-4">Danh sách các sách thường được mua cùng nhau dựa trên lịch sử giao dịch.</p>
+        </div>
+        <a href="/Admin/Apriori/ExportCsv" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm">
+            <i class="fas fa-download fa-sm text-white-50"></i> Export CSV
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Tất cả luật (@Model.TotalCount)</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Khách mua sách này...</th>
+                            <th>...Sẽ có xu hướng mua sách này</th>
+                            <th>Độ tin cậy (Confidence)</th>
+                            <th>Độ nâng (Lift)</th>
+                            <th>Điểm Gợi ý (Score)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rule in Model.Items)
+                        {
+                            <tr>
+                                <td>@rule.AntecedentNames</td>
+                                <td><strong>@rule.ConsequentNames</strong></td>
+                                <td>@(Math.Round(rule.Confidence * 100, 2))%</td>
+                                <td>@Math.Round(rule.Lift, 2)</td>
+                                <td>@Math.Round(rule.RecommendationScore, 4)</td>
+                            </tr>
+                        }
+                        
+                        @if(!Model.Items.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center">Chưa có dữ liệu. Vui lòng chạy huấn luyện mô hình.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+                            <a class="page-link" href="/Admin/Apriori/Rules?page=@(Model.Page - 1)">Previous</a>
+                        </li>
+                        <li class="page-item disabled"><span class="page-link">Trang @Model.Page / @Model.TotalPages</span></li>
+                        <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="/Admin/Apriori/Rules?page=@(Model.Page + 1)">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>

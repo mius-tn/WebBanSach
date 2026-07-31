@@ -117,7 +117,7 @@
                         @(Model.Book?.Title ?? "N/A")
                         <span class="badge bg-secondary ms-2">Số lượng: @Model.Quantity</span>
                     </h5>
-                    <small class="text-muted d-block mt-1">Đơn giá khi mua: @((Model.Book?.Price ?? 0).ToString("N0")) đ</small>
+                    <small class="text-muted d-block mt-1">Đơn giá khi mua: @((Model.Book?.OriginalPrice ?? 0).ToString("N0")) đ</small>
                 </div>
 
                 @if (!string.IsNullOrEmpty(Model.Description))
@@ -212,7 +212,7 @@
                                 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Số tiền bồi hoàn (VND) <span class="text-danger">*</span></label>
-                                    <input type="number" id="refundAmount" class="form-control form-control-lg text-success fw-bold" value="@(Model.Book?.Price * Model.Quantity ?? 0)" min="0" />
+                                    <input type="number" id="refundAmount" class="form-control form-control-lg text-success fw-bold" value="@(Model.Book?.OriginalPrice * Model.Quantity ?? 0)" min="0" />
                                     <span class="text-muted x-small">Tự động gợi ý bằng tổng giá sản phẩm lỗi của khách.</span>
                                 </div>
 

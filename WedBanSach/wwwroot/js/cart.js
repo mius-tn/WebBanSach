@@ -1,6 +1,11 @@
 $(document).ready(function () {
-    // Intercept Add to Cart forms
+    // Intercept Add to Cart forms (except on the custom anime landing page)
     $('form[action="/Cart/AddToCart"]').on('submit', function (e) {
+        // Skip animation and AJAX from this file if the form is processed by the custom landing page handler
+        if ($(this).closest('.p-ticket_content').length > 0 || $(this).closest('.p-ticket-combo').length > 0) {
+            return;
+        }
+
         e.preventDefault();
         var form = $(this);
         var btn = form.find('button[type="submit"]');

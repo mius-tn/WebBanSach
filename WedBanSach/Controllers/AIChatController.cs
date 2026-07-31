@@ -61,7 +61,7 @@ public class AIChatController : ControllerBase
                 .Include(b => b.BookImages)
                 .FirstOrDefaultAsync(b => b.BookID == bookId && b.Status == "Active");
 
-            if (book != null && book.StockQuantity >= quantity)
+            if (book != null && book.TotalStock >= quantity)
             {
                 var cart = HttpContext.Session.GetObjectFromJson<CartViewModel>(CART_KEY) ?? new CartViewModel();
                 var cartItem = cart.Items.FirstOrDefault(c => c.BookID == bookId);
@@ -76,8 +76,8 @@ public class AIChatController : ControllerBase
                     {
                         BookID = book.BookID,
                         Title = book.Title,
-                        Price = book.Price,
-                        DiscountPrice = book.DiscountPrice,
+                        OriginalPrice = book.OriginalPrice,
+                        CurrentPrice = book.CurrentPrice,
                         ImageUrl = book.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png",
                         Quantity = quantity
                     });
@@ -106,11 +106,11 @@ public class AIChatController : ControllerBase
                 {
                     bookId = b.BookID,
                     title = b.Title,
-                    price = b.Price,
-                    discountPrice = b.DiscountPrice,
+                    price = b.OriginalPrice,
+                    CurrentPrice = b.CurrentPrice,
                     imageUrl = b.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png",
                     author = string.Join(", ", b.BookAuthors.Select(ba => ba.Author.AuthorName)),
-                    stock = b.StockQuantity
+                    stock = b.TotalStock
                 });
             }
         }
@@ -146,7 +146,7 @@ public class AIChatController : ControllerBase
         }
 
         var quantity = request.Quantity <= 0 ? 1 : request.Quantity;
-        if (book.StockQuantity < quantity)
+        if (book.TotalStock < quantity)
         {
             return BadRequest(new { success = false, message = "Số lượng trong kho không đủ" });
         }
@@ -164,8 +164,8 @@ public class AIChatController : ControllerBase
             {
                 BookID = book.BookID,
                 Title = book.Title,
-                Price = book.Price,
-                DiscountPrice = book.DiscountPrice,
+                OriginalPrice = book.OriginalPrice,
+                CurrentPrice = book.CurrentPrice,
                 ImageUrl = book.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png",
                 Quantity = quantity
             });
@@ -256,11 +256,11 @@ public class AIChatController : ControllerBase
                     {
                         bookId = b.BookID,
                         title = b.Title,
-                        price = b.Price,
-                        discountPrice = b.DiscountPrice,
+                        price = b.OriginalPrice,
+                        CurrentPrice = b.CurrentPrice,
                         imageUrl = b.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png",
                         author = string.Join(", ", b.BookAuthors.Select(ba => ba.Author.AuthorName)),
-                        stock = b.StockQuantity
+                        stock = b.TotalStock
                     });
                 }
             }

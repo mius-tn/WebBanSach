@@ -50,16 +50,16 @@
                             <td><strong>@book.Title</strong></td>
                             <td>@book.ISBN</td>
                             <td>
-                                <span class="badge @(book.StockQuantity < 10 ? "bg-danger" : book.StockQuantity < 50 ? "bg-warning" : "bg-success")" style="font-size: 1rem;">
-                                    @book.StockQuantity
+                                <span class="badge @(book.TotalStock < 10 ? "bg-danger" : book.TotalStock < 50 ? "bg-warning" : "bg-success")" style="font-size: 1rem;">
+                                    @book.TotalStock
                                 </span>
                             </td>
                             <td>
-                                @if (book.StockQuantity < 10)
+                                @if (book.TotalStock < 10)
                                 {
                                     <span class="badge bg-danger">Sắp hết</span>
                                 }
-                                else if (book.StockQuantity == 0)
+                                else if (book.TotalStock == 0)
                                 {
                                     <span class="badge bg-dark">Hết hàng</span>
                                 }
@@ -101,11 +101,11 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Số lượng hiện tại</label>
-                            <input type="number" class="form-control" value="@book.StockQuantity" readonly />
+                            <input type="number" class="form-control" value="@book.TotalStock" readonly />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Số lượng mới *</label>
-                            <input type="number" name="quantity" class="form-control" min="0" value="@book.StockQuantity" required />
+                            <input type="number" name="quantity" class="form-control" min="0" value="@book.TotalStock" required />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Lý do</label>

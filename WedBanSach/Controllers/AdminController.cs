@@ -30,7 +30,7 @@ public class AdminController : Controller
                 .SumAsync(o => o.TotalAmount ?? 0),
             TotalUsers = await _context.Users.CountAsync(),
             LowStockBooks = await _context.Books
-                .Where(b => b.StockQuantity < 10 && b.Status == "Active")
+                .Where(b => b.TotalStock <= b.MinimumStock && b.Status == "Active")
                 .CountAsync()
         };
 
@@ -59,9 +59,17 @@ public class AdminController : Controller
             .Take(10)
             .ToListAsync();
 
+        // Low stock books list
+        var lowStockBooksList = await _context.Books
+            .Where(b => b.TotalStock <= b.MinimumStock && b.Status == "Active")
+            .OrderBy(b => b.TotalStock)
+            .Take(10)
+            .ToListAsync();
+
         ViewBag.RevenueData = revenueData;
         ViewBag.TopBooks = topBooks;
         ViewBag.Stats = stats;
+        ViewBag.LowStockBooksList = lowStockBooksList;
 
         return View();
     }

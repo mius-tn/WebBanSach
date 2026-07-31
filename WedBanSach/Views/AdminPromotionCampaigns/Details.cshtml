@@ -1,0 +1,158 @@
+@model WedBanSach.Models.PromotionCampaign
+@{
+    ViewData["Title"] = "Chi tiết Chiến Dịch";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Chi tiết Chiến Dịch: @Model.Name</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin/Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Khuyến Mãi</a></li>
+        <li class="breadcrumb-item active">Chi tiết</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-info-circle me-1"></i>
+            Thông tin Chiến Dịch
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th style="width: 180px;">Tên Chiến Dịch:</th>
+                            <td>@Model.Name</td>
+                        </tr>
+                        <tr>
+                            <th>Loại Giảm Giá:</th>
+                            <td>
+                                @(Model.DiscountType == "Percentage" ? "Phần trăm (%)" : "Số tiền cố định (đ)")
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Mức Giảm:</th>
+                            <td>
+                                @if (Model.DiscountType == "Percentage")
+                                {
+                                    @($"{Model.DiscountValue}%")
+                                }
+                                else
+                                {
+                                    @($"{Model.DiscountValue:N0}đ")
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Thời Gian Bắt Đầu:</th>
+                            <td>@Model.StartDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                        <tr>
+                            <th>Thời Gian Kết Thúc:</th>
+                            <td>@Model.EndDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th style="width: 180px;">Kích Hoạt:</th>
+                            <td>
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Có</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Không</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Mô Tả:</th>
+                            <td>@(Model.Description ?? "—")</td>
+                        </tr>
+                        <tr>
+                            <th>Người Tạo:</th>
+                            <td>@(Model.CreatedBy ?? "—")</td>
+                        </tr>
+                        <tr>
+                            <th>Ngày Tạo:</th>
+                            <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-book me-1"></i>
+            Danh sách Sách trong Chiến Dịch
+        </div>
+        <div class="card-body">
+            @if (Model.CampaignBooks != null && Model.CampaignBooks.Any())
+            {
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Ảnh</th>
+                            <th>Tên Sách</th>
+                            <th>Giá Gốc</th>
+                            <th>Giá Hiện Tại</th>
+                            <th>Trạng Thái KM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cb in Model.CampaignBooks)
+                        {
+                            var book = cb.Book;
+                            var mainImage = book.BookImages?.FirstOrDefault(i => i.IsMain)
+                                            ?? book.BookImages?.FirstOrDefault();
+                            <tr>
+                                <td>
+                                    @if (mainImage != null && !string.IsNullOrEmpty(mainImage.ImageUrl))
+                                    {
+                                        <img src="@mainImage.ImageUrl" alt="@book.Title" style="width: 50px; height: 50px; object-fit: cover;" class="rounded" />
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>@book.Title</td>
+                                <td>@book.OriginalPrice.ToString("N0")đ</td>
+                                <td>@book.CurrentPrice.ToString("N0")đ</td>
+                                <td>
+                                    @if (book.IsPromotionActive)
+                                    {
+                                        <span class="badge bg-success">Đang KM</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Không KM</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted mb-0">Chưa có sách nào trong chiến dịch này.</p>
+            }
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <a href="@Url.Action("Edit", new { id = Model.CampaignID })" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Sửa
+        </a>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Quay lại
+        </a>
+    </div>
+</div>

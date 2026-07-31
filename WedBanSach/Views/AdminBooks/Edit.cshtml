@@ -58,23 +58,24 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label asp-for="Price" class="form-label">Giá *</label>
-                                <input asp-for="Price" class="form-control" type="number" step="0.01" required />
-                                <span asp-validation-for="Price" class="text-danger"></span>
+                                <label asp-for="OriginalPrice" class="form-label">Giá *</label>
+                                <input asp-for="OriginalPrice" class="form-control" type="number" step="0.01" required />
+                                <span asp-validation-for="OriginalPrice" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label asp-for="DiscountPrice" class="form-label">Giá giảm</label>
-                                <input asp-for="DiscountPrice" class="form-control" type="number" step="0.01" />
-                                <span asp-validation-for="DiscountPrice" class="text-danger"></span>
+                                <label asp-for="CurrentPrice" class="form-label">Giá giảm</label>
+                                <input asp-for="CurrentPrice" class="form-control" type="number" step="0.01" />
+                                <span asp-validation-for="CurrentPrice" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label asp-for="StockQuantity" class="form-label">Số lượng tồn kho *</label>
-                                <input asp-for="StockQuantity" class="form-control" type="number" min="0" required />
-                                <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                                <label asp-for="TotalStock" class="form-label">Số lượng tồn kho</label>
+                                <input asp-for="TotalStock" class="form-control" type="number" readonly />
+                                <span asp-validation-for="TotalStock" class="text-danger"></span>
+                                <small class="text-muted">Nhập thêm sách tại phần <strong>Quản lý Nhập Kho</strong></small>
                             </div>
                         </div>
                     </div>

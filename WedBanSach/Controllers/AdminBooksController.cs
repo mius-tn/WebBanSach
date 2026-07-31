@@ -80,6 +80,10 @@ public class AdminBooksController : Controller
                 try
                 {
                     book.CreatedAt = DateTime.Now;
+                    if (book.CurrentPrice <= 0)
+                    {
+                        book.CurrentPrice = book.OriginalPrice;
+                    }
                     _context.Books.Add(book);
                     await _context.SaveChangesAsync();
 
@@ -194,8 +198,77 @@ public class AdminBooksController : Controller
             {
                 try
                 {
-                    // Update book
-                    _context.Update(book);
+                    var dbBook = await _context.Books
+                        .FirstOrDefaultAsync(b => b.BookID == id);
+
+                    if (dbBook == null)
+                        return NotFound();
+
+                    var userName = HttpContext.Session.GetString("FullName") ?? "Admin";
+
+                    decimal newOriginalPrice = book.OriginalPrice;
+                    decimal newCurrentPrice = dbBook.IsPromotionActive ? dbBook.CurrentPrice : newOriginalPrice;
+
+                    // If not in promotion, CurrentPrice must be equal to OriginalPrice
+                    if (!dbBook.IsPromotionActive)
+                    {
+                        newCurrentPrice = newOriginalPrice;
+                    }
+                    else
+                    {
+                        // If promotion is active, they can edit the sale price (CurrentPrice in the form)
+                        newCurrentPrice = book.CurrentPrice > 0 ? book.CurrentPrice : dbBook.CurrentPrice;
+                        // Also update SalePrice if promotion is active
+                        dbBook.SalePrice = newCurrentPrice;
+                        // Recalculate SalePercent
+                        dbBook.SalePercent = newOriginalPrice > 0 
+                            ? (int)Math.Round(((newOriginalPrice - newCurrentPrice) / newOriginalPrice) * 100)
+                            : 0;
+                    }
+
+                    // Track OriginalPrice change
+                    if (dbBook.OriginalPrice != newOriginalPrice)
+                    {
+                        _context.PriceHistories.Add(new PriceHistory
+                        {
+                            BookID = id,
+                            OldPrice = dbBook.OriginalPrice,
+                            NewPrice = newOriginalPrice,
+                            ChangeType = "Manual",
+                            ChangedBy = userName,
+                            ChangedAt = DateTime.Now,
+                            Reason = "Cập nhật giá gốc"
+                        });
+                    }
+
+                    // Track CurrentPrice change
+                    if (dbBook.CurrentPrice != newCurrentPrice)
+                    {
+                        _context.PriceHistories.Add(new PriceHistory
+                        {
+                            BookID = id,
+                            OldPrice = dbBook.CurrentPrice,
+                            NewPrice = newCurrentPrice,
+                            ChangeType = "Manual",
+                            ChangedBy = userName,
+                            ChangedAt = DateTime.Now,
+                            Reason = "Cập nhật giá bán"
+                        });
+                    }
+
+                    // Update tracked fields
+                    dbBook.Title = book.Title;
+                    dbBook.ISBN = book.ISBN;
+                    dbBook.PublishYear = book.PublishYear;
+                    dbBook.Description = book.Description;
+                    dbBook.OriginalPrice = newOriginalPrice;
+                    dbBook.CurrentPrice = newCurrentPrice;
+                    dbBook.Weight = book.Weight;
+                    dbBook.PackageSize = book.PackageSize;
+                    dbBook.PageCount = book.PageCount;
+                    dbBook.CoverType = book.CoverType;
+                    dbBook.PublisherID = book.PublisherID;
+                    dbBook.Status = book.Status;
 
                     // Update authors
                     var existingAuthors = await _context.BookAuthors

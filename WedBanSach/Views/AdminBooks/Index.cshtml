@@ -60,7 +60,7 @@
                             </td>
                             <td>
                                 <strong>@book.Title</strong>
-                                @if (book.StockQuantity < 10)
+                                @if (book.TotalStock < 10)
                                 {
                                     <span class="badge bg-warning text-dark ms-1">Sắp hết</span>
                                 }
@@ -73,19 +73,19 @@
                                     : "-")
                             </td>
                             <td>
-                                @if (book.DiscountPrice.HasValue)
+                                @if (book.CurrentPrice < book.OriginalPrice)
                                 {
-                                    <span class="text-muted text-decoration-line-through">@string.Format("{0:N0}", book.Price)</span><br />
-                                    <span class="text-danger fw-bold">@string.Format("{0:N0}", book.DiscountPrice) VNĐ</span>
+                                    <span class="text-muted text-decoration-line-through">@string.Format("{0:N0}", book.OriginalPrice)</span><br />
+                                    <span class="text-danger fw-bold">@string.Format("{0:N0}", book.CurrentPrice) VNĐ</span>
                                 }
                                 else
                                 {
-                                    <span>@string.Format("{0:N0}", book.Price) VNĐ</span>
+                                    <span>@string.Format("{0:N0}", book.OriginalPrice) VNĐ</span>
                                 }
                             </td>
                             <td>
-                                <span class="badge @(book.StockQuantity < 10 ? "bg-warning" : "bg-success")">
-                                    @book.StockQuantity
+                                <span class="badge @(book.TotalStock < 10 ? "bg-warning" : "bg-success")">
+                                    @book.TotalStock
                                 </span>
                             </td>
                             <td>

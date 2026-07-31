@@ -1,0 +1,60 @@
+@model IEnumerable<WedBanSach.Models.PriceHistory>
+@{
+    ViewData["Title"] = "Lịch sử Giá Sản Phẩm";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Lịch sử Thay Đổi Giá</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin/Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item active">Lịch sử Giá</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <form asp-action="Index" method="get" class="d-flex align-items-center">
+                <i class="fas fa-history me-1"></i>
+                <span class="me-3">Bộ lọc:</span>
+                <select name="bookId" class="form-select form-select-sm w-auto d-inline-block me-2">
+                    <option value="">-- Tất cả Sản Phẩm --</option>
+                    @foreach (var b in ViewBag.Books)
+                    {
+                        var isSelected = (ViewBag.SelectedBookId != null && ViewBag.SelectedBookId == b.BookID) ? "selected" : "";
+                        <!option value="@b.BookID" @isSelected>@b.Title</!option>
+                    }
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">Lọc</button>
+            </form>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped" id="datatablesSimple">
+                <thead>
+                    <tr>
+                        <th>Ngày Thay Đổi</th>
+                        <th>Sản Phẩm</th>
+                        <th>Giá Cũ</th>
+                        <th>Giá Mới</th>
+                        <th>Loại Thay Đổi</th>
+                        <th>Người Thay Đổi</th>
+                        <th>Ghi Chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.ChangedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@item.Book?.Title</td>
+                            <td>@item.OldPrice.ToString("N0") VNĐ</td>
+                            <td>@item.NewPrice.ToString("N0") VNĐ</td>
+                            <td>@item.ChangeType</td>
+                            <td>@item.ChangedBy</td>
+                            <td>@item.Reason</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

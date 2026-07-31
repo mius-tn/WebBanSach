@@ -145,7 +145,7 @@
                                                     <img src="@imgUrl" class="rounded" style="width: 32px; height: 42px; object-fit: cover;" alt="@tb.Book.Title">
                                                     <div>
                                                         <div class="fw-bold text-truncate" style="max-width: 180px; font-size: 13px;">@tb.Book.Title</div>
-                                                        <div class="text-muted" style="font-size: 11px;">@string.Format("{0:N0}đ", tb.Book.Price)</div>
+                                                        <div class="text-muted" style="font-size: 11px;">@string.Format("{0:N0}đ", tb.Book.OriginalPrice)</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -349,9 +349,9 @@
                                 recommendedBooks.forEach(b => {
                                     const imgUrl = b.imageUrl || b.ImageUrl || '/images/default-book.png';
                                     const title = b.title || b.Title || 'Sách';
-                                    const price = b.price !== undefined ? b.price : (b.Price || 0);
-                                    const discountPrice = b.discountPrice !== undefined ? b.discountPrice : b.DiscountPrice;
-                                    const finalPrice = discountPrice ? discountPrice : price;
+                                    const price = book.OriginalPrice !== undefined ? book.OriginalPrice : (book.OriginalPrice || 0);
+                                    const CurrentPrice = b.CurrentPrice !== undefined ? b.CurrentPrice : b.CurrentPrice;
+                                    const finalPrice = CurrentPrice ? CurrentPrice : price;
                                     
                                     booksHtml += `
                                         <div class="card p-1 shadow-sm" style="width: 140px; font-size: 11px; border-color: rgba(233, 30, 99, 0.2);">

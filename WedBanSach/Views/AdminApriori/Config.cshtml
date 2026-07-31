@@ -1,0 +1,84 @@
+@model WedBanSach.Models.Apriori.AprioriConfig
+@{
+    ViewData["Title"] = "Apriori Configuration";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Cấu hình Thuật toán Apriori</h1>
+    
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Thông số Thuật toán</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Config" method="post">
+                <input type="hidden" asp-for="Id" />
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MinSupport" class="form-label">Minimum Support (0.01 = 1%)</label>
+                        <input asp-for="MinSupport" class="form-control" type="number" step="0.001" min="0" max="1" />
+                        <span asp-validation-for="MinSupport" class="text-danger"></span>
+                        <small class="form-text text-muted">Tỉ lệ đơn hàng tối thiểu có chứa tập sách (Quyết định tập nào là phổ biến).</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MinConfidence" class="form-label">Minimum Confidence (0.5 = 50%)</label>
+                        <input asp-for="MinConfidence" class="form-control" type="number" step="0.01" min="0" max="1" />
+                        <span asp-validation-for="MinConfidence" class="text-danger"></span>
+                        <small class="form-text text-muted">Xác suất mua sách B khi đã mua sách A.</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MinLift" class="form-label">Minimum Lift</label>
+                        <input asp-for="MinLift" class="form-control" type="number" step="0.1" min="0" />
+                        <span asp-validation-for="MinLift" class="text-danger"></span>
+                        <small class="form-text text-muted">Mức độ tương quan (Lift > 1: Có tương quan dương).</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MaxItemsetSize" class="form-label">Max Itemset Size</label>
+                        <input asp-for="MaxItemsetSize" class="form-control" type="number" min="2" max="10" />
+                        <span asp-validation-for="MaxItemsetSize" class="text-danger"></span>
+                        <small class="form-text text-muted">Giới hạn số lượng sách trong một tập hợp phân tích (VD: 5 sách).</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MinTransactionCount" class="form-label">Minimum Transactions</label>
+                        <input asp-for="MinTransactionCount" class="form-control" type="number" min="10" />
+                        <span asp-validation-for="MinTransactionCount" class="text-danger"></span>
+                        <small class="form-text text-muted">Số lượng đơn hàng tối thiểu cần thiết để chạy thuật toán.</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="TrainingIntervalHours" class="form-label">Training Interval (Hours)</label>
+                        <input asp-for="TrainingIntervalHours" class="form-control" type="number" min="1" />
+                        <span asp-validation-for="TrainingIntervalHours" class="text-danger"></span>
+                        <small class="form-text text-muted">Tần suất tự động huấn luyện (nếu bật AutoRetrain).</small>
+                    </div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input asp-for="AutoRetrain" class="form-check-input" />
+                    <label asp-for="AutoRetrain" class="form-check-label">Cho phép tự động huấn luyện (Auto Retrain)</label>
+                </div>
+
+                <div class="mb-3 d-none">
+                    <input asp-for="CacheTimeMinutes" class="form-control" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Lưu Cấu hình</button>
+                <a href="/Admin/Apriori" class="btn btn-secondary">Quay lại Dashboard</a>
+            </form>
+        </div>
+    </div>
+</div>

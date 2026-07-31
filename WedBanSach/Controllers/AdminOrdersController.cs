@@ -104,6 +104,18 @@ public class AdminOrdersController : Controller
                     payment.PaymentStatus = "Failed";
                 }
             }
+
+            if (oldStatus != "Cancelled" && oldStatus != "Completed")
+            {
+                // Free reserved stock
+                foreach (var detail in order.OrderDetails)
+                {
+                    if (detail.Book != null && detail.Book.ReservedStock >= detail.Quantity)
+                    {
+                        detail.Book.ReservedStock -= detail.Quantity;
+                    }
+                }
+            }
         }
 
         // Logic: Only update stock/sold when status changes TO "Completed"
@@ -115,8 +127,12 @@ public class AdminOrdersController : Controller
             {
                 if (detail.Book != null)
                 {
-                    detail.Book.StockQuantity -= detail.Quantity;
-                    detail.Book.SoldQuantity += detail.Quantity;
+                    detail.Book.TotalStock -= detail.Quantity;
+                    if (detail.Book.ReservedStock >= detail.Quantity)
+                    {
+                        detail.Book.ReservedStock -= detail.Quantity;
+                    }
+                    detail.Book.SoldStock += detail.Quantity;
 
                     // Add Inventory Log
                     var log = new Models.InventoryLog

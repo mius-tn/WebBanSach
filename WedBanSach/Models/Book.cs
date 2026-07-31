@@ -17,10 +17,19 @@ public class Book
 
     [Required]
     [Column(TypeName = "decimal(18,2)")]
-    public decimal Price { get; set; }
+    public decimal OriginalPrice { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal? DiscountPrice { get; set; }
+    public decimal CurrentPrice { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? SalePrice { get; set; }
+
+    public int? SalePercent { get; set; }
+
+    public DateTime? SaleStartDate { get; set; }
+    public DateTime? SaleEndDate { get; set; }
+    public bool IsPromotionActive { get; set; } = false;
 
     public string? Description { get; set; }
 
@@ -36,8 +45,14 @@ public class Book
     [StringLength(50)]
     public string? CoverType { get; set; }
 
-    public int StockQuantity { get; set; } = 0;
-    public int SoldQuantity { get; set; } = 0;
+    public int TotalStock { get; set; } = 0;
+    public int ReservedStock { get; set; } = 0;
+    public int SoldStock { get; set; } = 0;
+    public int MinimumStock { get; set; } = 20;
+
+    [NotMapped]
+    public int AvailableStock => TotalStock - ReservedStock;
+
     public int FaultyQuantity { get; set; } = 0;
 
     public int? PublisherID { get; set; }

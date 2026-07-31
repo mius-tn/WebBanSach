@@ -104,7 +104,7 @@ public class ReturnRequestController : Controller
             {
                 BookID = od.Book.BookID,
                 Title = od.Book.Title,
-                Price = od.UnitPrice ?? od.Book.Price,
+                Price = od.UnitPrice ?? od.Book.OriginalPrice,
                 QuantityBought = od.Quantity,
                 ImageUrl = od.Book.BookImages.FirstOrDefault(bi => bi.IsMain).ImageUrl 
                            ?? od.Book.BookImages.FirstOrDefault().ImageUrl 
@@ -140,7 +140,7 @@ public class ReturnRequestController : Controller
         {
             id = od.Book.BookID,
             title = od.Book.Title,
-            price = od.UnitPrice ?? od.Book.Price,
+            price = od.UnitPrice ?? od.Book.OriginalPrice,
             imageUrl = od.Book.BookImages.FirstOrDefault(bi => bi.IsMain)?.ImageUrl 
                        ?? od.Book.BookImages.FirstOrDefault()?.ImageUrl 
                        ?? "/images/default-book.png"

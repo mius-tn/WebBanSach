@@ -70,6 +70,13 @@ Trước khi bắt đầu test, bạn cần khởi tạo Roles và tài khoản 
    * Điền lý do, mô tả lỗi và upload hình ảnh minh họa tình trạng sách.
    * Gửi yêu cầu và theo dõi trạng thái.
 
+### 1.6. Flash Sale & Khuyến mãi (Mới)
+1. **Flash Sale:** Truy cập trang Flash Sale (nếu có banner/link) để xem các sản phẩm đang giảm giá với thời gian đếm ngược. Thử mua sách trong Flash Sale để kiểm tra giá giảm áp dụng trong giỏ hàng.
+2. **Campaign:** Kiểm tra các sự kiện khuyến mãi.
+
+### 1.7. Gợi ý mua kèm (Thuật toán Apriori)
+1. **Gợi ý mua kèm:** Xem chi tiết một cuốn sách, kiểm tra phần "Thường được mua cùng" (Frequently Bought Together) hiển thị các gợi ý mua kèm (nếu hệ thống đã train dữ liệu).
+
 ---
 
 ## 2. Hướng dẫn Test cho Admin
@@ -113,6 +120,17 @@ Sau khi đăng nhập, bạn sẽ được chuyển hướng tới trang Dashboa
    * Thử "Duyệt" (Approve) hoặc "Từ chối" (Reject).
    * Kiểm tra giao dịch hoàn tiền (RefundTransaction) nếu có.
 3. **Bảo hành (Warranty Requests):** Tương tự, vào quản lý và duyệt các yêu cầu bảo hành từ khách hàng.
+
+### 2.6. Quản lý Kho hàng & Nhập hàng (Inventory & Goods Receipts)
+1. **Kho hàng (Warehouse):** Xem danh sách tồn kho của từng sách.
+2. **Nhập hàng (Goods Receipts):** Tạo phiếu nhập hàng mới, thêm số lượng sách vào kho và kiểm tra xem tồn kho có tăng lên tương ứng không.
+
+### 2.7. Lịch sử giá (Price History)
+*   **Price History:** Kiểm tra sự biến động giá của sách (khi thay đổi giá sách, hệ thống lưu lại lịch sử ở bảng Price History).
+
+### 2.8. Quản lý Khuyến mãi & Apriori
+1. **Khuyến mãi (Promotion Campaigns):** Tạo chiến dịch Flash Sale hoặc Combo, thêm sách vào chiến dịch, thiết lập mức giảm giá và thời gian hiệu lực.
+2. **Thuật toán Apriori:** Truy cập Admin Apriori, thiết lập Minimum Support / Confidence, nhấn chạy (Train) mô hình dựa trên các hóa đơn cũ để sinh ra luật kết hợp (Association Rules). Kiểm tra luật sinh ra ở danh sách kết quả.
 
 ## 3. Lưu ý Fix lỗi (Troubleshooting)
 

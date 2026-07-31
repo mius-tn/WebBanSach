@@ -1,0 +1,126 @@
+@model WedBanSach.Models.GoodsReceipt
+@{
+    ViewData["Title"] = "Tạo Phiếu Nhập Kho";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Tạo Phiếu Nhập Kho</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin/Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Nhập kho</a></li>
+        <li class="breadcrumb-item active">Tạo mới</li>
+    </ol>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form asp-action="Create" method="post" id="receiptForm">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="SupplierName" class="form-label">Nhà Cung Cấp <span class="text-danger">*</span></label>
+                        <input asp-for="SupplierName" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Notes" class="form-label">Ghi Chú</label>
+                        <input asp-for="Notes" class="form-control" />
+                    </div>
+                </div>
+
+                <hr />
+                <h5>Chi Tiết Sản Phẩm</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="productTable">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá nhập</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody">
+                            <tr>
+                                <td>
+                                    <select name="BookIDs" class="form-select select2-books" required>
+                                        <option value="">-- Chọn Sản Phẩm --</option>
+                                        @foreach (var b in ViewBag.Books)
+                                        {
+                                            <option value="@b.BookID">@b.Title</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" name="Quantities" class="form-control" min="1" required />
+                                </td>
+                                <td>
+                                    <input type="number" name="UnitPrices" class="form-control" min="0" step="1000" required />
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger btn-sm btn-remove-row"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm mb-3" id="btnAddRow">Thêm Sản Phẩm</button>
+
+                <div class="text-end mt-3">
+                    <button type="submit" class="btn btn-primary">Hoàn tất Nhập Kho</button>
+                    <a asp-action="Index" class="btn btn-light">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            function initializeSelect2() {
+                // If you have select2 integrated, initialize it here
+                // $('.select2-books').select2({ theme: 'bootstrap-5' });
+            }
+            initializeSelect2();
+
+            $('#btnAddRow').click(function() {
+                var newRow = `
+                    <tr>
+                        <td>
+                            <select name="BookIDs" class="form-select select2-books" required>
+                                <option value="">-- Chọn Sản Phẩm --</option>
+                                @foreach (var b in ViewBag.Books)
+                                {
+                                    <option value="@b.BookID">@b.Title.Replace("'", "\\'")</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="Quantities" class="form-control" min="1" required />
+                        </td>
+                        <td>
+                            <input type="number" name="UnitPrices" class="form-control" min="0" step="1000" required />
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm btn-remove-row"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                $('#productTableBody').append(newRow);
+                initializeSelect2();
+            });
+
+            $(document).on('click', '.btn-remove-row', function() {
+                if ($('#productTableBody tr').length > 1) {
+                    $(this).closest('tr').remove();
+                } else {
+                    alert('Phải có ít nhất 1 sản phẩm!');
+                }
+            });
+        });
+    </script>
+}

@@ -47,9 +47,9 @@
             <div class="col-lg-5 mb-4 mb-lg-0">
                 <div class="position-relative mb-3 text-center border-soft p-2">
                     <img id="mainProductImage" src="@mainImage" class="img-fluid cursor-pointer" style="max-height: 450px; object-fit: contain;" alt="@Model.Title" onclick="openGallery(0)">
-                    @if (Model.DiscountPrice.HasValue && Model.DiscountPrice < Model.Price)
+                    @if (Model.CurrentPrice < Model.OriginalPrice && Model.CurrentPrice < Model.OriginalPrice)
                     {
-                        var discountPercent = (int)((1 - (Model.DiscountPrice.Value / Model.Price)) * 100);
+                        var discountPercent = (int)((1 - (Model.CurrentPrice / Model.OriginalPrice)) * 100);
                         <div class="position-absolute top-0 end-0 bg-danger text-white fw-bold px-3 py-2 rounded-circle shadow-sm" style="margin: 10px;">
                             -@discountPercent%
                         </div>
@@ -82,16 +82,34 @@
                     <form method="post" action="/Cart/AddToCart" class="flex-grow-1">
                         <input type="hidden" name="id" value="@Model.BookID" />
                         <input type="hidden" name="quantity" value="1" id="addToCartQuantity" />
-                        <button type="submit" class="btn btn-outline-danger w-100 fw-bold py-2 border-2" style="border-radius: 8px;">
-                            <i class="bi bi-cart-plus bg-transparent"></i> Thêm vào giỏ hàng
-                        </button>
+                        @if (Model.AvailableStock <= 0)
+                        {
+                            <button type="button" class="btn btn-outline-secondary w-100 fw-bold py-2 border-2" style="border-radius: 8px;" disabled>
+                                <i class="bi bi-cart-plus bg-transparent"></i> Thêm vào giỏ hàng
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-outline-danger w-100 fw-bold py-2 border-2" style="border-radius: 8px;">
+                                <i class="bi bi-cart-plus bg-transparent"></i> Thêm vào giỏ hàng
+                            </button>
+                        }
                     </form>
                     
                     <!-- Buy Now Form -->
                     <form method="get" asp-controller="Cart" asp-action="BuyNow" asp-route-id="@Model.BookID" class="flex-grow-1">
-                        <button type="submit" class="btn btn-danger w-100 fw-bold py-2" style="border-radius: 8px; background-color: #C92127; border: none;">
-                            Mua ngay
-                        </button>
+                        @if (Model.AvailableStock <= 0)
+                        {
+                            <button type="button" class="btn btn-secondary w-100 fw-bold py-2" style="border-radius: 8px; border: none;" disabled>
+                                Hết hàng
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-danger w-100 fw-bold py-2" style="border-radius: 8px; background-color: #C92127; border: none;">
+                                Mua ngay
+                            </button>
+                        }
                     </form>
                 </div>
 
@@ -156,25 +174,25 @@
                     </div>
                     <span class="text-muted small">(@(ViewBag.RatingCount ?? 0) đánh giá)</span>
                     <span class="text-muted mx-2">|</span>
-                    <span class="text-success small">Đã bán @Model.SoldQuantity</span>
+                    <span class="text-success small">Đã bán @Model.SoldStock</span>
                 </div>
 
                 <!-- Price Box -->
                 <div class="mb-4">
                     <div class="d-flex align-items-end gap-3 mb-2 p-3 rounded-3" style="background-color: #f8f9fa;">
-                        <span class="text-danger fw-bold display-6 mb-0">@((Model.DiscountPrice ?? Model.Price).ToString("#,##0")) đ</span>
-                        @if (Model.DiscountPrice.HasValue && Model.DiscountPrice < Model.Price)
+                        <span class="text-danger fw-bold display-6 mb-0">@((Model.CurrentPrice).ToString("#,##0")) đ</span>
+                        @if (Model.CurrentPrice < Model.OriginalPrice && Model.CurrentPrice < Model.OriginalPrice)
                         {
-                            var discountPercent = (int)((1 - (Model.DiscountPrice.Value / Model.Price)) * 100);
-                            <span class="text-muted text-decoration-line-through mb-2" style="font-size: 1.1rem;">@Model.Price.ToString("#,##0") đ</span>
+                            var discountPercent = (int)((1 - (Model.CurrentPrice / Model.OriginalPrice)) * 100);
+                            <span class="text-muted text-decoration-line-through mb-2" style="font-size: 1.1rem;">@Model.OriginalPrice.ToString("#,##0") đ</span>
                             <span class="badge bg-danger mb-2">-@discountPercent%</span>
                         }
                     </div>
                      <!-- Stock Status similar to image -->
                       <div class="alert alert-primary py-2 px-3 d-inline-block border-0 text-primary small fw-bold" style="background-color: #e3f2fd; border-radius: 8px;">
-                        @if (Model.StockQuantity > 0)
+                        @if (Model.TotalStock > 0)
                         {
-                            <span>Còn hàng: @Model.StockQuantity</span>
+                            <span>Còn hàng: @Model.TotalStock</span>
                         }
                         else
                         {
@@ -222,15 +240,62 @@
                 <div class="mb-4">
                     <h6 class="fw-bold mb-2">Số lượng:</h6>
                     <div class="input-group" style="width: 140px;">
-                        <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(-1)">-</button>
-                        <input type="text" class="form-control text-center" id="quantityDisplay" value="1" readonly>
-                        <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(1)">+</button>
+                        <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(-1)" @(Model.AvailableStock <= 0 ? "disabled" : "")>-</button>
+                        <input type="text" class="form-control text-center" id="quantityDisplay" value="@(Model.AvailableStock <= 0 ? "0" : "1")" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(1)" @(Model.AvailableStock <= 0 ? "disabled" : "")>+</button>
                     </div>
                 </div>
 
             </div>
         </div>
     </div>
+
+    <!-- KHÁCH HÀNG THƯỜNG MUA CÙNG (APRIORI) -->
+    @if (ViewBag.AprioriRecommendations != null)
+    {
+        var aprioriRecs = ViewBag.AprioriRecommendations as List<WedBanSach.ViewModels.BookRecommendation>;
+        if (aprioriRecs != null && aprioriRecs.Any())
+        {
+            <div class="bg-white rounded-3 p-4 shadow-sm mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0 text-danger"><i class="bi bi-cart-plus-fill me-2"></i>Thường được mua cùng</h5>
+                </div>
+                
+                <div class="d-flex flex-nowrap overflow-auto py-2" style="gap: 15px;">
+                    <!-- Sách hiện tại -->
+                    <div class="card h-100 border-0" style="min-width: 140px; max-width: 140px;">
+                        <img src="@(Model.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png")" class="card-img-top rounded" alt="Current book" style="height: 180px; object-fit: cover;">
+                        <div class="card-body p-2 text-center">
+                            <small class="d-block text-truncate fw-bold mb-1" title="@Model.Title">@Model.Title</small>
+                            <span class="text-danger fw-bold small">@((Model.CurrentPrice).ToString("#,##0")) đ</span>
+                        </div>
+                    </div>
+
+                    <!-- Dấu cộng -->
+                    <div class="d-flex align-items-center justify-content-center px-2">
+                        <i class="bi bi-plus text-muted" style="font-size: 2rem;"></i>
+                    </div>
+
+                    <!-- Các sách gợi ý -->
+                    @foreach (var rec in aprioriRecs)
+                    {
+                        <div class="card h-100 border-0 shadow-sm" style="min-width: 140px; max-width: 140px;">
+                            <a href="/chi-tiet-san-pham/@rec.BookId" class="text-decoration-none text-dark">
+                                <img src="@(rec.ImageUrl ?? "/images/default-book.png")" class="card-img-top rounded" alt="@rec.Title" style="height: 180px; object-fit: cover;">
+                                <div class="card-body p-2 text-center">
+                                    <small class="d-block text-truncate mb-1" title="@rec.Title">@rec.Title</small>
+                                    <span class="text-danger fw-bold small">@rec.Price.ToString("#,##0") đ</span>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-transparent border-0 p-2 pt-0 text-center">
+                                <button class="btn btn-sm btn-outline-danger w-100" onclick="addToCart(@rec.BookId, 1)">Thêm</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
 
     <!-- PRODUCT DETAILS TABLE & DESCRIPTION -->
     <div class="bg-white rounded-3 p-4 shadow-sm mb-4">
@@ -294,6 +359,7 @@
             }
         </div>
     </div>
+
 
     <!-- RATINGS & REVIEWS -->
     <div class="bg-white rounded-3 p-4 shadow-sm mb-4" id="reviews-section">
@@ -389,19 +455,19 @@
                                         <img src="@(rBook.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
                                              class="book-cover rounded-3 border" alt="@rBook.Title">
                                     </a>
-                                    @if (rBook.DiscountPrice.HasValue && rBook.DiscountPrice < rBook.Price)
+                                    @if (rBook.CurrentPrice < rBook.OriginalPrice && rBook.CurrentPrice < rBook.OriginalPrice)
                                     {
                                         <span class="position-absolute top-0 end-0 bg-danger text-white small fw-bold px-2 py-1 rounded-start" style="margin-top: 10px;">
-                                            -@( (int)((1 - (rBook.DiscountPrice.Value / rBook.Price)) * 100) )%
+                                            -@( (int)((1 - (rBook.CurrentPrice / rBook.OriginalPrice)) * 100) )%
                                         </span>
                                     }
                                 </div>
                                 <h6 class="book-title mb-1" style="font-size: 13px; height: 35px;"><a asp-controller="Books" asp-action="Details" asp-route-id="@rBook.BookID" class="text-decoration-none text-dark">@rBook.Title</a></h6>
                                 <div class="price-box gap-1 mb-0">
-                                    <span class="current-price text-danger fw-bold text-nowrap" style="font-size: 14px;">@((rBook.DiscountPrice ?? rBook.Price).ToString("#,##0")) đ</span>
-                                    @if(rBook.DiscountPrice.HasValue)
+                                    <span class="current-price text-danger fw-bold text-nowrap" style="font-size: 14px;">@((rBook.CurrentPrice).ToString("#,##0")) đ</span>
+                                    @if(rBook.CurrentPrice < rBook.OriginalPrice)
                                     {
-                                        <span class="original-price text-nowrap" style="font-size: 11px;">@rBook.Price.ToString("#,##0") đ</span>
+                                        <span class="original-price text-nowrap" style="font-size: 11px;">@rBook.OriginalPrice.ToString("#,##0") đ</span>
                                     }
                                 </div>
                             </div>
@@ -490,8 +556,8 @@
                 {
                     foreach (var rBook in relatedBooks)
                     {
-                        var discountPercent = rBook.DiscountPrice.HasValue && rBook.DiscountPrice < rBook.Price 
-                            ? (int)((1 - (rBook.DiscountPrice.Value / rBook.Price)) * 100) 
+                        var discountPercent = rBook.CurrentPrice < rBook.OriginalPrice && rBook.CurrentPrice < rBook.OriginalPrice 
+                            ? (int)((1 - (rBook.CurrentPrice / rBook.OriginalPrice)) * 100) 
                             : 0;
 
                         <div class="col-6 col-md-4 col-lg-2">
@@ -501,7 +567,13 @@
                                 <div class="position-relative overflow-hidden mb-2 text-center" style="height: 180px; border-radius: 8px;">
                                     <img src="@(rBook.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
                                          class="w-100 h-100 object-fit-contain img-zoom-hover" alt="@rBook.Title">
-                                    @if (discountPercent > 0)
+                                    @if (rBook.AvailableStock <= 0)
+                                    {
+                                        <span class="position-absolute top-0 start-0 bg-secondary text-white small fw-bold px-2 py-1" style="border-bottom-right-radius: 8px; font-size: 11px;">
+                                            Hết hàng
+                                        </span>
+                                    }
+                                    @if (discountPercent > 0 && rBook.AvailableStock > 0)
                                     {
                                         <span class="position-absolute top-0 end-0 bg-danger text-white small fw-bold px-2 py-1" style="border-bottom-left-radius: 8px; border-top-right-radius: 4px; font-size: 11px;">
                                             -@discountPercent%
@@ -518,16 +590,16 @@
                                         <div class="d-flex align-items-center gap-1 mb-2" style="font-size: 11px;">
                                             <span class="text-warning"><i class="bi bi-star-fill"></i></span>
                                             <span class="text-muted fw-bold">@(rBook.Reviews?.Any() == true ? rBook.Reviews.Average(r => r.Rating).ToString("0.0") : "5.0")</span>
-                                            <span class="text-muted">• Đã bán @(rBook.SoldQuantity > 0 ? rBook.SoldQuantity : (rBook.BookID * 7) % 50)</span>
+                                            <span class="text-muted">• Đã bán @(rBook.SoldStock > 0 ? rBook.SoldStock : (rBook.BookID * 7) % 50)</span>
                                         </div>
                                     </div>
                                     
                                     <!-- Price Box -->
                                     <div class="price-box d-flex flex-column">
-                                        <span class="text-danger fw-bold text-nowrap" style="font-size: 14px;">@((rBook.DiscountPrice ?? rBook.Price).ToString("#,##0")) đ</span>
-                                        @if (rBook.DiscountPrice.HasValue && rBook.DiscountPrice < rBook.Price)
+                                        <span class="text-danger fw-bold text-nowrap" style="font-size: 14px;">@((rBook.CurrentPrice).ToString("#,##0")) đ</span>
+                                        @if (rBook.CurrentPrice < rBook.OriginalPrice && rBook.CurrentPrice < rBook.OriginalPrice)
                                         {
-                                            <span class="text-muted text-decoration-line-through text-nowrap" style="font-size: 11px;">@rBook.Price.ToString("#,##0") đ</span>
+                                            <span class="text-muted text-decoration-line-through text-nowrap" style="font-size: 11px;">@rBook.OriginalPrice.ToString("#,##0") đ</span>
                                         }
                                     </div>
                                 </div>

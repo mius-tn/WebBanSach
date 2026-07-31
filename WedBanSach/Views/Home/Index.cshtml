@@ -37,6 +37,208 @@
 
 
 
+
+<!-- FLASH SALE SECTION -->
+@if (ViewBag.SaleBooks != null && ((List<WedBanSach.Models.Book>)ViewBag.SaleBooks).Any())
+{
+    <section class="container mb-5 mt-4">
+        <div class="p-4" style="background-color: #ff5b5b; border-radius: 14px; box-shadow: 0 4px 15px rgba(255, 91, 91, 0.2);">
+            
+            <!-- Flash Sale Header (Red background / Integrated style) -->
+            <div class="px-2 mb-3 d-flex align-items-center justify-content-between text-white flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <span class="flash-sale-logo" style="color: #fff; font-weight: 900; font-style: italic; font-size: 26px; letter-spacing: 0.5px;">
+                        <i class="bi bi-lightning-fill text-warning"></i> FLASH SALE
+                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-white-50 small fw-bold text-uppercase">Kết thúc trong</span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span id="hourBox" class="countdown-box bg-dark text-white">00</span>
+                            <span class="fw-bold text-white">:</span>
+                            <span id="minuteBox" class="countdown-box bg-dark text-white">00</span>
+                            <span class="fw-bold text-white">:</span>
+                            <span id="secondBox" class="countdown-box bg-dark text-white">00</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <a asp-controller="Books" asp-action="FlashSale" class="text-white text-decoration-none fw-bold small hover-yellow">
+                        Xem tất cả <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Flash Sale Products Carousel -->
+            <div class="position-relative">
+                <button class="btn btn-light shadow rounded-circle position-absolute start-0 top-50 translate-middle-y z-3 carousel-btn-prev" 
+                        style="left: -15px !important; width: 40px; height: 40px;" 
+                        onclick="scrollCarousel('flash-sale-scroll', -1)">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <div class="d-flex overflow-hidden product-scroll-wrapper" id="flash-sale-scroll" 
+                     style="scroll-behavior: smooth; gap: 15px; overflow-x: auto !important; scrollbar-width: none; -ms-overflow-style: none;">
+                    
+                    @foreach (var book in (List<WedBanSach.Models.Book>)ViewBag.SaleBooks)
+                    {
+                        var discountPercent = 0;
+                        if (book.CurrentPrice < book.OriginalPrice && book.OriginalPrice > 0)
+                        {
+                            discountPercent = (int)((1 - (book.CurrentPrice / book.OriginalPrice)) * 100);
+                        }
+                        else if (book.SalePercent.HasValue)
+                        {
+                            discountPercent = book.SalePercent.Value;
+                        }
+
+                        <div class="flex-shrink-0 bg-white p-3 rounded-3 shadow-sm position-relative d-flex flex-column justify-content-between" 
+                             style="width: calc(20% - 12px); min-width: 190px; border: 1px solid #f1f3f5;">
+                            
+                            <!-- Image -->
+                            <div class="position-relative overflow-hidden mb-3 text-center" style="height: 180px;">
+                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block h-100">
+                                    <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                         class="h-100 w-auto" style="object-fit: contain; max-width: 100%;" alt="@book.Title">
+                                </a>
+                                @if (discountPercent > 0)
+                                {
+                                    <span class="position-absolute top-0 start-0 bg-danger text-white small fw-bold px-2 py-1 rounded-end" style="z-index: 10;">
+                                        -@discountPercent%
+                                    </span>
+                                }
+                                <span class="position-absolute bottom-0 end-0 bg-dark text-white px-2 py-0.5 rounded-1" style="font-size: 10px; font-weight: bold; opacity: 0.85;">
+                                    Tập @(book.PublishYear ?? 1)
+                                </span>
+                            </div>
+
+                            <!-- Title & Prices -->
+                            <div class="flex-grow-1 d-flex flex-column justify-content-between">
+                                <h6 class="book-title-fs mb-2" title="@book.Title" 
+                                    style="font-size: 13px; height: 36px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.4; font-weight: 600;">
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="text-decoration-none text-dark hover-danger">
+                                        @book.Title
+                                    </a>
+                                </h6>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                                        <span class="text-danger fw-bold fs-6">@((book.CurrentPrice).ToString("#,##0")) đ</span>
+                                    </div>
+                                    @if (book.CurrentPrice < book.OriginalPrice)
+                                    {
+                                        <span class="text-muted text-decoration-line-through small" style="font-size: 11px;">@book.OriginalPrice.ToString("#,##0") đ</span>
+                                    }
+                                </div>
+
+                                <!-- Progress Bar (Shopee Style) -->
+                                @{
+                                    var soldCount = book.SoldStock > 0 ? book.SoldStock : new Random().Next(3, 15);
+                                    var maxProgress = book.TotalStock + soldCount;
+                                    var progressPercent = maxProgress > 0 ? (int)((double)soldCount / maxProgress * 100) : 0;
+                                    if (progressPercent < 15) progressPercent = 15; // Ensure some visual fill
+                                }
+                                <div class="position-relative w-100 mb-2" style="height: 18px; background-color: #ffd8d8; border-radius: 9px; overflow: hidden;">
+                                    <div class="h-100" style="background-color: #ff3b3b; border-radius: 9px; width: @progressPercent%;"></div>
+                                    <span class="position-absolute top-0 start-50 translate-middle-x text-white small fw-bold" 
+                                          style="font-size: 10px; line-height: 18px; z-index: 5; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                        Đã bán @soldCount
+                                    </span>
+                                </div>
+
+                                <!-- Add to Cart Button -->
+                                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid gap-2">
+                                    <input type="hidden" name="id" value="@book.BookID" />
+                                    @if (book.AvailableStock <= 0)
+                                    {
+                                        <button type="button" class="btn-flash-cart bg-secondary cursor-not-allowed d-flex align-items-center justify-content-center gap-1" disabled style="background-color: #6c757d !important;">
+                                            Hết hàng
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn-flash-cart d-flex align-items-center justify-content-center gap-1">
+                                            <i class="bi bi-cart-plus fs-6"></i> Thêm vào giỏ
+                                        </button>
+                                    }
+                                </form>
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+                <button class="btn btn-light shadow rounded-circle position-absolute end-0 top-50 translate-middle-y z-3 carousel-btn-next" 
+                        style="right: -15px !important; width: 40px; height: 40px;" 
+                        onclick="scrollCarousel('flash-sale-scroll', 1)">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+    </section>
+}
+
+<style>
+    .countdown-box {
+        background-color: #000;
+        color: #fff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 13px;
+        min-width: 26px;
+        display: inline-block;
+        text-align: center;
+    }
+    .hover-danger:hover {
+        color: #ff5b5b !important;
+    }
+    .icon-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease-in-out;
+        cursor: pointer;
+    }
+    .icon-circle:hover {
+        transform: translateY(-5px);
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const endDateStr = "@ViewBag.CampaignEndDate";
+        const endDate = new Date(endDateStr).getTime();
+        
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = endDate - now;
+            
+            if (distance < 0) {
+                document.getElementById("hourBox").innerText = "00";
+                document.getElementById("minuteBox").innerText = "00";
+                document.getElementById("secondBox").innerText = "00";
+                return;
+            }
+            
+            const hours = Math.floor(distance / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            document.getElementById("hourBox").innerText = String(hours).padStart(2, '0');
+            document.getElementById("minuteBox").innerText = String(minutes).padStart(2, '0');
+            document.getElementById("secondBox").innerText = String(seconds).padStart(2, '0');
+        }
+        
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    });
+</script>
+
 <!-- FEATURED BOOKS -->
 <section class="container mb-5">
     <div class="bg-white border-soft p-4 shadow-sm">
@@ -60,13 +262,19 @@
                             <div class="book-card h-100">
                                 <!-- Image -->
                                 <div class="position-relative overflow-hidden group-hover-img">
-                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block position-relative">
                                         <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
                                              class="book-cover" alt="@book.Title">
+                                        @if (book.AvailableStock <= 0)
+                                        {
+                                            <span class="position-absolute top-0 start-0 bg-secondary text-white small fw-bold px-2 py-1" style="z-index: 10; border-radius: 0 0 4px 0;">
+                                                Hết hàng
+                                            </span>
+                                        }
                                     </a>
-                                    @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
+                                    @if (book.AvailableStock > 0 && book.CurrentPrice < book.OriginalPrice)
                                     {
-                                        var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                        var discountPercent = (int)((1 - (book.CurrentPrice / book.OriginalPrice)) * 100);
                                         <span class="position-absolute top-0 start-0 bg-danger text-white small fw-bold px-2 py-1 rounded-end" style="z-index: 10;">
                                             -@discountPercent%
                                         </span>
@@ -88,19 +296,28 @@
                                     
                                     <div class="price-box mb-2">
                                         <span class="current-price text-nowrap" style="font-size: 16px;">
-                                            @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
+                                            @((book.CurrentPrice).ToString("#,##0")) ₫
                                         </span>
-                                        @if(book.DiscountPrice.HasValue)
+                                        @if(book.CurrentPrice < book.OriginalPrice)
                                         {
-                                             <span class="original-price text-nowrap" style="font-size: 12px;">@book.Price.ToString("#,##0") ₫</span>
+                                             <span class="original-price text-nowrap" style="font-size: 12px;">@book.OriginalPrice.ToString("#,##0") ₫</span>
                                         }
                                     </div>
                                     
                                     <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid gap-2">
                                         <input type="hidden" name="id" value="@book.BookID" />
-                                        <button type="submit" class="btn btn-sm btn-pink">
-                                           <i class="bi bi-cart-plus"></i> Thêm
-                                        </button>
+                                        @if (book.AvailableStock <= 0)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-secondary text-white" disabled>
+                                                Hết hàng
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-pink">
+                                                <i class="bi bi-cart-plus"></i> Thêm
+                                            </button>
+                                        }
                                     </form>
                                 </div>
                             </div>
@@ -139,13 +356,19 @@
                                     <div class="flex-shrink-0" style="width: calc(20% - 12px); min-width: 200px;"> <!-- 5 items per row approx -->
                                         <div class="book-card h-100">
                                             <div class="position-relative overflow-hidden group-hover-img">
-                                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block position-relative">
                                                     <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
                                                             class="book-cover" alt="@book.Title">
+                                                    @if (book.AvailableStock <= 0)
+                                                    {
+                                                        <span class="position-absolute top-0 start-0 bg-secondary text-white small fw-bold px-2 py-1" style="z-index: 10; border-radius: 0 0 4px 0;">
+                                                            Hết hàng
+                                                        </span>
+                                                    }
                                                 </a>
-                                                @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
+                                                @if (book.AvailableStock > 0 && book.CurrentPrice < book.OriginalPrice)
                                                 {
-                                                    var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                                    var discountPercent = (int)((1 - (book.CurrentPrice / book.OriginalPrice)) * 100);
                                                     <span class="position-absolute top-0 start-0 bg-danger text-white small fw-bold px-2 py-1 rounded-end" style="z-index: 10;">
                                                         -@discountPercent%
                                                     </span>
@@ -166,19 +389,28 @@
                                                 
                                                 <div class="price-box mb-2">
                                                     <span class="current-price" style="font-size: 16px;">
-                                                        @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
+                                                        @((book.CurrentPrice).ToString("#,##0")) ₫
                                                     </span>
-                                                    @if(book.DiscountPrice.HasValue)
+                                                    @if(book.CurrentPrice < book.OriginalPrice)
                                                     {
-                                                            <span class="original-price" style="font-size: 12px;">@book.Price.ToString("#,##0") ₫</span>
+                                                            <span class="original-price" style="font-size: 12px;">@book.OriginalPrice.ToString("#,##0") ₫</span>
                                                     }
                                                 </div>
                                                 
                                                 <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid gap-2">
                                                     <input type="hidden" name="id" value="@book.BookID" />
-                                                    <button type="submit" class="btn btn-sm btn-pink">
-                                                        <i class="bi bi-cart-plus"></i> Thêm
-                                                    </button>
+                                                    @if (book.AvailableStock <= 0)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-secondary text-white" disabled>
+                                                            Hết hàng
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="submit" class="btn btn-sm btn-pink">
+                                                            <i class="bi bi-cart-plus"></i> Thêm
+                                                        </button>
+                                                    }
                                                 </form>
                                             </div>
                                         </div>
@@ -192,6 +424,31 @@
                         </div>
                     </div>
                 </section>
+                @if (cat.Key.CategoryID == 1 || cat.Key.CategoryName.Equals("Văn Học", StringComparison.OrdinalIgnoreCase))
+                {
+                    <!-- BANNER GIỚI THIỆU SÁCH PHONG CÁCH RASCAL DOES NOT DREAM -->
+                    <section class="container mb-5">
+                        <a href="/gioi-thieu/hoi-chung-tuoi-thanh-xuan" class="d-block text-decoration-none">
+                            <div class="anime-promo-banner position-relative overflow-hidden p-4 d-flex align-items-center justify-content-between">
+                                <div class="position-absolute w-100 h-100 top-0 start-0" style="background-image: radial-gradient(circle at 80% 20%, rgba(255, 143, 163, 0.15) 0%, transparent 60%); pointer-events: none;"></div>
+                                <div class="promo-banner-content position-relative z-3">
+                                    <span class="badge mb-2 px-3 py-2 text-uppercase fw-bold letter-spacing-1" style="background: linear-gradient(90deg, #ff6b8b, #ff8fa3); color: #fff; border-radius: 50px;">Sự Kiện Đặc Biệt</span>
+                                    <h3 class="anime-promo-banner__title mb-2 fs-2">HỘI CHỨNG TUỔI THANH XUÂN</h3>
+                                    <p class="mb-3 fs-6 d-none d-md-block" style="color: #556080; font-weight: 500;">Đắm chìm vào câu chuyện tuổi trẻ đầy bí ẩn và cảm xúc. Khám phá vũ trụ của Hajime Kamoshida dưới định dạng Visual Novel độc quyền ngay tại website.</p>
+                                    <div class="d-inline-flex align-items-center gap-2 fw-bold" style="color: #ff6b8b !important;">
+                                        <span>Trải nghiệm ngay</span> <i class="bi bi-arrow-right-circle-fill fs-5" style="animation: bounce-right 1.5s infinite;"></i>
+                                    </div>
+                                </div>
+                                <div class="promo-banner-graphics d-none d-lg-block position-relative z-3" style="width: 260px; height: 160px;">
+                                    <div class="banner-floating-art" style="animation: banner-float 4s ease-in-out infinite alternate; width: 260px; height: 160px; position: relative;">
+                                        <img src="/uploads/books/13_b582e988-0d02-49dd-b114-dad5362e09ab.webp" class="rounded-3 shadow-lg" style="width: 110px; transform: rotate(-8deg); border: 2px solid rgba(255,255,255,0.7);" />
+                                        <img src="/uploads/books/13_757d7feb-aa24-407f-bef7-23ceae23cfff.webp" class="rounded-3 shadow-lg position-absolute" style="width: 100px; top: 15px; left: 80px; transform: rotate(10deg); border: 2px solid rgba(255,255,255,0.7); z-index: -1;" />
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </section>
+                }
             }
 
             <style>
@@ -209,6 +466,46 @@
                 }
                 @@media(max-width: 768px) {
                     .product-scroll-wrapper > div { width: calc(50% - 12px); } /* Mobile: 2 items */
+                }
+
+                /* Anime Promo Banner Styles */
+                .anime-promo-banner {
+                    position: relative;
+                    background: linear-gradient(135deg, rgba(235, 242, 255, 0.75) 0%, rgba(255, 238, 243, 0.75) 100%);
+                    border: 1px solid rgba(255, 255, 255, 0.9);
+                    box-shadow: 0 10px 30px rgba(163, 186, 224, 0.2);
+                    backdrop-filter: blur(10px);
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    border-radius: 16px;
+                }
+                .anime-promo-banner:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 20px 40px rgba(255, 143, 163, 0.18) !important;
+                    border-color: rgba(255, 143, 163, 0.3) !important;
+                }
+                .anime-promo-banner__title {
+                    background: linear-gradient(90deg, #4d63a1 0%, #ff6b8b 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    font-weight: 800;
+                    letter-spacing: 0.5px;
+                }
+                .banner-floating-art img {
+                    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .anime-promo-banner:hover .banner-floating-art img:first-child {
+                    transform: rotate(-12deg) scale(1.05) translateY(-5px);
+                }
+                .anime-promo-banner:hover .banner-floating-art img:last-child {
+                    transform: rotate(15deg) scale(1.05) translateY(-5px);
+                }
+                @@keyframes bounce-right {
+                    0%, 100% { transform: translateX(0); }
+                    50% { transform: translateX(5px); }
+                }
+                @@keyframes banner-float {
+                    0% { transform: translateY(0); }
+                    100% { transform: translateY(-10px); }
                 }
             </style>
 
@@ -275,9 +572,15 @@
                     <div class="flex-shrink-0" style="width: calc(20% - 12px); min-width: 200px;">
                         <div class="book-card h-100">
                                 <div class="position-relative">
-                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block position-relative">
                                         <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
-                                            class="book-cover" alt="@book.Title">
+                                             class="book-cover" alt="@book.Title">
+                                        @if (book.AvailableStock <= 0)
+                                        {
+                                            <span class="position-absolute top-0 start-0 bg-secondary text-white small fw-bold px-2 py-1" style="z-index: 10; border-radius: 0 0 4px 0;">
+                                                Hết hàng
+                                            </span>
+                                        }
                                     </a>
                                     <span class="position-absolute top-0 end-0 bg-success text-white small fw-bold px-2 py-1 rounded-start">NEW</span>
                                 </div>
@@ -287,8 +590,8 @@
                                     </a>
                                 </h6>
                                 <div class="price-box mb-2">
-                                    <span class="current-price text-dark">@book.Price.ToString("#,##0") ₫</span>
-                                </div>
+                                     <span class="current-price text-dark">@book.CurrentPrice.ToString("#,##0") ₫</span>
+                                 </div>
                                 <div class="d-grid">
                                 <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="btn btn-sm btn-outline-dark rounded-pill">Chi tiết</a>
                             </div>
@@ -319,13 +622,19 @@
                     <div class="col">
                         <div class="book-card h-100">
                             <div class="position-relative overflow-hidden group-hover-img">
-                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block position-relative">
                                     <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")"
                                             class="book-cover" alt="@book.Title">
+                                    @if (book.AvailableStock <= 0)
+                                    {
+                                        <span class="position-absolute top-0 start-0 bg-secondary text-white small fw-bold px-2 py-1" style="z-index: 10; border-radius: 0 0 4px 0;">
+                                            Hết hàng
+                                        </span>
+                                    }
                                 </a>
-                                @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
+                                @if (book.AvailableStock > 0 && book.CurrentPrice < book.OriginalPrice)
                                 {
-                                    var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                    var discountPercent = (int)((1 - (book.CurrentPrice / book.OriginalPrice)) * 100);
                                     <span class="position-absolute top-0 start-0 bg-danger text-white small fw-bold px-2 py-1 rounded-end" style="z-index: 10;">
                                         -@discountPercent%
                                     </span>
@@ -346,19 +655,28 @@
 
                                 <div class="price-box mb-2">
                                     <span class="current-price text-nowrap" style="font-size: 16px;">
-                                        @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
+                                        @((book.CurrentPrice).ToString("#,##0")) ₫
                                     </span>
-                                    @if (book.DiscountPrice.HasValue)
+                                    @if (book.CurrentPrice < book.OriginalPrice)
                                     {
-                                        <span class="original-price text-nowrap" style="font-size: 12px;">@book.Price.ToString("#,##0") ₫</span>
+                                        <span class="original-price text-nowrap" style="font-size: 12px;">@book.OriginalPrice.ToString("#,##0") ₫</span>
                                     }
                                 </div>
 
                                 <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid gap-2">
                                     <input type="hidden" name="id" value="@book.BookID" />
-                                    <button type="submit" class="btn btn-sm btn-pink">
-                                        <i class="bi bi-cart-plus"></i> Thêm
-                                    </button>
+                                    @if (book.AvailableStock <= 0)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-secondary text-white" disabled>
+                                            Hết hàng
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-pink">
+                                            <i class="bi bi-cart-plus"></i> Thêm
+                                        </button>
+                                    }
                                 </form>
                             </div>
                         </div>

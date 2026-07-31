@@ -1,0 +1,372 @@
+@model WedBanSach.ViewModels.FlashSaleViewModel
+@{
+    ViewData["Title"] = "⚡ Flash Sale - Săn Sách Giá Rẻ";
+    var now = DateTime.Now;
+    var selectedCampaign = Model.SelectedCampaign;
+    var isLive = selectedCampaign != null && selectedCampaign.IsActive && selectedCampaign.StartDate <= now && selectedCampaign.EndDate > now;
+    var isUpcoming = selectedCampaign != null && selectedCampaign.StartDate > now;
+}
+
+@{
+    // Helper to build URLs with active filters
+    string BuildFilterUrl(int? campaignId, string? sort, string? price, int? pageNum = 1)
+    {
+        var parts = new List<string>();
+        if (campaignId.HasValue) parts.Add($"campaignId={campaignId}");
+        if (!string.IsNullOrEmpty(sort)) parts.Add($"sortOrder={sort}");
+        if (!string.IsNullOrEmpty(price)) parts.Add($"priceRange={Uri.EscapeDataString(price)}");
+        if (pageNum.HasValue && pageNum.Value > 1) parts.Add($"page={pageNum}");
+        
+        return "/flash-sale" + (parts.Any() ? "?" + string.Join("&", parts) : "");
+    }
+}
+
+<!-- BREADCRUMB -->
+<div class="bg-light py-2 mb-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+                <li class="breadcrumb-item active fw-bold text-danger" aria-current="page">Flash Sale ⚡</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- 1. BANNER FLASH SALE -->
+    <div class="flash-sale-banner mb-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-4">
+        <div>
+            <div class="flash-sale-banner-title"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>FLASH SALE</div>
+            <div class="flash-sale-banner-subtitle">🔥 Cơ hội săn sách giá sốc - Số lượng có hạn!</div>
+        </div>
+        
+        @if (selectedCampaign != null)
+        {
+            <!-- COUNTDOWN TIMER -->
+            <div class="d-flex flex-column align-items-center align-items-md-end">
+                <span class="fs-countdown-text text-white fw-bold mb-2 small text-uppercase">
+                    @(isLive ? "KẾT THÚC SAU" : (isUpcoming ? "BẮT ĐẦU SAU" : "ĐÃ KẾT THÚC"))
+                </span>
+                <div class="fs-countdown-wrapper">
+                    <div class="fs-countdown-box">
+                        <span id="cd-days">00</span>
+                        <span class="fs-countdown-label">Ngày</span>
+                    </div>
+                    <span class="fs-countdown-sep">:</span>
+                    <div class="fs-countdown-box">
+                        <span id="cd-hours">00</span>
+                        <span class="fs-countdown-label">Giờ</span>
+                    </div>
+                    <span class="fs-countdown-sep">:</span>
+                    <div class="fs-countdown-box">
+                        <span id="cd-minutes">00</span>
+                        <span class="fs-countdown-label">Phút</span>
+                    </div>
+                    <span class="fs-countdown-sep">:</span>
+                    <div class="fs-countdown-box">
+                        <span id="cd-seconds">00</span>
+                        <span class="fs-countdown-label">Giây</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- 2. CAMPAIGN TABS -->
+    @if (Model.AllCampaigns != null && Model.AllCampaigns.Any())
+    {
+        <div class="flash-sale-tabs mb-4">
+            @foreach (var campaign in Model.AllCampaigns)
+            {
+                var isCurrent = Model.SelectedCampaignId == campaign.CampaignID;
+                var isCampLive = campaign.IsActive && campaign.StartDate <= now && campaign.EndDate > now;
+                var isCampUpcoming = campaign.StartDate > now;
+                
+                string tabStateClass = "";
+                string badgeText = "";
+                string badgeClass = "";
+                if (isCampLive)
+                {
+                    tabStateClass = "live-tab";
+                    badgeText = "Đang diễn ra";
+                    badgeClass = "live";
+                }
+                else if (isCampUpcoming)
+                {
+                    tabStateClass = "upcoming-tab";
+                    badgeText = "Sắp diễn ra";
+                    badgeClass = "upcoming";
+                }
+                else
+                {
+                    tabStateClass = "ended";
+                    badgeText = "Đã kết thúc";
+                    badgeClass = "ended-badge";
+                }
+                
+                <a href="@BuildFilterUrl(campaign.CampaignID, Model.SortOrder, Model.PriceRange)" 
+                   class="flash-sale-tab @(isCurrent ? "active" : "") @tabStateClass">
+                    <div class="flash-sale-tab-name">@campaign.Name</div>
+                    <div class="flash-sale-tab-time">@campaign.StartDate.ToString("HH:mm") - @campaign.EndDate.ToString("HH:mm")</div>
+                    <span class="flash-sale-tab-badge @badgeClass">@badgeText</span>
+                </a>
+            }
+        </div>
+    }
+
+    <!-- 3. TOOLBAR (PRICE PILLS & SORTING) -->
+    <div class="flash-sale-toolbar mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <!-- Price Filters -->
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="small fw-bold text-muted me-2">Chọn mức giá:</span>
+            <a href="@BuildFilterUrl(Model.SelectedCampaignId, Model.SortOrder, "")" class="fs-price-pill @(string.IsNullOrEmpty(Model.PriceRange) ? "active" : "")">Tất cả</a>
+            <a href="@BuildFilterUrl(Model.SelectedCampaignId, Model.SortOrder, "0-150000")" class="fs-price-pill @(Model.PriceRange == "0-150000" ? "active" : "")">Dưới 150k</a>
+            <a href="@BuildFilterUrl(Model.SelectedCampaignId, Model.SortOrder, "150000-300000")" class="fs-price-pill @(Model.PriceRange == "150000-300000" ? "active" : "")">150k - 300k</a>
+            <a href="@BuildFilterUrl(Model.SelectedCampaignId, Model.SortOrder, "300000-500000")" class="fs-price-pill @(Model.PriceRange == "300000-500000" ? "active" : "")">300k - 500k</a>
+            <a href="@BuildFilterUrl(Model.SelectedCampaignId, Model.SortOrder, "500000-")" class="fs-price-pill @(Model.PriceRange == "500000-" ? "active" : "")">Trên 500k</a>
+        </div>
+
+        <!-- Sorting Options -->
+        <div class="d-flex align-items-center gap-2">
+            <span class="small fw-bold text-muted text-nowrap">Sắp xếp:</span>
+            <select class="form-select form-select-sm" style="width: 180px;" onchange="window.location.href = this.value;">
+                <option value="@BuildFilterUrl(Model.SelectedCampaignId, "best_selling", Model.PriceRange)" selected="@(string.IsNullOrEmpty(Model.SortOrder) || Model.SortOrder == "best_selling")">Bán Chạy Nhất</option>
+                <option value="@BuildFilterUrl(Model.SelectedCampaignId, "discount_desc", Model.PriceRange)" selected="@(Model.SortOrder == "discount_desc")">Giảm Nhiều Nhất</option>
+                <option value="@BuildFilterUrl(Model.SelectedCampaignId, "price_asc", Model.PriceRange)" selected="@(Model.SortOrder == "price_asc")">Giá Thấp → Cao</option>
+                <option value="@BuildFilterUrl(Model.SelectedCampaignId, "price_desc", Model.PriceRange)" selected="@(Model.SortOrder == "price_desc")">Giá Cao → Thấp</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 4. PRODUCT GRID -->
+    @if (Model.Books != null && Model.Books.Any())
+    {
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 mb-5">
+            @foreach (var book in Model.Books)
+            {
+                <div class="col">
+                    <div class="book-card flash-sale-card bg-white">
+                        <div class="card-img-wrap">
+                            <!-- Discount Badge -->
+                            @if (book.OriginalPrice > 0 && book.CurrentPrice < book.OriginalPrice)
+                            {
+                                var discountPercent = (int)((1 - (book.CurrentPrice / book.OriginalPrice)) * 100);
+                                <span class="discount-badge">-@discountPercent%</span>
+                            }
+                            
+                            <!-- Image -->
+                            <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
+                                     alt="@book.Title" class="img-fluid" />
+                            </a>
+                        </div>
+                        
+                        <div class="card-body">
+                            <!-- Title -->
+                            <h6 class="card-title">
+                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID">@book.Title</a>
+                            </h6>
+                            
+                            <!-- Rating -->
+                            @{
+                                double averageRating = 0;
+                                int ratingCount = 0;
+                                if (book.Reviews != null && book.Reviews.Any())
+                                {
+                                    averageRating = book.Reviews.Average(r => r.Rating);
+                                    ratingCount = book.Reviews.Count;
+                                }
+                            }
+                            <div class="d-flex text-warning small mb-2">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= Math.Round(averageRating))
+                                    {
+                                        <i class="bi bi-star-fill text-warning" style="font-size: 11px;"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-star text-secondary" style="font-size: 11px;"></i>
+                                    }
+                                }
+                                <span class="text-muted ms-1" style="font-size: 10px;">(@ratingCount)</span>
+                            </div>
+                            
+                            <!-- Price Box -->
+                            <div class="d-flex align-items-baseline gap-2 mb-3 flex-wrap">
+                                <span class="sale-price">@book.CurrentPrice.ToString("#,##0") ₫</span>
+                                @if (book.CurrentPrice < book.OriginalPrice)
+                                {
+                                    <span class="original-price">@book.OriginalPrice.ToString("#,##0") ₫</span>
+                                }
+                            </div>
+                            
+                            <!-- Shopee Progress Bar -->
+                            @{
+                                var totalStockPool = book.SoldStock + book.AvailableStock;
+                                var progressPercent = totalStockPool > 0 ? (book.SoldStock * 100) / totalStockPool : 0;
+                                if (book.SoldStock > 0 && progressPercent < 15)
+                                {
+                                    progressPercent = 15; // Visual minimum for text display
+                                }
+                                var isSoldOut = book.AvailableStock <= 0;
+                            }
+                            <div class="flash-sale-progress mb-3">
+                                <div class="flash-sale-progress-fill" style="width: @(isSoldOut ? "100" : progressPercent.ToString())%;"></div>
+                                <span class="flash-sale-progress-text">
+                                    @if (isSoldOut)
+                                    {
+                                        <text>Hết hàng</text>
+                                    }
+                                    else if (progressPercent >= 90)
+                                    {
+                                        <text>Sắp cháy hàng</text>
+                                    }
+                                    else if (book.SoldStock > 0)
+                                    {
+                                        <text>Đã bán @book.SoldStock</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Vừa mở bán</text>
+                                    }
+                                </span>
+                            </div>
+                            
+                            <!-- Add to cart -->
+                            @if (!isSoldOut && !isUpcoming)
+                            {
+                                <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                                    <input type="hidden" name="id" value="@book.BookID" />
+                                    <button type="submit" class="btn-flash-cart">
+                                        <i class="bi bi-cart-plus me-1"></i> Thêm vào giỏ
+                                    </button>
+                                </form>
+                            }
+                            else if (isUpcoming)
+                            {
+                                <button type="button" class="btn-flash-cart bg-secondary cursor-not-allowed" disabled>
+                                    <i class="bi bi-clock me-1"></i> Chờ mở bán
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn-flash-cart bg-secondary cursor-not-allowed" disabled>
+                                    Hết hàng
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <!-- 5. PAGINATION -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="d-flex justify-content-center">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        <!-- Previous Button -->
+                        <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@(Model.CurrentPage > 1 ? BuildFilterUrl(Model.SelectedCampaignId, Model.SortOrder, Model.PriceRange, Model.CurrentPage - 1) : "#")">&lt;</a>
+                        </li>
+                        
+                        <!-- Page Numbers -->
+                        @{
+                            int startPage = Math.Max(1, Model.CurrentPage - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 2);
+                            
+                            if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link text-dark" href="@BuildFilterUrl(Model.SelectedCampaignId, Model.SortOrder, Model.PriceRange, 1)">1</a>
+                                </li>
+                                if (startPage > 2)
+                                {
+                                    <li class="page-item disabled"><span class="page-link text-dark">...</span></li>
+                                }
+                            }
+                            
+                            for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link @(i == Model.CurrentPage ? "bg-danger border-danger text-white" : "text-dark")" 
+                                       href="@BuildFilterUrl(Model.SelectedCampaignId, Model.SortOrder, Model.PriceRange, i)">@i</a>
+                                </li>
+                            }
+                            
+                            if (endPage < Model.TotalPages)
+                            {
+                                if (endPage < Model.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled"><span class="page-link text-dark">...</span></li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link text-dark" href="@BuildFilterUrl(Model.SelectedCampaignId, Model.SortOrder, Model.PriceRange, Model.TotalPages)">@Model.TotalPages</a>
+                                </li>
+                            }
+                        }
+                        
+                        <!-- Next Button -->
+                        <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link text-dark" href="@(Model.CurrentPage < Model.TotalPages ? BuildFilterUrl(Model.SelectedCampaignId, Model.SortOrder, Model.PriceRange, Model.CurrentPage + 1) : "#")">&gt;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- 6. EMPTY STATE -->
+        <div class="flash-sale-empty my-5">
+            <i class="bi bi-lightning-charge text-muted"></i>
+            <h5 class="fw-bold mt-3 text-dark">Chưa có sản phẩm Flash Sale nào</h5>
+            <p class="text-muted small">Hiện tại chưa có chiến dịch giảm giá nào phù hợp với bộ lọc của bạn.</p>
+            <a href="/" class="btn btn-danger btn-pink mt-3 px-4 py-2 small fw-bold">Tiếp tục mua sắm</a>
+        </div>
+    }
+</div>
+
+@if (selectedCampaign != null)
+{
+    var targetDate = selectedCampaign.StartDate > DateTime.Now ? selectedCampaign.StartDate : selectedCampaign.EndDate;
+    var targetISO = targetDate.ToString("yyyy-MM-ddTHH:mm:ss");
+    
+    <script>
+        (function () {
+            var targetTime = new Date('@targetISO').getTime();
+            
+            function updateCountdown() {
+                var now = new Date().getTime();
+                var diff = targetTime - now;
+                
+                if (diff <= 0) {
+                    clearInterval(interval);
+                    location.reload();
+                    return;
+                }
+                
+                var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                var dEl = document.getElementById('cd-days');
+                var hEl = document.getElementById('cd-hours');
+                var mEl = document.getElementById('cd-minutes');
+                var sEl = document.getElementById('cd-seconds');
+                
+                if (dEl) dEl.textContent = String(days).padStart(2, '0');
+                if (hEl) hEl.textContent = String(hours).padStart(2, '0');
+                if (mEl) mEl.textContent = String(minutes).padStart(2, '0');
+                if (sEl) sEl.textContent = String(seconds).padStart(2, '0');
+            }
+            
+            updateCountdown();
+            var interval = setInterval(updateCountdown, 1000);
+        })();
+    </script>
+}

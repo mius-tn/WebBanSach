@@ -398,9 +398,20 @@
                     }
                 }
                 
-                // Show loading
+                // Show loading with cinematic click feedback (Phase 1)
                 const btn = $(this).find('button[type="submit"]');
-                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang đặt hàng...');
+                btn.css({
+                    'transform': 'scale(0.95)',
+                    'box-shadow': '0 0 15px rgba(228, 0, 127, 0.6)',
+                    'transition': 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)'
+                });
+                btn.prop('disabled', true).text('ĐANG XỬ LÝ...');
+                
+                setTimeout(() => {
+                    btn.css({
+                        'transform': 'scale(1)'
+                    });
+                }, 300);
                 return true;
             });
 

@@ -1,0 +1,65 @@
+@model WedBanSach.Models.GoodsReceipt
+@{
+    ViewData["Title"] = "Chi tiết Phiếu Nhập";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Chi tiết Phiếu Nhập #@Model.ReceiptID</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin/Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Nhập kho</a></li>
+        <li class="breadcrumb-item active">Chi tiết</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Thông tin Phiếu Nhập
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Mã Phiếu:</strong> #@Model.ReceiptID</p>
+                    <p><strong>Nhà Cung Cấp:</strong> @(Model.SupplierName ?? "N/A")</p>
+                    <p><strong>Ngày Nhập:</strong> @Model.EntryDate.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Người Nhập:</strong> @Model.EnteredBy</p>
+                    <p><strong>Ghi chú:</strong> @Model.Notes</p>
+                </div>
+            </div>
+            
+            <h5 class="mt-4">Chi Tiết Sản Phẩm</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá nhập</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int stt = 1; }
+                    @foreach (var detail in Model.GoodsReceiptDetails)
+                    {
+                        <tr>
+                            <td>@(stt++)</td>
+                            <td>@detail.Book?.Title</td>
+                            <td>@detail.Quantity</td>
+                            <td>@detail.UnitPrice.ToString("N0") VNĐ</td>
+                            <td>@((detail.Quantity * detail.UnitPrice).ToString("N0")) VNĐ</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4" class="text-end">Tổng Cộng:</th>
+                        <th>@Model.TotalAmount.ToString("N0") VNĐ</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

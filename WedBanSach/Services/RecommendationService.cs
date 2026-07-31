@@ -17,7 +17,7 @@ namespace WedBanSach.Services;
 ///   [35%] Thể loại yêu thích  (FavoriteGenres)
 ///   [30%] Tác giả yêu thích   (FavoriteAuthors)
 ///   [20%] Lịch sử mua hàng    (OrderDetails → cùng thể loại)
-///   [10%] Độ phổ biến          (SoldQuantity chuẩn hóa log)
+///   [10%] Độ phổ biến          (SoldStock chuẩn hóa log)
 ///   [5%]  Phù hợp khoảng giá  (PreferredPriceRange)
 /// </summary>
 public class RecommendationService
@@ -39,7 +39,7 @@ public class RecommendationService
             return await _context.Books
                 .Include(b => b.BookImages)
                 .Where(b => b.Status == "Active")
-                .OrderByDescending(b => b.SoldQuantity)
+                .OrderByDescending(b => b.SoldStock)
                 .Take(maxResults)
                 .ToListAsync();
         }
@@ -93,8 +93,8 @@ public class RecommendationService
         if (!allBooks.Any())
             return new List<Book>();
 
-        // ── Chuẩn hóa SoldQuantity (log scale để tránh outlier) ──────────
-        int maxSold = allBooks.Max(b => b.SoldQuantity);
+        // ── Chuẩn hóa SoldStock (log scale để tránh outlier) ──────────
+        int maxSold = allBooks.Max(b => b.SoldStock);
         if (maxSold == 0) maxSold = 1;
 
         // ── Load thông tin người dùng ─────────────────────────────────────
@@ -180,10 +180,10 @@ public class RecommendationService
 
             // [10%] Tín hiệu 4: Độ phổ biến — log(1+sold) / log(1+max)
             // Dùng log để tránh sách bestseller "nuốt" hết điểm
-            double s_popular = Math.Log10(1 + b.SoldQuantity) / Math.Log10(1 + maxSold);
+            double s_popular = Math.Log10(1 + b.SoldStock) / Math.Log10(1 + maxSold);
 
             // [5%] Tín hiệu 5: Phù hợp khoảng giá mong muốn
-            decimal effectivePrice = b.DiscountPrice ?? b.Price;
+            decimal effectivePrice = b.CurrentPrice;
             double s_price = (effectivePrice >= priceRange.min && effectivePrice <= priceRange.max)
                 ? 1.0 : 0.0;
 
@@ -214,7 +214,7 @@ public class RecommendationService
             var existingIds = recommendedBooks.Select(b => b.BookID).ToHashSet();
             var bestsellers = allBooks
                 .Where(b => !existingIds.Contains(b.BookID))
-                .OrderByDescending(b => b.SoldQuantity)
+                .OrderByDescending(b => b.SoldStock)
                 .Take(needed)
                 .ToList();
             recommendedBooks.AddRange(bestsellers);

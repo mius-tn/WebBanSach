@@ -60,7 +60,7 @@ public class HomeController : Controller
             .Where(b => b.Status == "Active");
 
         var featuredBooks = await booksQuery
-            .OrderByDescending(b => b.DiscountPrice.HasValue ? (b.Price - b.DiscountPrice.Value) : 0) // prioritize big discounts
+            .OrderByDescending(b => b.CurrentPrice < b.OriginalPrice ? (b.OriginalPrice - b.CurrentPrice) : 0) // prioritize big discounts
             .Take(15)
             .ToListAsync();
 
@@ -97,6 +97,35 @@ public class HomeController : Controller
             .OrderBy(b => Guid.NewGuid())
             .Take(30)
             .ToListAsync();
+
+        var activeCampaign = await _context.PromotionCampaigns
+            .Include(c => c.CampaignBooks)
+                .ThenInclude(cb => cb.Book)
+                    .ThenInclude(b => b.BookImages)
+            .FirstOrDefaultAsync(c => c.IsActive && c.StartDate <= DateTime.Now && c.EndDate > DateTime.Now);
+
+        List<Book> saleBooks = new List<Book>();
+        if (activeCampaign != null)
+        {
+            saleBooks = activeCampaign.CampaignBooks.Select(cb => cb.Book).Where(b => b.Status == "Active").ToList();
+            ViewBag.CampaignName = activeCampaign.Name;
+            ViewBag.CampaignEndDate = activeCampaign.EndDate.ToString("yyyy-MM-ddTHH:mm:ss");
+        }
+        else
+        {
+            // Fallback: Get books that are currently on discount
+            saleBooks = await _context.Books
+                .Include(b => b.BookImages)
+                .Where(b => b.Status == "Active" && (b.IsPromotionActive || b.CurrentPrice < b.OriginalPrice))
+                .Take(10)
+                .ToListAsync();
+            
+            ViewBag.CampaignName = "FLASH SALE";
+            // Default countdown: end of today
+            ViewBag.CampaignEndDate = DateTime.Today.AddDays(1).ToString("yyyy-MM-ddTHH:mm:ss");
+        }
+
+        ViewBag.SaleBooks = saleBooks;
 
         var viewModel = new HomeViewModel
         {

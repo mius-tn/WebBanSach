@@ -55,10 +55,35 @@
                 <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Cảnh báo</h5>
             </div>
             <div class="card-body">
-                <div class="alert alert-warning">
+                <div class="alert alert-warning mb-3">
                     <i class="bi bi-box-seam"></i>
-                    <strong>@ViewBag.Stats.LowStockBooks</strong> sách sắp hết hàng (tồn kho < 10)
+                    <strong>@ViewBag.Stats.LowStockBooks</strong> sách sắp hết hàng (<= Tồn kho tối thiểu)
                 </div>
+                
+                @if (ViewBag.LowStockBooksList != null)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Tồn kho</th>
+                                    <th>Tối thiểu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var book in ViewBag.LowStockBooksList)
+                                {
+                                    <tr>
+                                        <td>@book.Title</td>
+                                        <td class="text-danger fw-bold">@book.TotalStock</td>
+                                        <td>@book.MinimumStock</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -91,7 +116,7 @@
                                     <td>@index</td>
                                     <td>@item.Book.Title</td>
                                     <td><span class="badge bg-primary">@item.TotalSold</span></td>
-                                    <td>@string.Format("{0:N0}", item.Book.Price * item.TotalSold) VNĐ</td>
+                                    <td>@string.Format("{0:N0}", item.Book.OriginalPrice * item.TotalSold) VNĐ</td>
                                 </tr>
                                 index++;
                             }

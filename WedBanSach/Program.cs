@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WedBanSach.Data;
+using Hangfire;
 
 namespace WedBanSach
 {
@@ -36,11 +37,26 @@ namespace WedBanSach
             builder.Services.AddScoped<WedBanSach.Services.IPolicyService, WedBanSach.Services.PolicyService>();
             builder.Services.AddScoped<WedBanSach.Services.IReturnRequestService, WedBanSach.Services.ReturnRequestService>();
             builder.Services.AddScoped<WedBanSach.Services.IWarrantyRequestService, WedBanSach.Services.WarrantyRequestService>();
+            builder.Services.AddScoped<WedBanSach.Repositories.IAprioriRepository, WedBanSach.Repositories.AprioriRepository>();
+            builder.Services.AddScoped<WedBanSach.Services.Apriori.IAprioriService, WedBanSach.Services.Apriori.AprioriService>();
             
             // AI Services Registration
             builder.Services.AddHttpClient<WedBanSach.Services.AIService>();
             builder.Services.AddScoped<WedBanSach.Services.RecommendationService>();
             builder.Services.AddScoped<WedBanSach.Services.ChatbotService>();
+
+            // Configure Hangfire
+            builder.Services.AddHangfire(configuration => configuration
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+            
+            builder.Services.AddHangfireServer();
+            
+            // Register Jobs
+            builder.Services.AddScoped<WedBanSach.Jobs.CheckPromotionExpirationJob>();
+            builder.Services.AddScoped<WedBanSach.Jobs.AprioriTrainingJob>();
 
             var app = builder.Build();
 
@@ -63,6 +79,23 @@ namespace WedBanSach
 
             app.MapRazorPages();
             app.MapHub<WedBanSach.Hubs.ChatHub>("/chatHub");
+
+            // Configure Hangfire Dashboard
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                // TODO: Add authorization filter for Hangfire dashboard
+            });
+
+            // Register recurring jobs
+            RecurringJob.AddOrUpdate<WedBanSach.Jobs.CheckPromotionExpirationJob>(
+                "check-promotion-expiration",
+                job => job.ExecuteAsync(),
+                Cron.Hourly);
+
+            RecurringJob.AddOrUpdate<WedBanSach.Jobs.AprioriTrainingJob>(
+                "apriori-auto-training",
+                job => job.ExecuteAsync(),
+                Cron.Hourly); // Job runs hourly, but internally checks TrainingIntervalHours
 
             // AUTOMATIC DATABASE FIX: Check and Create UserAddresses Table if missing
             using (var scope = app.Services.CreateScope())
@@ -322,6 +355,106 @@ namespace WedBanSach
                             context.Database.ExecuteSqlRaw(sql);
                             Console.WriteLine("Auto-Fix: Created 'CustomerPreferences' table.");
                         }
+
+                        // Auto-Fix: Create Apriori Tables if missing
+                        var aprioriExists = context.Database.SqlQueryRaw<int>(
+                            "SELECT CASE WHEN OBJECT_ID('dbo.AprioriConfigs', 'U') IS NOT NULL THEN 1 ELSE 0 END")
+                            .AsEnumerable().FirstOrDefault() == 1;
+
+                        if (!aprioriExists)
+                        {
+                            string sql = @"
+                                CREATE TABLE [dbo].[AprioriConfigs](
+                                    [Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                                    [MinSupport] [float] NOT NULL DEFAULT 0.01,
+                                    [MinConfidence] [float] NOT NULL DEFAULT 0.5,
+                                    [MinLift] [float] NOT NULL DEFAULT 1.0,
+                                    [MaxItemsetSize] [int] NOT NULL DEFAULT 5,
+                                    [MinTransactionCount] [int] NOT NULL DEFAULT 50,
+                                    [AutoRetrain] [bit] NOT NULL DEFAULT 1,
+                                    [TrainingIntervalHours] [int] NOT NULL DEFAULT 24,
+                                    [CacheTimeMinutes] [int] NOT NULL DEFAULT 60
+                                );
+
+                                CREATE TABLE [dbo].[AprioriTrainingHistories](
+                                    [Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                                    [StartTime] [datetime] NOT NULL DEFAULT GETDATE(),
+                                    [EndTime] [datetime] NULL,
+                                    [Status] [nvarchar](50) NOT NULL DEFAULT 'Running',
+                                    [TotalTransactions] [int] NOT NULL DEFAULT 0,
+                                    [TotalItems] [int] NOT NULL DEFAULT 0,
+                                    [TotalFrequentItemsets] [int] NOT NULL DEFAULT 0,
+                                    [TotalRules] [int] NOT NULL DEFAULT 0,
+                                    [MinSupportUsed] [decimal](18,4) NOT NULL DEFAULT 0,
+                                    [MinConfidenceUsed] [decimal](18,4) NOT NULL DEFAULT 0,
+                                    [MinLiftUsed] [decimal](18,4) NOT NULL DEFAULT 0,
+                                    [DurationMs] [bigint] NOT NULL DEFAULT 0,
+                                    [ErrorMessage] [nvarchar](max) NULL,
+                                    [CreatedBy] [nvarchar](100) NULL
+                                );
+
+                                CREATE TABLE [dbo].[AprioriFrequentItemsets](
+                                    [Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                                    [ItemsetKey] [nvarchar](255) NOT NULL,
+                                    [ItemsetSize] [int] NOT NULL,
+                                    [Support] [decimal](18,4) NOT NULL,
+                                    [TransactionCount] [int] NOT NULL,
+                                    [TrainingSessionId] [int] NOT NULL,
+                                    [CreatedAt] [datetime] NOT NULL DEFAULT GETDATE()
+                                );
+
+                                CREATE TABLE [dbo].[AprioriRules](
+                                    [Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                                    [AntecedentKey] [nvarchar](255) NOT NULL,
+                                    [ConsequentKey] [nvarchar](255) NOT NULL,
+                                    [Support] [decimal](18,4) NOT NULL,
+                                    [Confidence] [decimal](18,4) NOT NULL,
+                                    [Lift] [decimal](18,4) NOT NULL,
+                                    [Conviction] [decimal](18,4) NOT NULL,
+                                    [Leverage] [decimal](18,4) NOT NULL,
+                                    [JaccardSimilarity] [decimal](18,4) NOT NULL,
+                                    [CosineSimilarity] [decimal](18,4) NOT NULL,
+                                    [Kulczynski] [decimal](18,4) NOT NULL,
+                                    [AllConfidence] [decimal](18,4) NOT NULL,
+                                    [MaxConfidence] [decimal](18,4) NOT NULL,
+                                    [RecommendationScore] [decimal](18,4) NOT NULL,
+                                    [TrainingSessionId] [int] NOT NULL,
+                                    [CreatedAt] [datetime] NOT NULL DEFAULT GETDATE(),
+                                    [IsActive] [bit] NOT NULL DEFAULT 1
+                                );
+
+                                CREATE TABLE [dbo].[AprioriRecommendations](
+                                    [Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                                    [SourceBookId] [int] NOT NULL,
+                                    [RecommendedBookId] [int] NOT NULL,
+                                    [Score] [decimal](18,4) NOT NULL,
+                                    [RuleId] [int] NULL,
+                                    [RecommendationType] [nvarchar](50) NOT NULL DEFAULT 'FrequentlyBoughtTogether',
+                                    [CreatedAt] [datetime] NOT NULL DEFAULT GETDATE(),
+                                    [ExpiresAt] [datetime] NULL
+                                );
+
+                                CREATE TABLE [dbo].[AprioriLogs](
+                                    [Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                                    [Level] [nvarchar](50) NOT NULL DEFAULT 'Info',
+                                    [Message] [nvarchar](500) NOT NULL,
+                                    [Details] [nvarchar](max) NULL,
+                                    [TrainingSessionId] [int] NULL,
+                                    [CreatedAt] [datetime] NOT NULL DEFAULT GETDATE()
+                                );
+
+                                -- Indexes
+                                CREATE INDEX IX_AprioriRules_TrainingSessionId ON [dbo].[AprioriRules](TrainingSessionId);
+                                CREATE INDEX IX_AprioriRecommendations_SourceBookId ON [dbo].[AprioriRecommendations](SourceBookId);
+                                
+                                -- Seed Config
+                                INSERT INTO [dbo].[AprioriConfigs] (MinSupport, MinConfidence, MinLift, MaxItemsetSize, MinTransactionCount, AutoRetrain, TrainingIntervalHours, CacheTimeMinutes)
+                                VALUES (0.01, 0.5, 1.0, 5, 50, 1, 24, 60);
+                            ";
+                            context.Database.ExecuteSqlRaw(sql);
+                            Console.WriteLine("Auto-Fix: Created Apriori tables and seeded default config.");
+                        }
+
 
                         // Check if table exists (SQL Server syntax)
                         var tableExists = context.Database.SqlQueryRaw<int>(

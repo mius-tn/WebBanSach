@@ -1,0 +1,59 @@
+@model IEnumerable<WedBanSach.Models.GoodsReceipt>
+@{
+    ViewData["Title"] = "Quản lý Nhập Kho";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Quản lý Nhập Kho</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin/Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item active">Nhập kho</li>
+    </ol>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-table me-1"></i>
+                Danh sách Phiếu Nhập
+            </div>
+            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">Tạo Phiếu Nhập</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped" id="datatablesSimple">
+                <thead>
+                    <tr>
+                        <th>Mã Phiếu</th>
+                        <th>Nhà Cung Cấp</th>
+                        <th>Ngày Nhập</th>
+                        <th>Người Nhập</th>
+                        <th>Tổng Tiền</th>
+                        <th>Ghi Chú</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>#@item.ReceiptID</td>
+                            <td>@(item.SupplierName ?? "N/A")</td>
+                            <td>@item.EntryDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@item.EnteredBy</td>
+                            <td class="fw-bold text-danger">@item.TotalAmount.ToString("N0") VNĐ</td>
+                            <td>@item.Notes</td>
+                            <td>
+                                <a href="@Url.Action("Details", new { id = item.ReceiptID })" class="btn btn-info btn-sm">Chi tiết</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

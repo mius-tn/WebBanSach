@@ -1,0 +1,1463 @@
+@model WedBanSach.Models.Book
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = $"{Model.Title} - Trải Nghiệm Giao Diện Anime Cao Cấp";
+    
+    var mainImage = Model.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? "/images/default-book.png";
+    var otherImages = Model.BookImages?.Where(i => !i.IsMain).Select(i => i.ImageUrl).ToList() ?? new List<string>();
+}
+
+@section Styles {
+    <!-- SEO Meta Tags & Open Graph -->
+    <meta name="description" content="Khám phá câu chuyện tình yêu tuổi trẻ đầy cảm xúc và bí ẩn trong Hội Hội Chứng Tuổi Thanh Xuân (Seishun Buta Yarou) của Hajime Kamoshida." />
+    <meta property="og:title" content="@Model.Title - Giao Diện Đặc Biệt" />
+    <meta property="og:description" content="Ký ức có thể phai nhòa, nhưng tình cảm sẽ luôn khắc sâu. Trải nghiệm giao diện quảng bá phong cách anime độc đáo." />
+    <meta property="og:image" content="https://ao-buta.com/dearfriend/ogp.jpg" />
+    <meta property="og:type" content="book" />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- Schema.org structure -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "Book",
+      "name": "@Model.Title",
+      "image": "@mainImage",
+      "author": {
+        "@@type": "Person",
+        "name": "Hajime Kamoshida"
+      },
+      "offers": {
+        "@@type": "Offer",
+        "price": "@Model.CurrentPrice",
+        "priceCurrency": "VND",
+        "availability": "https://schema.org/InStock"
+      }
+    }
+    </script>
+
+    <!-- Google Fonts (Cinematic and Japanese typography) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Outfit:wght@400;600;700;800&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom High-Fidelity Style Sheets representing ao-buta.com/dearfriend/ -->
+    <link rel="stylesheet" href="~/css/rascal-intro.css" asp-append-version="true" />
+
+}
+
+<div class="ab-container">
+
+    <!-- Cinematic Page Intro Loading Screen -->
+    <div id="page-intro-overlay" class="page-intro-overlay">
+        <div class="page-intro-overlay__content">
+            <img src="https://ao-buta.com/dearfriend/assets/img/main/logo.png" alt="Seishun Buta Yarou Logo" class="page-intro-overlay__logo">
+            <div class="page-intro-overlay__sub">
+                <span class="sub-line-1">Puberty syndrome</span>
+                <span class="sub-line-2">Abnormal experiences during adolescence due to sensitivity and instability.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIXED VERTICAL SIDEBAR MENU -->
+    <!-- FIXED LEFT SIDEBAR (ao-buta 3-column desktop style) -->
+   @*  <aside class="l-sidebar">
+        <button class="l-sidebar__menu-btn js-menu-toggle" type="button">
+            <span class="l-sidebar__menu-btn-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </span>
+            <span class="l-sidebar__menu-btn-text">Menu</span>
+        </button>
+        
+        <ul class="l-sidebar__logo-list">
+            <li class="l-sidebar__logo-item">
+                <a href="#top" class="l-sidebar__logo-link smooth-scroll-link">
+                    <img src="https://ao-buta.com/assets/img/logo_dearfriend.png" alt="Dear Friend">
+                </a>
+            </li>
+            <li class="l-sidebar__logo-item">
+                <a href="https://ao-buta.com/santa/" target="_blank" class="l-sidebar__logo-link">
+                    <img src="https://ao-buta.com/assets/img/logo_santa.png" alt="Santa Clause">
+                </a>
+            </li>
+            <li class="l-sidebar__logo-item">
+                <a href="https://ao-buta.com/knapsack/" target="_blank" class="l-sidebar__logo-link">
+                    <img src="https://ao-buta.com/assets/img/logo_randoseru.png" alt="Randoseru Girl">
+                </a>
+            </li>
+            <li class="l-sidebar__logo-item">
+                <a href="https://ao-buta.com/odekake/" target="_blank" class="l-sidebar__logo-link">
+                    <img src="https://ao-buta.com/assets/img/logo_odekake.png" alt="Odekake Sister">
+                </a>
+            </li>
+            <li class="l-sidebar__logo-item">
+                <a href="https://ao-buta.com/yumemiru/" target="_blank" class="l-sidebar__logo-link">
+                    <img src="https://ao-buta.com/assets/img/logo_dream.png" alt="Yumemiru Shoujo">
+                </a>
+            </li>
+            <li class="l-sidebar__logo-item">
+                <a href="https://ao-buta.com/tv/" target="_blank" class="l-sidebar__logo-link">
+                    <img src="https://ao-buta.com/assets/img/logo_bunny.png" alt="Bunny Girl Senpai">
+                </a>
+            </li>
+        </ul>
+    </aside> *@
+
+    <nav class="l-nav" id="sidebarMenu">
+        <div class="l-nav__content">
+            <div class="l-nav__brand">
+                <a href="#top" class="l-nav__brand-link smooth-scroll-link">
+                    <img src="https://ao-buta.com/dearfriend/assets/img/logo_small-yoko.png" alt="Rascal Does Not Dream Logo" class="l-nav__brand-img">
+                </a>
+            </div>
+            
+            <ul class="l-nav__list">
+                <li class="l-nav__list-item">
+                    <a href="#top" class="l-nav__link smooth-scroll-link js-menu-close">
+                        Top
+                        <span class="l-nav__link-text-vn">Trang Đầu</span>
+                    </a>
+                </li>
+                <li class="l-nav__list-item">
+                    <a href="#news" class="l-nav__link smooth-scroll-link js-menu-close">
+                        News
+                        <span class="l-nav__link-text-vn">Tin Xuất Bản</span>
+                    </a>
+                </li>
+                <li class="l-nav__list-item">
+                    <button type="button" data-anchor="#movie" class="l-nav__link-btn smooth-scroll-btn js-menu-close">
+                        Movie
+                        <span class="l-nav__link-text-vn">Trailers / Previews</span>
+                    </button>
+                </li>
+                <li class="l-nav__list-item">
+                    <button type="button" data-anchor="#intro" class="l-nav__link-btn smooth-scroll-btn js-menu-close">
+                        Introduction
+                        <span class="l-nav__link-text-vn">Giới Thiệu Chung</span>
+                    </button>
+                </li>
+                <li class="l-nav__list-item">
+                    <button type="button" data-anchor="#prologue" class="l-nav__link-btn smooth-scroll-btn js-menu-close">
+                        Prologue
+                        <span class="l-nav__link-text-vn">Mở Đầu</span>
+                    </button>
+                </li>
+                <li class="l-nav__list-item">
+                    <button type="button" data-anchor="#staffcast" class="l-nav__link-btn smooth-scroll-btn js-menu-close">
+                        Staff & Cast
+                        <span class="l-nav__link-text-vn">Đội Ngũ Sản Xuất</span>
+                    </button>
+                </li>
+                <li class="l-nav__list-item">
+                    <button type="button" data-anchor="#character" class="l-nav__link-btn smooth-scroll-btn js-menu-close">
+                        Character
+                        <span class="l-nav__link-text-vn">Nhân Vật</span>
+                    </button>
+                </li>
+                <li class="l-nav__list-item">
+                    <button type="button" data-anchor="#ticket" class="l-nav__link-btn smooth-scroll-btn js-menu-close">
+                        Đặt Mua
+                        <span class="l-nav__link-text-vn">Các Phiên Bản Sách</span>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="l-nav__official">
+                <div class="l-nav_official">
+                    <div class="l-nav_official__cap">Kênh Chính Thức</div>
+                    <ul class="l-nav_official__list">
+                        <li class="l-nav_official__list-item">
+                            <a href="https://x.com/aobuta_anime" class="l-nav_official__link" target="_blank" rel="noopener noreferrer">
+                                <img src="https://ao-buta.com/dearfriend/assets/img/footer/sns/icon_x.svg" alt="Twitter">
+                            </a>
+                        </li>
+                        <li class="l-nav_official__list-item">
+                            <a href="https://www.tiktok.com/@@aobuta_official" class="l-nav_official__link" target="_blank" rel="noopener noreferrer">
+                                <img src="https://ao-buta.com/dearfriend/assets/img/footer/sns/sns_tiktok.svg" alt="Tiktok">
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="l-nav__series">
+                <a href="https://ao-buta.com/" class="l-nav_series__link" target="_blank" rel="noopener noreferrer">
+                    <div class="l-nav_series__link-img">
+                        <img src="https://ao-buta.com/dearfriend/assets/img/footer/logo_santa.png" alt="Santa Clause Series">
+                    </div>
+                </a>
+                <a href="https://ao-buta.com/" class="l-nav_series__link" target="_blank" rel="noopener noreferrer">
+                    <div class="l-nav_series__link-img">
+                        <img src="https://ao-buta.com/dearfriend/assets/img/footer/logo_randoseru.png" alt="Randoseru Girl Series">
+                    </div>
+                </a>
+                <a href="https://ao-buta.com/" class="l-nav_series__link" target="_blank" rel="noopener noreferrer">
+                    <div class="l-nav_series__link-img">
+                        <img src="https://ao-buta.com/dearfriend/assets/img/footer/logo_odekake.png" alt="Odekake Sister Series">
+                    </div>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- MOBILE MENU HAMBURGER BUTTON -->
+    <button class="l-menu" id="mobileMenuBtn" type="button">
+        <span class="l-menu__bar"></span>
+    </button>
+
+    <!-- MAIN CONTENTS AREA -->
+    <main class="l-main" id="top">
+
+        <!-- 1. HERO SECTION -->
+        <section class="p-hero">
+            <div class="p-hero__kv">
+                <div class="p-hero_kv">
+                    <div class="p-hero_kv__visual">
+                        <figure class="p-hero_kv__visual-img">
+                            <img src="https://ao-buta.com/dearfriend/assets/img/main/kv_01.jpg" alt="Rascal Movie Visual Background">
+                        </figure>
+                        <!-- Floating catch graphic bubble -->
+                        <div class="p-hero_kv__visual-catch">
+                            <img src="https://ao-buta.com/dearfriend/assets/img/main/catch_01.png" alt="Floating Catchphrase">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Sakura Petals -->
+            <div class="particles-container" id="particles"></div>
+
+            <!-- Rotating Menu Button on Desktop -->
+            <button class="p-hero__menu-btn js-menu-toggle" type="button">
+                <span class="p-hero__menu-btn-content">
+                    <span class="p-hero__menu-btn-bar"></span>
+                    <span class="p-hero__menu-btn-bar"></span>
+                    <span class="p-hero__menu-btn-bar"></span>
+                </span>
+            </button>
+
+            <!-- Column 2, Row 1 on Desktop (Title & Date) -->
+            <div class="p-hero__header scroll-reveal">
+                <h1 class="p-hero__logo">
+                    <picture>
+                        <source srcset="https://ao-buta.com/dearfriend/assets/img/main/logo_sp.png" media="(max-width: 960px)">
+                        <img src="https://ao-buta.com/dearfriend/assets/img/main/logo.png" alt="Hội Chứng Tuổi Thanh Xuân Title logo">
+                    </picture>
+                </h1>
+
+                <div class="p-hero__onscreen">
+                    <picture>
+                        <source srcset="https://ao-buta.com/dearfriend/assets/img/main/txt_date_sp.png" media="(max-width: 960px)">
+                        <img src="https://ao-buta.com/dearfriend/assets/img/main/txt_date_pc.png" alt="2026年10月16日 Phim Hoạt Họa Phát Hành">
+                    </picture>
+                </div>
+            </div>
+
+            <!-- Column 2, Row 2 on Desktop (Banners & Action Buttons) -->
+            <div class="p-hero__inner scroll-reveal">
+                <!-- Banners -->
+               
+
+                <!-- Action Buttons -->
+                <div class="p-hero__actions">
+                    <a href="#ticket" class="ab-btn ab-btn--pink smooth-scroll-link">ĐẶT MUA SÁCH</a>
+                    <a href="#intro" class="ab-btn smooth-scroll-link">ĐỌC THỬ TRUYỆN</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. NEWS SECTION -->
+        <section class="p-headline scroll-reveal" id="news">
+            <div class="p-headline__container">
+                <div class="section-header-title">
+                    <h2 class="section-title-en">News</h2>
+                    <span class="section-title-vn">Tin Tức Xuất Bản Mới Nhất</span>
+                </div>
+
+                <ul class="p-headline__list">
+                    <li class="p-headline__list-item">
+                        <a href="#ticket" class="p-headline_article">
+                            <div class="p-headline_article__date">2026.06.20</div>
+                            <div class="p-headline_article__title">Bản Đặc Biệt "Hội Chứng Tuổi Thanh Xuân - Tập 8" tặng kèm PVC Postcard độc quyền chính thức mở bán!</div>
+                        </a>
+                    </li>
+                    <li class="p-headline__list-item">
+                        <a href="#ticket" class="p-headline_article">
+                            <div class="p-headline_article__date">2026.06.18</div>
+                            <div class="p-headline_article__title">Cập nhật quà tặng kèm: Bản giới hạn sở hữu bộ Bookmark ánh kim tuyệt đẹp của thiết kế gốc Satomi Tamura.</div>
+                        </a>
+                    </li>
+                    <li class="p-headline__list-item">
+                        <a href="#movie" class="p-headline_article">
+                            <div class="p-headline_article__date">2026.06.15</div>
+                            <div class="p-headline_article__title">Theater Anime "Hội Hội Chứng Tuổi Thanh Xuân sẽ không mơ về người bạn thân" công bố bản Trailer cuối cùng!</div>
+                        </a>
+                    </li>
+                </ul>
+
+                <a href="#ticket" class="p-headline__more smooth-scroll-link">
+                    <div class="p-headline__more-text">Xem Thêm</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- 3. TRAILERS SECTION -->
+        <section class="p-movie scroll-reveal" id="movie">
+            <div class="p-movie__container">
+                <div class="section-header-title">
+                    <h2 class="section-title-en">Movie</h2>
+                    <span class="section-title-vn">Trailers / Previews Phim Hoạt Họa</span>
+                </div>
+
+                <div class="p-movie__slider-wrapper">
+                    <div class="p-movie__slider">
+                        <!-- Slide 1 -->
+                        <div class="p-movie__slide is-active" data-index="0">
+                            <div class="p-movie_article__thumb" data-youtube-id="IUS8NwL5o48">
+                                <span class="p-movie_article__thumb-img">
+                                    <img src="https://img.youtube.com/vi/IUS8NwL5o48/maxresdefault.jpg" alt="Trailer 1 Thumbnail">
+                                </span>
+                                <div class="play-btn-circle">
+                                    <svg viewBox="0 0 100 100" class="play-btn-svg">
+                                        <path id="circlePath1" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="none" />
+                                        <text class="play-btn-text">
+                                            <textPath href="#circlePath1" startOffset="0%">Play Movie • Play Movie • Play Movie • </textPath>
+                                        </text>
+                                    </svg>
+                                    <div class="play-btn-icon"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 2 -->
+                        <div class="p-movie__slide" data-index="1">
+                            <div class="p-movie_article__thumb" data-youtube-id="vW3O-7bHwhs">
+                                <span class="p-movie_article__thumb-img">
+                                    <img src="https://img.youtube.com/vi/vW3O-7bHwhs/maxresdefault.jpg" alt="Trailer 2 Thumbnail">
+                                </span>
+                                <div class="play-btn-circle">
+                                    <svg viewBox="0 0 100 100" class="play-btn-svg">
+                                        <path id="circlePath2" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="none" />
+                                        <text class="play-btn-text">
+                                            <textPath href="#circlePath2" startOffset="0%">Play Movie • Play Movie • Play Movie • </textPath>
+                                        </text>
+                                    </svg>
+                                    <div class="play-btn-icon"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 3 -->
+                        <div class="p-movie__slide" data-index="2">
+                            <div class="p-movie_article__thumb" data-youtube-id="oD5GW41mCuQ">
+                                <span class="p-movie_article__thumb-img">
+                                    <img src="https://img.youtube.com/vi/oD5GW41mCuQ/maxresdefault.jpg" alt="Trailer 3 Thumbnail">
+                                </span>
+                                <div class="play-btn-circle">
+                                    <svg viewBox="0 0 100 100" class="play-btn-svg">
+                                        <path id="circlePath3" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="none" />
+                                        <text class="play-btn-text">
+                                            <textPath href="#circlePath3" startOffset="0%">Play Movie • Play Movie • Play Movie • </textPath>
+                                        </text>
+                                    </svg>
+                                    <div class="play-btn-icon"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Slide Indicators -->
+                    <div class="p-movie__dots">
+                        <button type="button" class="p-movie__dot is-active" data-slide="0"></button>
+                        <button type="button" class="p-movie__dot" data-slide="1"></button>
+                        <button type="button" class="p-movie__dot" data-slide="2"></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. INTRODUCTION SECTION -->
+        <section class="p-intro scroll-reveal" id="intro">
+            <div class="p-intro__container">
+                <div class="section-header-title">
+                    <h2 class="section-title-en">Introduction</h2>
+                    <span class="section-title-vn">Giới Thiệu Chung Tác Phẩm</span>
+                </div>
+
+                <div class="p-intro__inner">
+                    <div class="p-intro__lead">
+                        Cậu thiếu niên rồi sẽ trưởng thành <span>——</span><br>
+                        Câu chuyện kỳ ảo tuổi dậy thì chính thức đi đến hồi kết.
+                    </div>
+                    <div class="p-intro__text">
+                        <p class="p-intro__text-par">
+                            Câu chuyện thanh xuân đầy cảm xúc mô tả những rung động tuổi dậy thì<br>
+                            thông qua các hiện tượng bí ẩn kỳ ảo mang tên "Hội chứng tuổi dậy thì"<br>
+                            được chắp bút bởi tác giả Hajime Kamoshida đã chính thức bước vào chương cuối cùng<span>——</span>.
+                        </p>
+                        <p class="p-intro__text-par">
+                            Hành trình kéo dài xuyên suốt từ thời học sinh cấp ba đến giảng đường đại học của Sakuta,<br>
+                            những bí ẩn cuối cùng còn sót lại sẽ dần được hé lộ một cách trọn vẹn và xúc động nhất.
+                        </p>
+                        <p class="p-intro__text-par">
+                            Với sự đồng hành sản xuất của đội ngũ tác giả nguyên tác Hajime Kamoshida, minh họa Keji Mizoguchi,<br>
+                            đạo diễn Souichi Masui và thiết kế nhân vật Satomi Tamura bởi CloverWorks,<br>
+                            một cái kết đẹp đẽ bối cảnh thành phố biển Fujisawa và Yokohama đầy kỷ niệm sẽ được tái hiện.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parallax Scrolling image background exactly like ao-buta -->
+            <div class="p-intro__visual">
+                <figure class="p-intro__visual-img" id="introParallaxImg">
+                    <img src="https://ao-buta.com/dearfriend/assets/img/parallax.jpg" alt="Intro Parallax Background">
+                </figure>
+            </div>
+        </section>
+
+        <!-- 5. PROLOGUE SECTION -->
+        <section class="p-prologue scroll-reveal" id="prologue">
+            <div class="p-prologue__container">
+                <div class="section-header-title">
+                    <h2 class="section-title-en">Prologue</h2>
+                    <span class="section-title-vn">Dẫn Nhập Câu Chuyện</span>
+                </div>
+
+                <div class="p-prologue__inner">
+                    <div class="p-prologue__lead">
+                        <p class="p-prologue__lead-text --cap">
+                            "Thực ra, tớ chính là Kirishima Touko"
+                        </p>
+                        <p class="p-prologue__lead-text">
+                            Lời thú nhận chấn động của Mai Sakurajima <span>——</span> nữ ca sĩ mạng nổi tiếng đang ẩn danh <span>——</span><br>
+                            đã khiến người hâm mộ xôn xao. Cảnh tượng ấy giống hệt giấc mơ mà Sakuta Azusagawa<br>
+                            đã thấy vào đêm Giáng sinh lạnh giá năm ấy.
+                        </p>
+                        <p class="p-prologue__lead-text">
+                            Từ ngày 1 tháng 4, bắt đầu từ lời tuyên bố của Mai,<br>
+                            những câu chuyện kì lạ tưởng chừng chỉ có trong mơ lần loạt xảy ra ngoài đời thực.
+                        </p>
+                        <p class="p-prologue__lead-text">
+                            Bài đăng với hashtag "#Yumemiru" (Giấc mơ biến thành hiện thực) trên mạng xã hội đã hoàn toàn biến mất.<br>
+                            Giữa thế giới bị ghi đè và nhận thức sai lệch của bản thân, Sakuta bất ngờ nhận được một tin nhắn gửi đến<br>
+                            từ chính cậu ở một nhánh thế giới khả năng khác.
+                        </p>
+                        <p class="p-prologue__lead-text --cap">
+                            <span>——</span> Hãy ngăn chặn Kirishima Touko lại<br>
+                            <span>——</span> Trước khi thế giới này bị ghi đè hoàn toàn.
+                        </p>
+                        <p class="p-prologue__lead-text">
+                            Để bảo vệ Mai và đưa thế giới trở về bình thường, Sakuta một lần nữa bước vào cuộc hành trình tìm kiếm.<br>
+                            Đây là câu chuyện cuối cùng để vượt qua Hội chứng tuổi dậy thì...
+                        </p>
+                    </div>
+
+                    <!-- Double overlapping character sprites like ao-buta official -->
+                    <div class="p-prologue__chara --chara1" id="prologueChara1">
+                        <div class="p-prologue__chara-img">
+                            <img src="https://ao-buta.com/dearfriend/assets/img/prologue/prologue_img01.jpg" alt="Prologue Illustration 1">
+                        </div>
+                    </div>
+                    <div class="p-prologue__chara --chara2" id="prologueChara2">
+                        <div class="p-prologue__chara-img">
+                            <img src="https://ao-buta.com/dearfriend/assets/img/prologue/prologue_img02.jpg" alt="Prologue Illustration 2">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. STAFF & CAST SECTION -->
+        <section class="p-staff_cast scroll-reveal" id="staffcast">
+            <div class="p-staff_cast__container">
+                <div class="section-header-title">
+                    <h2 class="section-title-en">Staff & Cast</h2>
+                    <span class="section-title-vn">Đội Ngũ Thực Hiện & Diễn Viên Lồng Tiếng</span>
+                </div>
+
+                <div class="p-staff_cast__inner">
+                    <!-- Staff list -->
+                    <div class="p-staff_cast_content --staff">
+                        <h3 class="p-staff_cast_content__title">Staff / Tác Giả</h3>
+                        <ul class="p-staff_cast_content__list">
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">Nguyên Tác</dt>
+                                    <dd class="p-staff_cast_content__data-text">Hajime Kamoshida<br><small>(Đăng trên Kadokawa Dengeki Bunko)</small></dd>
+                                </dl>
+                            </li>
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">Minh Họa Gốc</dt>
+                                    <dd class="p-staff_cast_content__data-text">Keji Mizoguchi</dd>
+                                </dl>
+                            </li>
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">Đạo Diễn Anime</dt>
+                                    <dd class="p-staff_cast_content__data-text">Souichi Masui</dd>
+                                </dl>
+                            </li>
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">Kịch Bản & Bố Cục</dt>
+                                    <dd class="p-staff_cast_content__data-text">Masahiro Yokotani</dd>
+                                </dl>
+                            </li>
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">Thiết Kế Nhân Vật</dt>
+                                    <dd class="p-staff_cast_content__data-text">Satomi Tamura</dd>
+                                </dl>
+                            </li>
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">Sản Xuất Hoạt Họa</dt>
+                                    <dd class="p-staff_cast_content__data-text">CloverWorks</dd>
+                                </dl>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Cast list -->
+                    <div class="p-staff_cast_content --cast">
+                        <h3 class="p-staff_cast_content__title">Cast / Diễn Viên Lồng Tiếng</h3>
+                        <ul class="p-staff_cast_content__list">
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">梓川咲太 (Sakuta)</dt>
+                                    <dd class="p-staff_cast_content__data-text">Ishikawa Kaito</dd>
+                                </dl>
+                            </li>
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">桜島麻衣 (Mai)</dt>
+                                    <dd class="p-staff_cast_content__data-text">Seto Asami</dd>
+                                </dl>
+                            </li>
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">梓川花楓 (Kaede)</dt>
+                                    <dd class="p-staff_cast_content__data-text">Kubo Yurika</dd>
+                                </dl>
+                            </li>
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">双葉理央 (Futaba)</dt>
+                                    <dd class="p-staff_cast_content__data-text">Tanezaki Atsumi</dd>
+                                </dl>
+                            </li>
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">古賀朋絵 (Tomoe)</dt>
+                                    <dd class="p-staff_cast_content__data-text">Toyama Nao</dd>
+                                </dl>
+                            </li>
+                            <li class="p-staff_cast_content__list-item">
+                                <dl class="p-staff_cast_content__data">
+                                    <dt class="p-staff_cast_content__data-cap">豊浜のどか (Nodoka)</dt>
+                                    <dd class="p-staff_cast_content__data-text">Uchida Maaya</dd>
+                                </dl>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. CHARACTERS SHOWCASE SECTION -->
+        <section class="p-chara scroll-reveal" id="character">
+            <div class="p-chara__container">
+                <div class="section-header-title">
+                    <h2 class="section-title-en">Character</h2>
+                    <span class="section-title-vn">Bảng Tra Cứu Nhân Vật</span>
+                </div>
+
+                <div class="p-chara__inner">
+                    <!-- Left Tab Navigation with On/Off State Face Thumbs -->
+                    <div class="p-chara__nav">
+                        <ul class="p-chara_nav__list">
+                            <li class="p-chara_nav__list-item is-active" data-chara-target="sakuta">
+                                <button class="p-chara_nav__btn" type="button">
+                                    <span class="p-chara_nav__btn-base">
+                                        <img src="https://ao-buta.com/dearfriend/assets/img/character/thumb/thumb01-off.jpg" alt="Sakuta Off">
+                                    </span>
+                                    <span class="p-chara_nav__btn-cover">
+                                        <img src="https://ao-buta.com/dearfriend/assets/img/character/thumb/thumb01-on.jpg" alt="Sakuta On">
+                                    </span>
+                                </button>
+                            </li>
+                            <li class="p-chara_nav__list-item" data-chara-target="mai">
+                                <button class="p-chara_nav__btn" type="button">
+                                    <span class="p-chara_nav__btn-base">
+                                        <img src="https://ao-buta.com/dearfriend/assets/img/character/thumb/thumb02-off.jpg" alt="Mai Off">
+                                    </span>
+                                    <span class="p-chara_nav__btn-cover">
+                                        <img src="https://ao-buta.com/dearfriend/assets/img/character/thumb/thumb02-on.jpg" alt="Mai On">
+                                    </span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Right Tab Content showing high-res stand visual and bio -->
+                    <div class="p-chara__content">
+                        <!-- Sakuta Content -->
+                        <div class="p-chara_content is-active" id="chara-sakuta">
+                            <div class="p-chara_content__bg">
+                                <div class="p-chara_content__bg-name">
+                                    <img src="https://ao-buta.com/dearfriend/assets/img/character/name/img_deco01.png" alt="Decor Sakuta">
+                                </div>
+                            </div>
+                            <div class="p-chara_content__container">
+                                <div class="p-chara_content__header">
+                                    <h3 class="p-chara_content__name">Azusagawa Sakuta</h3>
+                                    <dl class="p-chara_content__cv">
+                                        <dt class="p-chara_content__cv-cap">CV</dt>
+                                        <dd class="p-chara_content__cv-text">Ishikawa Kaito</dd>
+                                    </dl>
+                                    <div class="p-chara_content__info">
+                                        <dl class="p-chara_content__data">
+                                            <dt class="p-chara_content__data-cap">Chiều cao</dt>
+                                            <dd class="p-chara_content__data-text">172cm</dd>
+                                        </dl>
+                                        <dl class="p-chara_content__data">
+                                            <dt class="p-chara_content__data-cap">Sinh nhật</dt>
+                                            <dd class="p-chara_content__data-text">10 tháng 4</dd>
+                                        </dl>
+                                    </div>
+                                    <p class="p-chara_content__profile">
+                                        Sinh viên năm hai ngành Khoa học Thống kê tại một trường đại học ở Yokohama. Một kẻ lập dị không sử dụng điện thoại thông minh.<br>
+                                        Thời cấp ba, cậu đã gặp gỡ và giúp đỡ nhiều cô gái mắc "Hội chứng tuổi dậy thì". Cậu đã gặp Mai Sakurajima, một diễn viên nổi tiếng, và hiện họ đang là người yêu của nhau.<br>
+                                        Hiện cậu đang nỗ lực tìm kiếm "Kirishima Touko" - ca sĩ mạng bí ẩn có thể gây nguy hiểm hoặc làm đảo lộn hiện thực xung quanh Mai.
+                                    </p>
+                                </div>
+                                <div class="p-chara_content__visual">
+                                    <figure class="p-chara_content__visual-img">
+                                        <img src="https://ao-buta.com/dearfriend/assets/img/character/stand/chara_stand01.png" alt="Sakuta Stand Image">
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mai Content -->
+                        <div class="p-chara_content" id="chara-mai">
+                            <div class="p-chara_content__bg">
+                                <div class="p-chara_content__bg-name">
+                                    <img src="https://ao-buta.com/dearfriend/assets/img/character/name/img_deco02.png" alt="Decor Mai">
+                                </div>
+                            </div>
+                            <div class="p-chara_content__container">
+                                <div class="p-chara_content__header">
+                                    <h3 class="p-chara_content__name">Sakurajima Mai</h3>
+                                    <dl class="p-chara_content__cv">
+                                        <dt class="p-chara_content__cv-cap">CV</dt>
+                                        <dd class="p-chara_content__cv-text">Seto Asami</dd>
+                                    </dl>
+                                    <div class="p-chara_content__info">
+                                        <dl class="p-chara_content__data">
+                                            <dt class="p-chara_content__data-cap">Chiều cao</dt>
+                                            <dd class="p-chara_content__data-text">165cm</dd>
+                                        </dl>
+                                        <dl class="p-chara_content__data">
+                                            <dt class="p-chara_content__data-cap">Sinh nhật</dt>
+                                            <dd class="p-chara_content__data-text">2 tháng 12</dd>
+                                        </dl>
+                                    </div>
+                                    <p class="p-chara_content__profile">
+                                        Nữ diễn viên nổi tiếng quốc dân đã quay trở lại hoạt động nghệ thuật hoàn toàn sau thời gian tạm nghỉ. Trước đây, do không hòa nhập được với trường lớp, cô mắc Hội chứng tuổi dậy thì khiến sự tồn tại của cô bị lãng quên dần. Nhờ sự giúp đỡ nhiệt thành của Sakuta, vấn đề được giải quyết. Hiện cô đang học cùng trường đại học với Sakuta và bị đồn đại là Kirishima Touko.
+                                    </p>
+                                </div>
+                                <div class="p-chara_content__visual">
+                                    <figure class="p-chara_content__visual-img">
+                                        <img src="https://ao-buta.com/dearfriend/assets/img/character/stand/chara_stand02.png" alt="Mai Stand Image">
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <!-- NEW: HORIZONTAL PRODUCT LIST SECTION -->
+        <section class="p-horizontal-books scroll-reveal" id="horizontal-books">
+            <div class="p-horizontal-books__container">
+                <div class="section-header-title">
+                    <h2 class="section-title-en">Ticket</h2>
+                    <span class="section-title-vn">Vé Đặc Biệt & Trọn Bộ</span>
+                </div>
+                
+                @if (ViewBag.AllRascalBooks != null)
+                {
+                    foreach (var bookItem in (List<WedBanSach.Models.Book>)ViewBag.AllRascalBooks)
+                    {
+                        // Chỉ hiển thị duy nhất sản phẩm Combo
+                        if (!bookItem.Title.Contains("Combo")) {
+                            continue;
+                        }
+
+                        var isLimited = bookItem.Title.Contains("Bản Giới Hạn") || bookItem.Title.Contains("Đặc Biệt");
+                        var mainImgUrl = bookItem.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl 
+                                         ?? bookItem.BookImages?.FirstOrDefault()?.ImageUrl 
+                                         ?? "/images/default-book.png";
+                        
+                        <div class="p-ticket-combo">
+                            <div class="p-ticket-combo__subtitle">@bookItem.Title</div>
+                            <div class="p-ticket-combo__divider"></div>
+                            
+                            <div class="p-ticket-combo__content">
+                                <div class="p-ticket-combo__visual-wrap">
+                                    <div class="p-ticket-combo__visual">
+                                        <img src="@mainImgUrl" alt="@bookItem.Title" class="p-ticket-combo__image">
+                                    </div>
+                                </div>
+                                
+                                <div class="p-ticket-combo__details">
+                                    <dl class="p-ticket-combo__data">
+                                        <dt class="p-ticket-combo__data-cap">Ngày Mở Bán</dt>
+                                        <dd class="p-ticket-combo__data-text">Đang phát hành rộng rãi</dd>
+                                    </dl>
+                                    <dl class="p-ticket-combo__data">
+                                        <dt class="p-ticket-combo__data-cap">Quà Đính Kèm</dt>
+                                        <dd class="p-ticket-combo__data-text">01 Bookmark giấy couche dày mịn theo bìa sách.</dd>
+                                    </dl>
+                                    <dl class="p-ticket-combo__data">
+                                        <dt class="p-ticket-combo__data-cap">Giá Bán</dt>
+                                        <dd class="p-ticket-combo__data-text text-danger fw-bold">
+                                            @bookItem.CurrentPrice.ToString("#,##0") ₫
+                                            @if (bookItem.CurrentPrice < bookItem.OriginalPrice) {
+                                                <span class="text-decoration-line-through text-muted small ms-2" style="font-size: 12px; font-weight: normal;">@bookItem.OriginalPrice.ToString("#,##0") ₫</span>
+                                            }
+                                        </dd>
+                                    </dl>
+                                    <dl class="p-ticket-combo__data">
+                                        <dt class="p-ticket-combo__data-cap">Hình Thức</dt>
+                                        <dd class="p-ticket-combo__data-text">Bìa mềm tiêu chuẩn, chất lượng giấy xốp nhập khẩu Phần Lan.</dd>
+                                    </dl>
+                                    
+                                    <form asp-controller="Cart" asp-action="AddToCart" method="post" class="p-ticket-combo__form">
+                                        <input type="hidden" name="id" value="@bookItem.BookID" />
+                                        <button type="submit" class="p-ticket-combo__btn">
+                                            <span class="p-ticket-combo__btn-text">ĐẶT MUA SÁCH</span>
+                                        </button>
+                                    </form>
+                                    
+                                    <div class="p-ticket-combo__notes">
+                                        <div class="p-ticket-combo__notes-cap">Lưu ý mua hàng</div>
+                                        <div class="p-ticket-combo__notes-text">
+                                            <span class="u-text-indent" data-prefix="※">Trọn bộ combo tiểu thuyết Hội Chứng Tuổi Thanh Xuân (Light Novel) chính hãng từ Nhà xuất bản Kim Đồng.</span>
+                                            <span class="u-text-indent" data-prefix="※">Sản phẩm được bảo hành đổi trả miễn phí nếu gặp lỗi từ nhà sản xuất.</span>
+                                            <span class="u-text-indent" data-prefix="※">Đóng gói hộp Carton bảo vệ chống móp méo khi vận chuyển.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </section>
+
+        <!-- 8. TICKETS / BOOK BUY SECTION (Styled like Movie Tickets) -->
+        <section class="p-ticket scroll-reveal" id="ticket">
+            <div class="p-ticket__container">
+                <div class="section-header-title">
+                    <h2 class="section-title-en">Ticket & Editions</h2>
+                    <span class="section-title-vn">Các Phiên Bản Phát Hành Sách và Giá Bán</span>
+                </div>
+
+                <div class="p-ticket__inner">
+                    @if (ViewBag.AllRascalBooks != null)
+                    {
+                        foreach (var bookItem in (List<WedBanSach.Models.Book>)ViewBag.AllRascalBooks)
+                        {
+                            // Loại bỏ sản phẩm Combo ở khung dưới
+                            if (bookItem.Title.Contains("Combo")) {
+                                continue;
+                            }
+
+                            var isLimited = bookItem.Title.Contains("Bản Giới Hạn") || bookItem.Title.Contains("Đặc Biệt");
+                            var mainImgUrl = bookItem.BookImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl 
+                                             ?? bookItem.BookImages?.FirstOrDefault()?.ImageUrl 
+                                             ?? "/images/default-book.png";
+                            
+                            <div class="p-ticket_content">
+                                <div class="p-ticket_content__header">
+                                    <h3 class="p-ticket_content__title">@bookItem.Title</h3>
+                                </div>
+                                <div class="p-ticket_content__inner">
+                                    <div class="p-ticket_content__visual">
+                                        @if (isLimited) {
+                                            <span class="p-ticket_content__badge">BẢN GIỚI HẠN</span>
+                                        }
+                                        <figure class="p-ticket_visual__img">
+                                            <img src="@mainImgUrl" alt="@bookItem.Title Visual">
+                                        </figure>
+                                    </div>
+                                    <div class="p-ticket_content__outline">
+                                        <dl class="p-ticket_content__data">
+                                            <dt class="p-ticket_content__data-cap">Ngày Mở Bán</dt>
+                                            <dd class="p-ticket_content__data-text">Đang phát hành rộng rãi</dd>
+                                        </dl>
+                                        <dl class="p-ticket_content__data">
+                                            <dt class="p-ticket_content__data-cap">Quà Đính Kèm</dt>
+                                            <dd class="p-ticket_content__data-text">
+                                                @if (isLimited) {
+                                                    @:01 PVC Postcard vẽ tay độc quyền bởi Satomi Tamura + 02 Bookmark ánh kim sắc nét.
+                                                } else {
+                                                    @:01 Bookmark giấy couche dày mịn theo bìa sách.
+                                                }
+                                            </dd>
+                                        </dl>
+                                        <dl class="p-ticket_content__data">
+                                            <dt class="p-ticket_content__data-cap">Giá Bán</dt>
+                                            <dd class="p-ticket_content__data-text text-danger fw-bold fs-5">
+                                                @bookItem.CurrentPrice.ToString("#,##0") ₫
+                                                @if(bookItem.CurrentPrice < bookItem.OriginalPrice) {
+                                                    <span class="text-muted text-decoration-line-through small ms-2" style="font-size:12px;">@bookItem.OriginalPrice.ToString("#,##0") ₫</span>
+                                                }
+                                            </dd>
+                                        </dl>
+                                        <dl class="p-ticket_content__data">
+                                            <dt class="p-ticket_content__data-cap">Hình Thức</dt>
+                                            <dd class="p-ticket_content__data-text">
+                                                @if (isLimited) {
+                                                    @:Bìa mềm tay gấp (Đóng gói hộp Carton bảo vệ chống móp méo khi vận chuyển)
+                                                } else {
+                                                    @:Bìa mềm tiêu chuẩn, chất lượng giấy xốp nhập khẩu Phần Lan.
+                                                }
+                                            </dd>
+                                        </dl>
+                                        
+                                        <form asp-controller="Cart" asp-action="AddToCart" method="post" class="mt-auto">
+                                            <input type="hidden" name="id" value="@bookItem.BookID" />
+                                            <button type="submit" class="p-ticket_content__btn">
+                                                <span class="p-ticket_content__btn-text">ĐẶT MUA SÁCH</span>
+                                            </button>
+                                        </form>
+
+                                        <dl class="p-ticket_content__note">
+                                            <dt class="p-ticket_content__note-cap">Lưu ý mua hàng</dt>
+                                            <dd class="p-ticket_content__note-text">
+                                                @if (isLimited) {
+                                                    <span class="u-text-indent" data-prefix="※">Bản đặc biệt đi kèm đầy đủ bộ Postcard và Bookmark nguyên seal.</span>
+                                                    <span class="u-text-indent" data-prefix="※">Số lượng có hạn, chương trình tặng quà sẽ kết thúc khi hết quà tặng kèm.</span>
+                                                } else {
+                                                    <span class="u-text-indent" data-prefix="※">Bản tiêu chuẩn có bán tại tất cả hệ thống nhà sách toàn quốc.</span>
+                                                    <span class="u-text-indent" data-prefix="※">Sản phẩm được bảo hành đổi trả miễn phí nếu gặp lỗi từ nhà sản xuất.</span>
+                                                }
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ANIPLEX-STYLE FOOTER EXTRA CONTROLS -->
+    <!-- Scroll to Top -->
+    <button class="l-footer__pagetop" type="button" id="pagetopBtn">
+        <span class="l-footer__pagetop-icon">
+            <img src="https://ao-buta.com/dearfriend/assets/img/btn_pagetop2.png" alt="Back to Top Icon">
+        </span>
+    </button>
+
+    <!-- Add to Cart Success Popup (Styled like ao-buta.com modal) -->
+    <div class="ab-modal" id="cartSuccessModal">
+        <div class="ab-modal__overlay" id="btnContinueShoppingOverlay"></div>
+        <div class="ab-modal__container">
+            <button type="button" class="ab-modal__close-btn" id="btnContinueShoppingX">&times;</button>
+            <div class="ab-modal__body">
+                <div class="ab-modal__status-icon">✓</div>
+                <h4 class="ab-modal__title">Đã thêm vào giỏ hàng</h4>
+                <div class="ab-modal__book-info">
+                    <img src="" alt="Book Cover" class="ab-modal__book-img" id="modalBookImg">
+                    <div class="ab-modal__book-details">
+                        <span class="ab-modal__book-title" id="modalBookTitle">Tên Sách</span>
+                        <span class="ab-modal__book-price" id="modalBookPrice">0 ₫</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ab-modal__footer">
+                <button type="button" class="ab-modal__btn ab-modal__btn--outline" id="btnContinueShopping">TIẾP TỤC XEM</button>
+                <a asp-controller="Cart" asp-action="Index" class="ab-modal__btn ab-modal__btn--pink">XEM GIỎ HÀNG</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buy Ticket Quick Floating Circular Badge (Links to Editions) -->
+    <a href="#ticket" class="p-hero__ticket-badge smooth-scroll-link" id="quickTicketBtn">
+        <svg class="p-hero__ticket-badge-svg" viewBox="0 0 100 100">
+            <path id="badgeTextPath" d="M 50, 50 m -40, 0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0" fill="none" />
+            <text>
+                <textPath href="#badgeTextPath" startOffset="0%">
+                    Abnormal experiences during adolescence due to sensitivity and instability. Puberty syndrome.
+                </textPath>
+            </text>
+        </svg>
+        <div class="p-hero__ticket-badge-inner">
+            <img src="https://ao-buta.com/dearfriend/assets/img/ticket/img_movieticket2.jpg" alt="Ticket" class="p-hero__ticket-badge-img">
+            <span class="p-hero__ticket-badge-title">記念前売券</span>
+            <span class="p-hero__ticket-badge-btn">詳しくはこちら</span>
+        </div>
+    </a>
+
+    <!-- YouTube Video Modal Container -->
+    <div class="video-modal" id="videoModal">
+        <div class="video-modal__container">
+            <button class="video-modal__close" id="videoModalCloseBtn" type="button">&times;</button>
+            <iframe id="videoIframe" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <!-- Dynamic CDN Library Loading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.9/dist/lenis.min.js"></script>
+    
+    <script>
+        // Initialize Lenis Smooth Scroll
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            orientation: 'vertical',
+            gestureOrientation: 'vertical',
+            smoothWheel: true,
+            wheelMultiplier: 1,
+            touchMultiplier: 2,
+            infinite: false
+        });
+
+        // Sync Lenis with GSAP ScrollTrigger
+        lenis.on('scroll', ScrollTrigger.update);
+
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // Configure GSAP lag smoothing to play nice with smooth scroll
+        if (typeof gsap !== 'undefined') {
+            gsap.ticker.lagSmoothing(0);
+        }
+
+        // Sakura floating particles generator
+        (function() {
+            var container = document.getElementById('particles');
+            if (!container) return;
+            
+            var petalCount = 25;
+            for (var i = 0; i < petalCount; i++) {
+                var petal = document.createElement('div');
+                petal.className = 'petal';
+                
+                // Random styling for realistic wind falling
+                var size = Math.random() * 8 + 8; // 8px to 16px
+                var left = Math.random() * 100;
+                var delay = Math.random() * 10;
+                var duration = Math.random() * 8 + 8; // 8s to 16s
+                
+                petal.style.width = size + 'px';
+                petal.style.height = size + 'px';
+                petal.style.left = left + '%';
+                petal.style.animationDelay = delay + 's';
+                petal.style.animationDuration = duration + 's';
+                
+                container.appendChild(petal);
+            }
+        })();
+
+        // Sidebar navigation scroll behaviors & active state transitions
+        (function() {
+            // Toggle mobile menu
+            var mobileBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.getElementById('sidebarMenu');
+            var toggleBtns = document.querySelectorAll('.js-menu-toggle');
+            
+            function toggleMenu() {
+                if (sidebar) {
+                    sidebar.classList.toggle('is-active');
+                }
+                if (mobileBtn) {
+                    mobileBtn.classList.toggle('is-active');
+                }
+            }
+            
+            if (mobileBtn) {
+                mobileBtn.addEventListener('click', toggleMenu);
+            }
+            
+            toggleBtns.forEach(function(btn) {
+                btn.addEventListener('click', toggleMenu);
+            });
+            
+            // Handle closing mobile menu on link clicks
+            var menuCloseLinks = document.querySelectorAll('.js-menu-close');
+            menuCloseLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (mobileBtn && sidebar) {
+                        mobileBtn.classList.remove('is-active');
+                        sidebar.classList.remove('is-active');
+                    }
+                });
+            });
+
+            // Smooth scroll implementation for anchor links and buttons using Lenis
+            var smoothScrollLinks = document.querySelectorAll('.smooth-scroll-link');
+            smoothScrollLinks.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    var targetId = this.getAttribute('href');
+                    if (targetId.startsWith('#')) {
+                        e.preventDefault();
+                        var targetEl = document.querySelector(targetId);
+                        if (targetEl) {
+                            lenis.scrollTo(targetEl, { offset: -75 });
+                        }
+                    }
+                });
+            });
+
+            var smoothScrollBtns = document.querySelectorAll('.smooth-scroll-btn');
+            smoothScrollBtns.forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    var targetId = this.getAttribute('data-anchor');
+                    if (targetId && targetId.startsWith('#')) {
+                        e.preventDefault();
+                        var targetEl = document.querySelector(targetId);
+                        if (targetEl) {
+                            lenis.scrollTo(targetEl, { offset: -75 });
+                        }
+                    }
+                });
+            });
+
+            // Pagetop button scroll action
+            var pagetopBtn = document.getElementById('pagetopBtn');
+            if (pagetopBtn) {
+                pagetopBtn.addEventListener('click', function() {
+                    lenis.scrollTo(0);
+                });
+            }
+
+            // Quick ticket floating button scroll action
+            var quickTicketBtn = document.getElementById('quickTicketBtn');
+            if (quickTicketBtn) {
+                quickTicketBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var ticketEl = document.getElementById('ticket');
+                    if (ticketEl) {
+                        lenis.scrollTo(ticketEl, { offset: -75 });
+                    }
+                });
+            }
+        })();
+
+        // Character showcase tab switcher
+        (function() {
+            var tabItems = document.querySelectorAll('.p-chara_nav__list-item');
+            var contents = document.querySelectorAll('.p-chara_content');
+            
+            tabItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    // Clear active classes
+                    tabItems.forEach(function(el) { el.classList.remove('is-active'); });
+                    contents.forEach(function(el) { el.classList.remove('is-active'); });
+                    
+                    // Add active to current
+                    this.classList.add('is-active');
+                    var targetId = this.getAttribute('data-chara-target');
+                    var contentEl = document.getElementById('chara-' + targetId);
+                    if (contentEl) {
+                        contentEl.classList.add('is-active');
+                    }
+                });
+            });
+        })();
+
+        // YouTube popup video modal player
+        (function() {
+            var modal = document.getElementById('videoModal');
+            var iframe = document.getElementById('videoIframe');
+            var closeBtn = document.getElementById('videoModalCloseBtn');
+            var triggers = document.querySelectorAll('.p-movie_article__thumb');
+            
+            triggers.forEach(function(trigger) {
+                trigger.addEventListener('click', function() {
+                    var youtubeId = this.getAttribute('data-youtube-id');
+                    if (youtubeId && modal && iframe) {
+                        iframe.src = 'https://www.youtube.com/embed/' + youtubeId + '?autoplay=1';
+                        modal.style.display = 'flex';
+                    }
+                });
+            });
+            
+            function closeModal() {
+                if (modal && iframe) {
+                    modal.style.display = 'none';
+                    iframe.src = '';
+                }
+            }
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeModal);
+            }
+            
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeModal();
+                    }
+                });
+            }
+        })();
+
+        // Movie Slider Carousel
+        (function() {
+            var slides = document.querySelectorAll('.p-movie__slide');
+            var dots = document.querySelectorAll('.p-movie__dot');
+            var activeIndex = 0;
+            var timer = null;
+
+            function showSlide(index) {
+                if (slides.length === 0) return;
+                slides.forEach(function(slide, idx) {
+                    if (idx === index) {
+                        slide.classList.add('is-active');
+                    } else {
+                        slide.classList.remove('is-active');
+                    }
+                });
+                dots.forEach(function(dot, idx) {
+                    if (idx === index) {
+                        dot.classList.add('is-active');
+                    } else {
+                        dot.classList.remove('is-active');
+                    }
+                });
+                activeIndex = index;
+            }
+
+            dots.forEach(function(dot) {
+                dot.addEventListener('click', function() {
+                    var index = parseInt(this.getAttribute('data-slide'));
+                    showSlide(index);
+                    resetTimer();
+                });
+            });
+
+            function startTimer() {
+                timer = setInterval(function() {
+                    var nextIndex = (activeIndex + 1) % slides.length;
+                    showSlide(nextIndex);
+                }, 5000);
+            }
+
+            function resetTimer() {
+                if (timer) {
+                    clearInterval(timer);
+                    startTimer();
+                }
+            }
+
+            startTimer();
+        })();
+
+        // Prologue character parallax scroll effect
+        (function() {
+            if (typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined") {
+                gsap.registerPlugin(ScrollTrigger);
+                
+                // Animating Chara 2 (Mai) upwards on scroll
+                gsap.fromTo("#prologueChara2", 
+                    { y: 120 }, 
+                    {
+                        y: -120,
+                        ease: "none",
+                        scrollTrigger: {
+                            trigger: "#prologue",
+                            start: "top bottom",
+                            end: "bottom top",
+                            scrub: 1
+                        }
+                    }
+                );
+                
+                // Slightly animate Chara 1 (Touko) slower to enhance depth
+                gsap.fromTo("#prologueChara1", 
+                    { y: -60 }, 
+                    {
+                        y: 60,
+                        ease: "none",
+                        scrollTrigger: {
+                            trigger: "#prologue",
+                            start: "top bottom",
+                            end: "bottom top",
+                            scrub: 1
+                        }
+                    }
+                );
+            }
+        })();
+
+        // Parallax scrolling speed modifier for the intro banner image
+        (function() {
+            var parallaxImg = document.getElementById('introParallaxImg');
+            
+            window.addEventListener('scroll', function() {
+                if (!parallaxImg) return;
+                var rect = parallaxImg.parentElement.getBoundingClientRect();
+                
+                // Only update when in viewport area
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    var offset = (window.innerHeight - rect.top) * 0.15;
+                    parallaxImg.style.transform = 'translateY(' + (offset - 40) + 'px)';
+                }
+            });
+        })();
+
+        // Scroll reveal animation engine
+        (function() {
+            var revealElements = document.querySelectorAll('.scroll-reveal');
+            
+            var observerOptions = {
+                root: null,
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            var observer = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in-view');
+                        observer.unobserve(entry.target); // Trigger animation once
+                    }
+                });
+            }, observerOptions);
+            
+                revealElements.forEach(function(el) {
+                observer.observe(el);
+            });
+        })();
+
+        // Add to Cart Modal Success Feedback (Simple ao-buta style)
+        (function() {
+            var forms = document.querySelectorAll('form[action*="/Cart/AddToCart"]');
+            var modal = document.getElementById('cartSuccessModal');
+            var btnContinue = document.getElementById('btnContinueShopping');
+            var btnContinueOverlay = document.getElementById('btnContinueShoppingOverlay');
+            var btnContinueX = document.getElementById('btnContinueShoppingX');
+            
+            var modalBookImg = document.getElementById('modalBookImg');
+            var modalBookTitle = document.getElementById('modalBookTitle');
+            var modalBookPrice = document.getElementById('modalBookPrice');
+            
+            function closeModal() {
+                if (modal) {
+                    modal.classList.remove('is-active');
+                    document.body.style.overflow = ''; // Restore scroll
+                }
+            }
+            
+            if (btnContinue) btnContinue.addEventListener('click', closeModal);
+            if (btnContinueOverlay) btnContinueOverlay.addEventListener('click', closeModal);
+            if (btnContinueX) btnContinueX.addEventListener('click', closeModal);
+            
+            forms.forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    var submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.style.transform = 'scale(0.95)';
+                        submitBtn.style.transition = 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+                        
+                        var textSpan = submitBtn.querySelector('.p-ticket_content__btn-text') || submitBtn.querySelector('.p-ticket-combo__btn-text');
+                        if (textSpan) {
+                            textSpan.textContent = 'ĐANG XỬ LÝ...';
+                        }
+                        
+                        setTimeout(function() {
+                            submitBtn.style.transform = 'scale(1)';
+                        }, 300);
+                    }
+                    
+                    // Fetch product details from the card UI
+                    var card = form.closest('.p-ticket_content') || form.closest('.p-ticket-combo');
+                    var bookImgSrc = "";
+                    var bookTitle = "Sách Anime";
+                    var bookPrice = "";
+                    
+                    if (card) {
+                        var imgEl = card.querySelector('.p-ticket_visual__img img') || card.querySelector('.p-ticket-combo__image');
+                        if (imgEl) bookImgSrc = imgEl.src;
+                        
+                        var titleEl = card.querySelector('.p-ticket_content__title') || card.querySelector('.p-ticket-combo__subtitle');
+                        if (titleEl) bookTitle = titleEl.textContent.trim();
+                        
+                        var priceEl = card.querySelector('.p-ticket_content__data-text.text-danger') || card.querySelector('.p-ticket-combo__data-text.text-danger');
+                        if (priceEl) {
+                            bookPrice = priceEl.childNodes[0] ? priceEl.childNodes[0].textContent.trim() : priceEl.textContent.trim();
+                        }
+                    }
+                    
+                    // Submit AddToCart via AJAX
+                    fetch('/Cart/AddToCart?ajax=true', {
+                        method: 'POST',
+                        body: new FormData(form),
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function(res) {
+                        return res.json();
+                    })
+                    .then(function(data) {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            var textSpan = submitBtn.querySelector('.p-ticket_content__btn-text') || submitBtn.querySelector('.p-ticket-combo__btn-text');
+                            if (textSpan) {
+                                textSpan.textContent = 'ĐẶT MUA SÁCH';
+                            }
+                        }
+                        
+                        // Populate modal information
+                        if (modalBookImg) modalBookImg.src = bookImgSrc;
+                        if (modalBookTitle) modalBookTitle.textContent = bookTitle;
+                        if (modalBookPrice) modalBookPrice.textContent = bookPrice;
+                        
+                        // Update Cart Badge dynamically
+                        if (data && data.cartCount !== undefined) {
+                            var cartIcon = document.querySelector('.bi-cart3');
+                            if (cartIcon) {
+                                var badge = cartIcon.parentElement.querySelector('.badge');
+                                if (badge) {
+                                    badge.textContent = data.cartCount;
+                                } else {
+                                    var newBadge = document.createElement('span');
+                                    newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                                    newBadge.style.fontSize = '10px';
+                                    newBadge.textContent = data.cartCount;
+                                    cartIcon.parentElement.appendChild(newBadge);
+                                }
+                            }
+                        }
+                        
+                        // Show toast notification (without blocking scroll)
+                        if (modal) {
+                            modal.classList.add('is-active');
+                            
+                            // Auto close after 4 seconds
+                            if (window.cartToastTimeout) clearTimeout(window.cartToastTimeout);
+                            window.cartToastTimeout = setTimeout(function() {
+                                closeModal();
+                            }, 4000);
+                        }
+                    })
+                    .catch(function(err) {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            var textSpan = submitBtn.querySelector('.p-ticket_content__btn-text');
+                            if (textSpan) {
+                                textSpan.textContent = 'ĐẶT MUA SÁCH';
+                            }
+                        }
+                        console.error('AJAX add to cart failed:', err);
+                        form.submit(); // fallback to classic redirect if AJAX fails
+                    });
+                });
+            });
+
+            // Auto-scroll product cards every 3 seconds with CSS snapping
+            (function() {
+                var container = document.querySelector('.p-ticket__inner');
+                if (!container) return;
+                
+                var intervalTime = 3000;
+                var intervalId;
+                
+                function getCardWidth() {
+                    var cards = container.querySelectorAll('.p-ticket_content');
+                    if (cards.length < 2) return container.clientWidth;
+                    return cards[1].getBoundingClientRect().left - cards[0].getBoundingClientRect().left;
+                }
+                
+                function startAutoScroll() {
+                    stopAutoScroll();
+                    intervalId = setInterval(function() {
+                        var cardWidth = getCardWidth();
+                        var maxScrollLeft = container.scrollWidth - container.clientWidth;
+                        var currentScroll = container.scrollLeft;
+                        
+                        // Rounding to next card
+                        var nextScroll = Math.ceil(currentScroll / cardWidth) * cardWidth;
+                        if (Math.abs(nextScroll - currentScroll) < 10) {
+                            nextScroll += cardWidth;
+                        }
+                        
+                        if (currentScroll >= maxScrollLeft - 10) {
+                            container.scrollTo({ left: 0, behavior: 'smooth' });
+                        } else {
+                            container.scrollTo({ left: nextScroll, behavior: 'smooth' });
+                        }
+                    }, intervalTime);
+                }
+                
+                function stopAutoScroll() {
+                    if (intervalId) {
+                        clearInterval(intervalId);
+                    }
+                }
+                
+                startAutoScroll();
+                
+                container.addEventListener('mouseenter', stopAutoScroll);
+                container.addEventListener('mouseleave', startAutoScroll);
+                container.addEventListener('touchstart', stopAutoScroll);
+                container.addEventListener('touchend', startAutoScroll);
+            })();
+
+            // Cinematic Intro Page Loading Screen Controller
+            (function() {
+                var intro = document.getElementById('page-intro-overlay');
+                if (!intro) return;
+                
+                // Disable scrolling during intro
+                document.body.style.overflow = 'hidden';
+                
+                setTimeout(function() {
+                    intro.classList.add('fade-out');
+                    document.body.style.overflow = ''; // Restore scrolling
+                }, 2200);
+            })();
+
+            // Header Show-on-Scroll Controller (Visible when scrolled down, hidden at the very top)
+            (function() {
+                var header = document.querySelector('.fahasa-header');
+                if (!header) return;
+                
+                var threshold = 80; // Show header after scrolling down 80px
+                
+                window.addEventListener('scroll', function() {
+                    var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    
+                    if (scrollTop > threshold) {
+                        header.classList.add('header-show');
+                    } else {
+                        header.classList.remove('header-show');
+                    }
+                }, { passive: true });
+            })();
+        })();
+    </script>
+}

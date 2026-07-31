@@ -5,11 +5,10 @@ public class CartItemViewModel
     public int BookID { get; set; }
     public string Title { get; set; } = string.Empty;
     public string ImageUrl { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public decimal? DiscountPrice { get; set; }
+    public decimal OriginalPrice { get; set; }
+    public decimal CurrentPrice { get; set; }
     public int Quantity { get; set; }
     
-    public decimal CurrentPrice => DiscountPrice ?? Price;
     public decimal Total => CurrentPrice * Quantity;
 }
 

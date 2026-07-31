@@ -1,0 +1,135 @@
+@model WedBanSach.ViewModels.AprioriDashboardViewModel
+@{
+    ViewData["Title"] = "Apriori Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Phân tích Giỏ hàng (Apriori)</h1>
+        <form asp-action="Train" method="post" class="d-inline">
+            <button type="submit" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-play fa-sm text-white-50"></i> Chạy Huấn luyện Model
+            </button>
+        </form>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Tổng số giao dịch phân tích -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Giao dịch phân tích</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalTransactions</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tổng số luật sinh ra -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Số Luật (Rules)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalRules</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-link fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Độ tin cậy trung bình -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Confidence T.Bình</div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">@Math.Round(Model.AvgConfidence * 100, 2)%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trạng thái Training -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Lần Train Cuối</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" style="font-size: 14px;">
+                                @(Model.LastTraining?.EndTime?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa chạy")
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Thông tin Khai phá</h6>
+                    <div class="dropdown no-arrow">
+                        <a href="/Admin/Apriori/Rules" class="btn btn-sm btn-outline-primary">Xem tất cả Luật</a>
+                        <a href="/Admin/Apriori/Config" class="btn btn-sm btn-outline-secondary">Cấu hình thuật toán</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.LastTraining != null)
+                    {
+                        <p>Thời gian chạy: <strong>@Model.LastTraining.DurationMs ms</strong></p>
+                        <p>Trạng thái: <strong>@Model.LastTraining.Status</strong></p>
+                        <p>Total Items: <strong>@Model.LastTraining.TotalItems</strong></p>
+                        <p>Frequent Itemsets (Tập phổ biến): <strong>@Model.TotalFrequentItemsets</strong></p>
+                    }
+                    else
+                    {
+                        <p>Hệ thống chưa được huấn luyện. Vui lòng bấm "Chạy Huấn luyện Model".</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

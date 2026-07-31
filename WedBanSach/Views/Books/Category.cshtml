@@ -219,22 +219,103 @@
                 </div>
             </div>
 
+            @if (ViewBag.CategoryId == 1 || (ViewBag.CategoryName as string)?.Equals("Văn Học", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                <style>
+                    .anime-promo-banner {
+                        position: relative;
+                        background: linear-gradient(135deg, rgba(235, 242, 255, 0.75) 0%, rgba(255, 238, 243, 0.75) 100%);
+                        border: 1px solid rgba(255, 255, 255, 0.9);
+                        box-shadow: 0 10px 30px rgba(163, 186, 224, 0.2);
+                        backdrop-filter: blur(10px);
+                        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                        border-radius: 16px;
+                    }
+                    .anime-promo-banner:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 20px 40px rgba(255, 143, 163, 0.18) !important;
+                        border-color: rgba(255, 143, 163, 0.3) !important;
+                    }
+                    .anime-promo-banner__title {
+                        background: linear-gradient(90deg, #4d63a1 0%, #ff6b8b 100%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        font-weight: 800;
+                        letter-spacing: 0.5px;
+                    }
+                    .banner-floating-art img {
+                        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                    }
+                    .anime-promo-banner:hover .banner-floating-art img:first-child {
+                        transform: rotate(-12deg) scale(1.05) translateY(-5px);
+                    }
+                    .anime-promo-banner:hover .banner-floating-art img:last-child {
+                        transform: rotate(15deg) scale(1.05) translateY(-5px);
+                    }
+                    @@keyframes bounce-right {
+                        0%, 100% { transform: translateX(0); }
+                        50% { transform: translateX(5px); }
+                    }
+                    @@keyframes banner-float {
+                        0% { transform: translateY(0); }
+                        100% { transform: translateY(-10px); }
+                    }
+                </style>
+                <!-- BANNER GIỚI THIỆU SÁCH PHONG CÁCH RASCAL DOES NOT DREAM -->
+                <div class="mb-4">
+                    <a href="/gioi-thieu/hoi-chung-tuoi-thanh-xuan" class="d-block text-decoration-none">
+                        <div class="anime-promo-banner position-relative overflow-hidden p-4 d-flex align-items-center justify-content-between">
+                            <div class="position-absolute w-100 h-100 top-0 start-0" style="background-image: radial-gradient(circle at 80% 20%, rgba(255, 143, 163, 0.15) 0%, transparent 60%); pointer-events: none;"></div>
+                            <div class="promo-banner-content position-relative z-3">
+                                <span class="badge mb-2 px-3 py-2 text-uppercase fw-bold letter-spacing-1" style="background: linear-gradient(90deg, #ff6b8b, #ff8fa3); color: #fff; border-radius: 50px;">Sự Kiện Đặc Biệt</span>
+                                <h3 class="anime-promo-banner__title mb-2 fs-2">HỘI CHỨNG TUỔI THANH XUÂN</h3>
+                                <p class="mb-3 fs-6 d-none d-md-block" style="color: #556080; font-weight: 500;">Đắm chìm vào câu chuyện tuổi trẻ đầy bí ẩn và cảm xúc. Khám phá vũ trụ của Hajime Kamoshida dưới định dạng Visual Novel độc quyền ngay tại website.</p>
+                                <div class="d-inline-flex align-items-center gap-2 fw-bold" style="color: #ff6b8b !important;">
+                                    <span>Trải nghiệm ngay</span> <i class="bi bi-arrow-right-circle-fill fs-5" style="animation: bounce-right 1.5s infinite;"></i>
+                                </div>
+                            </div>
+                            <div class="promo-banner-graphics d-none d-lg-block position-relative z-3" style="width: 260px; height: 160px;">
+                                <div class="banner-floating-art" style="animation: banner-float 4s ease-in-out infinite alternate; width: 260px; height: 160px; position: relative;">
+                                    <img src="/uploads/books/13_b582e988-0d02-49dd-b114-dad5362e09ab.webp" class="rounded-3 shadow-lg" style="width: 110px; transform: rotate(-8deg); border: 2px solid rgba(255,255,255,0.7);" />
+                                    <img src="/uploads/books/13_757d7feb-aa24-407f-bef7-23ceae23cfff.webp" class="rounded-3 shadow-lg position-absolute" style="width: 100px; top: 15px; left: 80px; transform: rotate(10deg); border: 2px solid rgba(255,255,255,0.7); z-index: -1;" />
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+
             <!-- Grid -->
             @if (Model != null && Model.Any())
             {
+                @if (ViewBag.IsSuggested == true)
+                {
+                    <div class="alert alert-warning border-0 shadow-sm mb-4 rounded-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                        <div>
+                            Không tìm thấy sản phẩm nào phù hợp với từ khóa "<strong>@searchTerm</strong>". Dưới đây là các sản phẩm gợi ý dành cho bạn:
+                        </div>
+                    </div>
+                }
                 <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
                     @foreach (var book in Model)
                     {
                         <div class="col">
                             <div class="book-card h-100 bg-white">
                                 <div class="position-relative overflow-hidden group-hover-img p-2">
-                                     <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block">
+                                     <a asp-controller="Books" asp-action="Details" asp-route-id="@book.BookID" class="d-block position-relative">
                                         <img src="@(book.BookImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl ?? "/images/default-book.png")" 
                                              class="book-cover rounded-3 border img-fluid" alt="@book.Title">
+                                        @if (book.AvailableStock <= 0)
+                                        {
+                                            <span class="position-absolute top-0 start-0 bg-secondary text-white small fw-bold px-2 py-1 mt-2 ms-2" style="z-index: 2; border-radius: 4px;">
+                                                Hết hàng
+                                            </span>
+                                        }
                                      </a>
-                                    @if (book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
+                                    @if (book.AvailableStock > 0 && book.CurrentPrice < book.OriginalPrice)
                                     {
-                                        var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                        var discountPercent = (int)((1 - (book.CurrentPrice / book.OriginalPrice)) * 100);
                                         <span class="position-absolute top-0 end-0 bg-danger text-white small fw-bold px-2 py-1 rounded-start mt-2">
                                             -@discountPercent%
                                         </span>
@@ -249,16 +330,16 @@
                                     
                                     <div class="price-box d-flex align-items-center gap-2 mb-2">
                                         <span class="current-price text-danger fw-bold" style="font-size: 1.1rem;">
-                                            @((book.DiscountPrice ?? book.Price).ToString("#,##0")) ₫
+                                            @((book.CurrentPrice).ToString("#,##0")) ₫
                                         </span>
-                                        @if(book.DiscountPrice.HasValue && book.DiscountPrice < book.Price)
+                                        @if(book.CurrentPrice < book.OriginalPrice && book.CurrentPrice < book.OriginalPrice)
                                         {
-                                             var discountPercent = (int)((1 - (book.DiscountPrice.Value / book.Price)) * 100);
+                                             var discountPercent = (int)((1 - (book.CurrentPrice / book.OriginalPrice)) * 100);
                                              <span class="bg-danger text-white small rounded px-1 text-center" style="font-size: 10px;">-@discountPercent%</span>
                                         }
                                     </div>
-                                    @if (book.DiscountPrice.HasValue) {
-                                         <div class="text-muted text-decoration-line-through small mb-2">@book.Price.ToString("#,##0") ₫</div>
+                                    @if (book.CurrentPrice < book.OriginalPrice) {
+                                         <div class="text-muted text-decoration-line-through small mb-2">@book.OriginalPrice.ToString("#,##0") ₫</div>
                                     } else {
                                         <div class="mb-2" style="height: 21px;"></div>
                                     }

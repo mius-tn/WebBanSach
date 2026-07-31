@@ -262,8 +262,8 @@ public class AdminAIChatController : Controller
                         return new {
                             b.BookID,
                             b.Title,
-                            b.Price,
-                            b.DiscountPrice,
+                            b.OriginalPrice,
+                            b.CurrentPrice,
                             ImageUrl = mainImg
                         };
                     }).ToList();

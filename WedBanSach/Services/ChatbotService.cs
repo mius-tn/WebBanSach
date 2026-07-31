@@ -87,7 +87,7 @@ public class ChatbotService
             sb.AppendLine("Danh sách sách phù hợp trong kho:");
             foreach (var b in matchedBooks)
             {
-                sb.AppendLine($"- ID: {b.BookID} | Tên: {b.Title} | Giá gốc: {b.Price:N0}đ | Giá bán: {(b.DiscountPrice ?? b.Price):N0}đ | Còn lại: {b.StockQuantity} cuốn | Đã bán: {b.SoldQuantity}");
+                sb.AppendLine($"- ID: {b.BookID} | Tên: {b.Title} | Giá gốc: {b.OriginalPrice:N0}đ | Giá bán: {b.CurrentPrice:N0}đ | Còn lại: {b.TotalStock} cuốn | Đã bán: {b.SoldStock}");
             }
             bookCatalogContext = sb.ToString();
         }
@@ -276,7 +276,7 @@ Bắt buộc bạn phải trả về một đối tượng JSON thuần túy có
             if (targetBooks.Any())
             {
                 response.RecommendedBookIds = targetBooks.Select(b => b.BookID).ToList();
-                var bookListText = string.Join("\n", targetBooks.Take(3).Select(b => $"- **{b.Title}** (Giá: {(b.DiscountPrice ?? b.Price):N0}đ)"));
+                var bookListText = string.Join("\n", targetBooks.Take(3).Select(b => $"- **{b.Title}** (Giá: {b.CurrentPrice:N0}đ)"));
                 
                 if (matchedBooks.Any())
                 {

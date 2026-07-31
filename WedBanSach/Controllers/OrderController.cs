@@ -116,6 +116,8 @@ namespace WedBanSach.Controllers
             int userId = int.Parse(userIdStr);
             var order = await _context.Orders
                 .Include(o => o.Payments)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Book)
                 .FirstOrDefaultAsync(o => o.OrderID == orderId && o.UserID == userId);
 
             if (order == null) return Json(new { success = false, message = "Không tìm thấy đơn hàng." });
@@ -133,6 +135,15 @@ namespace WedBanSach.Controllers
                 foreach (var payment in order.Payments)
                 {
                     payment.PaymentStatus = "Failed";
+                }
+            }
+
+            // Free reserved stock
+            foreach (var detail in order.OrderDetails)
+            {
+                if (detail.Book != null && detail.Book.ReservedStock >= detail.Quantity)
+                {
+                    detail.Book.ReservedStock -= detail.Quantity;
                 }
             }
 

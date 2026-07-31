@@ -29,7 +29,7 @@ public class AdminInventoryController : Controller
 
         var totalRecords = await query.CountAsync();
         var books = await query
-            .OrderBy(b => b.StockQuantity)
+            .OrderBy(b => b.TotalStock)
             .ThenBy(b => b.Title)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -63,8 +63,8 @@ public class AdminInventoryController : Controller
         if (book == null)
             return NotFound();
 
-        var changeQuantity = quantity - book.StockQuantity;
-        book.StockQuantity = quantity;
+        var changeQuantity = quantity - book.TotalStock;
+        book.TotalStock = quantity;
 
         _context.InventoryLogs.Add(new Models.InventoryLog
         {

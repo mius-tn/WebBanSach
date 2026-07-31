@@ -118,7 +118,7 @@ public class ReturnRequestService : IReturnRequestService
                     // If request type is Exchange, we deduct 1 from normal stock to send a new replacement to customer
                     if (request.RequestType == "Exchange")
                     {
-                        book.StockQuantity = Math.Max(0, book.StockQuantity - request.Quantity);
+                        book.TotalStock = Math.Max(0, book.TotalStock - request.Quantity);
 
                         var exchangeLog = new InventoryLog
                         {

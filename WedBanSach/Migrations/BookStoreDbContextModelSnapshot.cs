@@ -22,6 +22,124 @@ namespace WedBanSach.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("WedBanSach.Models.AIChatMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("SessionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId");
+
+                    b.ToTable("AIChatMessages");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.AIChatSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastMessageAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AIChatSessions");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.AIRecommendation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("RecommendationScore")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("AIRecommendations");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.AuditLog", b =>
+                {
+                    b.Property<int>("AuditLogID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AuditLogID"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NewValues")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RecordID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("AuditLogID");
+
+                    b.ToTable("AuditLogs");
+                });
+
             modelBuilder.Entity("WedBanSach.Models.Author", b =>
                 {
                     b.Property<int>("AuthorID")
@@ -58,15 +176,27 @@ namespace WedBanSach.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal>("CurrentPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("DiscountPrice")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("FaultyQuantity")
+                        .HasColumnType("int");
 
                     b.Property<string>("ISBN")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("IsPromotionActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MinimumStock")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("OriginalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("PackageSize")
                         .HasMaxLength(100)
@@ -75,16 +205,28 @@ namespace WedBanSach.Migrations
                     b.Property<int?>("PageCount")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int?>("PublishYear")
                         .HasColumnType("int");
 
                     b.Property<int?>("PublisherID")
                         .HasColumnType("int");
 
-                    b.Property<int>("SoldQuantity")
+                    b.Property<int>("ReservedStock")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SaleEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("SalePercent")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("SalePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("SaleStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SoldStock")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -92,13 +234,13 @@ namespace WedBanSach.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<int>("StockQuantity")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("TotalStock")
+                        .HasColumnType("int");
 
                     b.Property<int?>("Weight")
                         .HasColumnType("int");
@@ -115,7 +257,11 @@ namespace WedBanSach.Migrations
 
                     b.ToTable("Books", t =>
                         {
-                            t.HasCheckConstraint("CK_Book_StockQuantity", "StockQuantity >= 0");
+                            t.HasCheckConstraint("CK_Book_ReservedStock", "ReservedStock >= 0");
+
+                            t.HasCheckConstraint("CK_Book_SoldStock", "SoldStock >= 0");
+
+                            t.HasCheckConstraint("CK_Book_TotalStock", "TotalStock >= 0");
                         });
                 });
 
@@ -348,6 +494,99 @@ namespace WedBanSach.Migrations
                     b.ToTable("Coupons");
                 });
 
+            modelBuilder.Entity("WedBanSach.Models.CustomerPreference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FavoriteAuthors")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("FavoriteGenres")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PreferredPriceRange")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CustomerPreferences");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.GoodsReceipt", b =>
+                {
+                    b.Property<int>("ReceiptID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReceiptID"));
+
+                    b.Property<string>("EnteredBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("EntryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SupplierName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ReceiptID");
+
+                    b.ToTable("GoodsReceipts");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.GoodsReceiptDetail", b =>
+                {
+                    b.Property<int>("ReceiptDetailID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReceiptDetailID"));
+
+                    b.Property<int>("BookID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReceiptID")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ReceiptDetailID");
+
+                    b.HasIndex("BookID");
+
+                    b.HasIndex("ReceiptID");
+
+                    b.ToTable("GoodsReceiptDetails");
+                });
+
             modelBuilder.Entity("WedBanSach.Models.InventoryLog", b =>
                 {
                     b.Property<int>("LogID")
@@ -573,6 +812,119 @@ namespace WedBanSach.Migrations
                     b.ToTable("PaymentSettings");
                 });
 
+            modelBuilder.Entity("WedBanSach.Models.Policy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Thumbnail")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("Policies");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.PolicyCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PolicyCategories");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.PriceHistory", b =>
+                {
+                    b.Property<int>("PriceHistoryID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PriceHistoryID"));
+
+                    b.Property<int>("BookID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ChangeType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ChangedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("NewPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("OldPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("PriceHistoryID");
+
+                    b.HasIndex("BookID");
+
+                    b.ToTable("PriceHistories");
+                });
+
             modelBuilder.Entity("WedBanSach.Models.Promotion", b =>
                 {
                     b.Property<int>("PromotionID")
@@ -603,6 +955,51 @@ namespace WedBanSach.Migrations
                     b.ToTable("Promotions");
                 });
 
+            modelBuilder.Entity("WedBanSach.Models.PromotionCampaign", b =>
+                {
+                    b.Property<int>("CampaignID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CampaignID"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DiscountType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("CampaignID");
+
+                    b.ToTable("PromotionCampaigns");
+                });
+
             modelBuilder.Entity("WedBanSach.Models.Publisher", b =>
                 {
                     b.Property<int>("PublisherID")
@@ -623,6 +1020,125 @@ namespace WedBanSach.Migrations
                     b.HasKey("PublisherID");
 
                     b.ToTable("Publishers");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.RefundTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("RefundDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RefundMethod")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RefundStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("ReturnRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TransactionCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReturnRequestId");
+
+                    b.ToTable("RefundTransactions");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.ReturnRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("BookID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<decimal?>("RefundAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RequestType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookID");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("ReturnRequests");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.ReturnRequestImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ReturnRequestId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReturnRequestId");
+
+                    b.ToTable("ReturnRequestImages");
                 });
 
             modelBuilder.Entity("WedBanSach.Models.Review", b =>
@@ -922,6 +1438,115 @@ namespace WedBanSach.Migrations
                     b.ToTable("UserRoles");
                 });
 
+            modelBuilder.Entity("WedBanSach.Models.Warehouse", b =>
+                {
+                    b.Property<int>("WarehouseID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WarehouseID"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("WarehouseID");
+
+                    b.ToTable("Warehouses");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.WarehouseStock", b =>
+                {
+                    b.Property<int>("WarehouseID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BookID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReservedStock")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalStock")
+                        .HasColumnType("int");
+
+                    b.HasKey("WarehouseID", "BookID");
+
+                    b.HasIndex("BookID");
+
+                    b.ToTable("WarehouseStocks");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.WarrantyRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("IssueDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("WarrantyRequests");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.AIChatMessage", b =>
+                {
+                    b.HasOne("WedBanSach.Models.AIChatSession", "AIChatSession")
+                        .WithMany("AIChatMessages")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AIChatSession");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.AIRecommendation", b =>
+                {
+                    b.HasOne("WedBanSach.Models.Book", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("WedBanSach.Models.Book", b =>
                 {
                     b.HasOne("WedBanSach.Models.Publisher", "Publisher")
@@ -1031,6 +1656,25 @@ namespace WedBanSach.Migrations
                     b.Navigation("ChatRoom");
                 });
 
+            modelBuilder.Entity("WedBanSach.Models.GoodsReceiptDetail", b =>
+                {
+                    b.HasOne("WedBanSach.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WedBanSach.Models.GoodsReceipt", "GoodsReceipt")
+                        .WithMany("GoodsReceiptDetails")
+                        .HasForeignKey("ReceiptID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("GoodsReceipt");
+                });
+
             modelBuilder.Entity("WedBanSach.Models.InventoryLog", b =>
                 {
                     b.HasOne("WedBanSach.Models.Book", "Book")
@@ -1094,6 +1738,75 @@ namespace WedBanSach.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("WedBanSach.Models.Policy", b =>
+                {
+                    b.HasOne("WedBanSach.Models.PolicyCategory", "Category")
+                        .WithMany("Policies")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.PriceHistory", b =>
+                {
+                    b.HasOne("WedBanSach.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.RefundTransaction", b =>
+                {
+                    b.HasOne("WedBanSach.Models.ReturnRequest", "ReturnRequest")
+                        .WithMany("RefundTransactions")
+                        .HasForeignKey("ReturnRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReturnRequest");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.ReturnRequest", b =>
+                {
+                    b.HasOne("WedBanSach.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookID");
+
+                    b.HasOne("WedBanSach.Models.User", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WedBanSach.Models.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.ReturnRequestImage", b =>
+                {
+                    b.HasOne("WedBanSach.Models.ReturnRequest", "ReturnRequest")
+                        .WithMany("Images")
+                        .HasForeignKey("ReturnRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReturnRequest");
+                });
+
             modelBuilder.Entity("WedBanSach.Models.Review", b =>
                 {
                     b.HasOne("WedBanSach.Models.Book", "Book")
@@ -1154,6 +1867,49 @@ namespace WedBanSach.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("WedBanSach.Models.WarehouseStock", b =>
+                {
+                    b.HasOne("WedBanSach.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WedBanSach.Models.Warehouse", "Warehouse")
+                        .WithMany("WarehouseStocks")
+                        .HasForeignKey("WarehouseID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("Warehouse");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.WarrantyRequest", b =>
+                {
+                    b.HasOne("WedBanSach.Models.User", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WedBanSach.Models.Book", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.AIChatSession", b =>
+                {
+                    b.Navigation("AIChatMessages");
+                });
+
             modelBuilder.Entity("WedBanSach.Models.Author", b =>
                 {
                     b.Navigation("BookAuthors");
@@ -1188,6 +1944,11 @@ namespace WedBanSach.Migrations
                     b.Navigation("SubCategories");
                 });
 
+            modelBuilder.Entity("WedBanSach.Models.GoodsReceipt", b =>
+                {
+                    b.Navigation("GoodsReceiptDetails");
+                });
+
             modelBuilder.Entity("WedBanSach.Models.Order", b =>
                 {
                     b.Navigation("OrderDetails");
@@ -1197,9 +1958,21 @@ namespace WedBanSach.Migrations
                     b.Navigation("Shippings");
                 });
 
+            modelBuilder.Entity("WedBanSach.Models.PolicyCategory", b =>
+                {
+                    b.Navigation("Policies");
+                });
+
             modelBuilder.Entity("WedBanSach.Models.Publisher", b =>
                 {
                     b.Navigation("Books");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.ReturnRequest", b =>
+                {
+                    b.Navigation("Images");
+
+                    b.Navigation("RefundTransactions");
                 });
 
             modelBuilder.Entity("WedBanSach.Models.Role", b =>
@@ -1216,6 +1989,11 @@ namespace WedBanSach.Migrations
                     b.Navigation("Reviews");
 
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("WedBanSach.Models.Warehouse", b =>
+                {
+                    b.Navigation("WarehouseStocks");
                 });
 #pragma warning restore 612, 618
         }

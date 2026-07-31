@@ -630,3 +630,405 @@ body {
 .carousel-fade .carousel-item.active {
     opacity: 1;
 }
+
+/* ============================================================
+   FLASH SALE PAGE STYLES
+   Reuses: --primary-color, --border-radius, --shadow-soft, 
+           .book-card, .book-cover, .book-title, .btn-pink
+   ============================================================ */
+
+:root {
+    --flash-red: #ff3838;
+    --flash-red-dark: #e62e2e;
+    --flash-orange: #ff6b35;
+    --flash-bg-light: #fff0f0;
+}
+
+/* Banner */
+.flash-sale-banner {
+    background: linear-gradient(135deg, var(--flash-red) 0%, var(--flash-orange) 100%);
+    border-radius: var(--border-radius);
+    padding: 40px 30px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(255, 56, 56, 0.35);
+}
+.flash-sale-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.flash-sale-banner::after {
+    content: '';
+    position: absolute;
+    bottom: -40%;
+    right: -5%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.flash-sale-banner-title {
+    font-size: 42px;
+    font-weight: 900;
+    font-style: italic;
+    color: #fff;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+    letter-spacing: 2px;
+    position: relative;
+    z-index: 2;
+}
+.flash-sale-banner-subtitle {
+    color: rgba(255,255,255,0.85);
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 2;
+}
+
+/* Countdown */
+.fs-countdown-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+}
+.fs-countdown-box {
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 22px;
+    min-width: 56px;
+    text-align: center;
+    line-height: 1;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+.fs-countdown-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    opacity: 0.7;
+}
+.fs-countdown-sep {
+    font-size: 24px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.7);
+}
+
+/* Campaign Tabs */
+.flash-sale-tabs {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.flash-sale-tabs::-webkit-scrollbar {
+    display: none;
+}
+.flash-sale-tab {
+    flex-shrink: 0;
+    background: var(--white);
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 12px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    min-width: 160px;
+    text-decoration: none;
+    color: var(--text-color);
+    position: relative;
+}
+.flash-sale-tab:hover {
+    border-color: var(--flash-red);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 56, 56, 0.15);
+    color: var(--flash-red);
+}
+.flash-sale-tab.active {
+    border-color: var(--flash-red);
+    background: var(--flash-bg-light);
+    box-shadow: 0 4px 15px rgba(255, 56, 56, 0.2);
+}
+.flash-sale-tab.ended {
+    opacity: 0.5;
+    pointer-events: none;
+}
+.flash-sale-tab-name {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+.flash-sale-tab-time {
+    font-size: 11px;
+    color: #999;
+    font-weight: 600;
+}
+.flash-sale-tab-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.flash-sale-tab-badge.live {
+    background: var(--flash-red);
+    color: #fff;
+    animation: fs-pulse 2s ease-in-out infinite;
+}
+.flash-sale-tab-badge.upcoming {
+    background: #fff3cd;
+    color: #856404;
+}
+.flash-sale-tab-badge.ended-badge {
+    background: #e9ecef;
+    color: #6c757d;
+}
+@keyframes fs-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Flash Sale Card (extends .book-card) */
+.flash-sale-card {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background: var(--white);
+    border: 1px solid #f1f3f5;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.flash-sale-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(255, 56, 56, 0.18);
+    border-color: rgba(255, 56, 56, 0.2);
+}
+.flash-sale-card .card-img-wrap {
+    position: relative;
+    overflow: hidden;
+    padding: 12px 12px 0;
+}
+.flash-sale-card .card-img-wrap img {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: contain;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+.flash-sale-card:hover .card-img-wrap img {
+    transform: scale(1.03);
+}
+.flash-sale-card .discount-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: var(--flash-red);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 0 8px 8px 0;
+    z-index: 5;
+    letter-spacing: -0.3px;
+}
+.flash-sale-card .card-body {
+    padding: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.flash-sale-card .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    height: 36px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    margin-bottom: 8px;
+}
+.flash-sale-card .card-title a {
+    color: var(--text-color);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.flash-sale-card .card-title a:hover {
+    color: var(--flash-red);
+}
+.flash-sale-card .sale-price {
+    color: var(--flash-red);
+    font-weight: 800;
+    font-size: 16px;
+}
+.flash-sale-card .original-price {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 12px;
+}
+
+/* Shopee-style Progress Bar */
+.flash-sale-progress {
+    position: relative;
+    width: 100%;
+    height: 20px;
+    background-color: #ffd8d8;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: auto;
+}
+.flash-sale-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff3b3b, #ff6b35);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+    min-width: 15%;
+}
+.flash-sale-progress-text {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 20px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    white-space: nowrap;
+}
+
+/* Sort/Filter Toolbar */
+.flash-sale-toolbar {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    padding: 12px 16px;
+    border: 1px solid #f1f3f5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* Price filter pills */
+.fs-price-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: var(--text-color);
+}
+.fs-price-pill:hover, .fs-price-pill.active {
+    border-color: var(--flash-red);
+    color: var(--flash-red);
+    background: var(--flash-bg-light);
+}
+
+/* Add to cart button for Flash Sale */
+.btn-flash-cart {
+    background: var(--flash-red);
+    color: #fff;
+    border: none;
+    border-radius: var(--btn-radius);
+    padding: 6px 0;
+    font-size: 12px;
+    font-weight: 700;
+    width: 100%;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.btn-flash-cart:hover {
+    background: var(--flash-red-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 56, 56, 0.3);
+    color: #fff;
+}
+
+/* Empty state */
+.flash-sale-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+.flash-sale-empty i {
+    font-size: 64px;
+    color: #ddd;
+    margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .flash-sale-banner {
+        padding: 24px 16px;
+    }
+    .flash-sale-banner-title {
+        font-size: 26px;
+    }
+    .fs-countdown-box {
+        padding: 6px 8px;
+        font-size: 16px;
+        min-width: 42px;
+        border-radius: 8px;
+    }
+    .fs-countdown-label {
+        font-size: 8px;
+    }
+    .fs-countdown-sep {
+        font-size: 18px;
+    }
+    .flash-sale-tab {
+        min-width: 130px;
+        padding: 10px 14px;
+    }
+    .flash-sale-card .card-title {
+        font-size: 12px;
+        height: 34px;
+    }
+    .flash-sale-card .sale-price {
+        font-size: 14px;
+    }
+}
+@media (max-width: 576px) {
+    .flash-sale-banner-title {
+        font-size: 22px;
+    }
+    .flash-sale-banner {
+        padding: 20px 14px;
+    }
+    .fs-countdown-box {
+        padding: 5px 6px;
+        font-size: 14px;
+        min-width: 36px;
+    }
+}

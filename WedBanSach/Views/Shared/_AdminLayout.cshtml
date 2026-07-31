@@ -79,6 +79,12 @@
                         <span>Người dùng</span>
                     </a>
                 </li>
+                <li>
+                    <a href="/Admin/Apriori" class="@(currentController == "AdminApriori" ? "active" : "")">
+                        <i class="bi bi-brain"></i>
+                        <span>Phân tích Giỏ hàng (Apriori)</span>
+                    </a>
+                </li>
             }
             @{
                 var permissionsJson = Context.Session.GetString("Permissions");
@@ -106,15 +112,33 @@
                 </a>
             </li>
             <li>
-                <a href="@Url.Action("Index", "AdminPromotions")" class="@(currentController == "AdminPromotions" ? "active" : "")">
+                <a href="@Url.Action("Index", "AdminPromotionCampaigns")" class="@(currentController == "AdminPromotionCampaigns" ? "active" : "")">
                     <i class="bi bi-percent"></i>
-                    <span>Khuyến mãi</span>
+                    <span>Chiến dịch KM</span>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "AdminPriceHistory")" class="@(currentController == "AdminPriceHistory" ? "active" : "")">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Lịch sử giá</span>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "AdminPromotions")" class="@(currentController == "AdminPromotions" ? "active" : "")">
+                    <i class="bi bi-tag"></i>
+                    <span>Banner KM</span>
                 </a>
             </li>
             <li>
                 <a href="@Url.Action("Index", "AdminInventory")" class="@(currentController == "AdminInventory" ? "active" : "")">
                     <i class="bi bi-box-seam"></i>
                     <span>Tồn kho</span>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "AdminGoodsReceipts")" class="@(currentController == "AdminGoodsReceipts" ? "active" : "")">
+                    <i class="bi bi-box-arrow-in-down"></i>
+                    <span>Nhập kho</span>
                 </a>
             </li>
             <li>
@@ -149,12 +173,6 @@
                 <a href="@Url.Action("Index", "AdminReturnRequest")" class="@(currentController == "AdminReturnRequest" ? "active" : "")">
                     <i class="bi bi-arrow-left-right"></i>
                     <span>Yêu cầu đổi trả</span>
-                </a>
-            </li>
-            <li>
-                <a href="@Url.Action("Index", "AdminWarranty")" class="@(currentController == "AdminWarranty" ? "active" : "")">
-                    <i class="bi bi-shield-shaded"></i>
-                    <span>Quản lý bảo hành</span>
                 </a>
             </li>
         </ul>

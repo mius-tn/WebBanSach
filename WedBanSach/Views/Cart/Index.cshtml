@@ -75,9 +75,9 @@
                                             </div>
                                             <div class="d-flex align-items-center gap-2">
                                                 <span class="fw-bold text-dark">@item.CurrentPrice.ToString("#,##0") đ</span>
-                                                @if (item.Price > item.CurrentPrice)
+                                                @if (item.OriginalPrice > item.CurrentPrice)
                                                 {
-                                                    <span class="text-muted text-decoration-line-through small">@item.Price.ToString("#,##0") đ</span>
+                                                    <span class="text-muted text-decoration-line-through small">@item.OriginalPrice.ToString("#,##0") đ</span>
                                                 }
                                             </div>
                                         </div>
@@ -263,6 +263,43 @@
                 </div>
             </div>
         </div>
+
+        <!-- CÓ THỂ BẠN SẼ CẦN (APRIORI) -->
+        @if (ViewBag.AprioriRecommendations != null)
+        {
+            var aprioriRecs = ViewBag.AprioriRecommendations as List<WedBanSach.ViewModels.BookRecommendation>;
+            if (aprioriRecs != null && aprioriRecs.Any())
+            {
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="bg-white rounded-3 p-4 shadow-sm border border-warning">
+                            <h5 class="fw-bold mb-3 text-warning"><i class="bi bi-stars"></i> Có thể bạn sẽ cần</h5>
+                            <div class="d-flex flex-nowrap overflow-auto py-2" style="gap: 15px;">
+                                @foreach (var rec in aprioriRecs)
+                                {
+                                    <div class="card h-100 border-0 shadow-sm" style="min-width: 140px; max-width: 140px;">
+                                        <a href="/chi-tiet-san-pham/@rec.BookId" class="text-decoration-none text-dark">
+                                            <img src="@(rec.ImageUrl ?? "/images/default-book.png")" class="card-img-top rounded" alt="@rec.Title" style="height: 180px; object-fit: cover;">
+                                            <div class="card-body p-2 text-center">
+                                                <small class="d-block text-truncate fw-bold mb-1" title="@rec.Title">@rec.Title</small>
+                                                <span class="text-danger fw-bold small">@rec.Price.ToString("#,##0") đ</span>
+                                            </div>
+                                        </a>
+                                        <div class="card-footer bg-transparent border-0 p-2 pt-0 text-center">
+                                            <form action="/Cart/Add" method="post">
+                                                <input type="hidden" name="id" value="@rec.BookId" />
+                                                <input type="hidden" name="quantity" value="1" />
+                                                <button type="submit" class="btn btn-sm btn-outline-warning w-100">Thêm vào giỏ</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
     }
 
     <!-- Login Prompt Modal -->
